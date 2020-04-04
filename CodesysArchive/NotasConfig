@@ -1,0 +1,14 @@
+Deixo nesta pasta o archive do codesys com o projeto criado.
+
+Para importar basta no codesys ir a:
+File -> Project Archive -> Extract Archive
+
+Criei todas os inputs e outputs como variáveis globais, e já dei  mapping de todas.
+Atribuí nomes com base nos ficheiro xls e pdf de descrição do simulador.
+Organizei a declaração das variáveis por tapetes, seguindo a ordem por que aparecem no fixheiro xls e de forma a que caso queiram 
+mudar a nomenclatura ou corrigir erros seja relativamente rápido.
+Testei se a maioria estava a funcionar, mas se virem alguma coisa mal avisem.
+Deixei um exemplo de um sfc que faz a carga e descarga de uma peça. Para testar basta correr o programa e por uma peça no tapete 
+de entrada do armazém.
+Também já fiz os primeiros passos da configuração da interface OPC UA, mas como não sabia que tipo e dados seriam necessários para
+já não avancei.
