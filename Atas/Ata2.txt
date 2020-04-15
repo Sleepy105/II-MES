@@ -1,0 +1,14 @@
+Fazer um dispatch simples
+Integrar tudo
+Começar a implementar outras maquinas 
+Perder 2 horas para atualizar arquitetura
+
+Fazer diagrama de gant (ver que tarefas ja estao feitas, que tarefas faltam fazer e fazer um calendario).
+
+Implementar comando request store que indica a existencia atual do armazem. Isso tem que ser enviado para o cliente que fez o pedido.
+-u enviar udp
+-w 1 é envia este pedido e fica à espera de resposta durante 1s
+
+o command5 é o que recebe o pedido entao temos de aumentar para receber a resposta.
+
+Quando houver cargas temos de ser nós a depositar manualmente. Tem de aparecer algures na base de dados que houve uma ordem de carga
