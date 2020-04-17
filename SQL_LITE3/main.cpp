@@ -56,7 +56,6 @@ Vai buscar a hora e a data atual e retorna no formato DD-MM-YYY HH:MM:SS
 int main()
 {
 	const char* dir = "C:\\Users\\andre\\Desktop\\sqltesteLIBGEN\\factory.db"; // Definir path da DB
-	sqlite3* DB;
 	checkDB(dir);
 	createDB(dir);
 	createTable(dir);
@@ -336,7 +335,6 @@ static int updateData(const char* s, string State, int Order_ID, string Time)
 static int deleteData(const char* s)
 {
 	sqlite3* DB;
-	char* messageError;
 	int exit = sqlite3_open(s, &DB);
 	string sql1 = "DELETE FROM Piece;";
 	sqlite3_exec(DB, sql1.c_str(), callback, NULL, NULL);
