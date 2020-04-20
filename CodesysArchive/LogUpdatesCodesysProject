@@ -1,3 +1,20 @@
+20/04/2020
+Alterações:
+-Correção de deadlocks (em particular aquele que identificamos na semana passada);
+-FB Pusher e tapetes de carga;
+-Sequência de carga de peças P1 e P2;
+-Generalização e + complexidade de alguns FB;
+
+Notas importantes:
+
+A correção daquele deadlock que falamos nos tapetes rotativos de acesso à maquina foi corrigido associando uma variavel de flag/semáforo chamada locked. Basicamente quando uma peça chega a um tapete rotativo à direita de uma máquina avalia se a peça tem de ir à maquina. Caso aconteça dá lock do tapete. Isto provoca que uma outra peça no tapete imediatamente antes do tap. rotativo só pode entrar se não puder ir à máquina. Caso tenha de ir à máquina tem de esperar que a maquina devolva a peça processada e dê unlock do tapete. O único senão desta implementação é que o tapete só faz isto para a máquina à sua esquerda. Isto é, por célula assume sempre que se vou processar uma peça ela tem de chegar pelo tapete à esquerda. Na saída já pode ir por qq lado, inclusive por outras máquinas. Comentem o que acham disso.
+
+Introduzi um array warehouse que guarda o nº de peças presentes e já dá update, quer no processamento quer na carga.
+
+Só faltam implementar cerca de metade do FB do pusher e os tapetes de descarga à sua direita; introduzir e ligar todos os FB (faltam duas células e o corredor do topo).
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
 11/04/2020
 Alterações em relação ao II09032020:
 
