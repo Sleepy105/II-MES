@@ -21,10 +21,10 @@
 #endif
 
 
-#include "../lib/open62541/plugins/include/open62541/client_config_default.h"
-#include "../lib/open62541/include/open62541/client_highlevel.h"
-#include "../lib/open62541/include/open62541/client_subscriptions.h"
-#include "../lib/open62541/plugins/include/open62541/plugin/log_stdout.h"
+#include "open62541/plugins/include/open62541/client_config_default.h"
+#include "open62541/include/open62541/client_highlevel.h"
+#include "open62541/include/open62541/client_subscriptions.h"
+#include "open62541/plugins/include/open62541/plugin/log_stdout.h"
 #include <string.h>
 #include <iostream>
 #include <string>

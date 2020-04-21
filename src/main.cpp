@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "UDPManager.cpp"
-#include "XMLParser.cpp"
+#include "UDPManager.hpp"
+#include "XMLParser.hpp"
 //#include "OPC-UA.cpp"
-#include "DBInterface.cpp"
+#include "DBInterface.hpp"
 
 #include "helpers.h"
 
@@ -69,26 +69,22 @@ int main (int argc, char const *argv[]) {
         std::cout << "!!!Failed to Connect to OPC-UA Master!!!" << std::endl;
     }*/
 
-    const char* dir = "C:\\Users\\andre\\Desktop\\sqltesteLIBGEN\\factory.db"; // Definir path da DB
+    const char* dir = "factory.db"; // Definir path da DB
 	checkDB(dir);
 	createDB(dir);
 	createTable(dir);
 	deleteData(dir);
 	int num_Order = 4;
-	string Type = "Transformation";
-	string State = "Waiting";
+	std::string Type = "Transformation";
+	std::string State = "Waiting";
 	char Initial_Piece[3] = "P1";
 	char Final_Piece[3] = "P5";
 	int Total_Pieces = 40;
 	int Deadline = 400;
-	string NewState = "Executing";
+	std::string NewState = "Executing";
 	insertDataOrder(dir, num_Order, Type, State, Initial_Piece, Final_Piece, Total_Pieces, Deadline, getDateTime());
 	insertDataPiece(dir, getOrder_ID(dir, Type, 4), 4, getDateTime());
 	updateData(dir, NewState, getOrder_ID(dir, Type, num_Order), getDateTime());
-
-
-
-
 
     // Wait for threads to close
     udp_worker.join();
