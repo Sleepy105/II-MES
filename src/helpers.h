@@ -1,5 +1,5 @@
-#ifndef __HELPERS__
-#define __HELPERS__
+#ifndef _HELPERS_H_
+#define _HELPERS_H_
 
 /* Compilers must hate me :) */
 
