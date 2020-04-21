@@ -1,6 +1,9 @@
 # Custom
 .build
 .vscode
+src/packages
+src/sqlite3.c
+*.db
 
 # Prerequisites
 *.d
