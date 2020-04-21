@@ -21,7 +21,7 @@ int main (int argc, char const *argv[]) {
     }
     char OpcUa_id[100] = {0};
     int result = fread (OpcUa_id,1,100,f);
-    
+
     /*OPCUA_Manager myManager("opc.tcp://127.0.0.1:4840", OpcUa_id, 4);
 
     if (myManager.Is_Connected()) {

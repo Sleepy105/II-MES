@@ -21,10 +21,10 @@
 #endif
 
 
-#include "lib/open62541/plugins/include/open62541/client_config_default.h"
-#include "lib/open62541/include/open62541/client_highlevel.h"
-#include "lib/open62541/include/open62541/client_subscriptions.h"
-#include "lib/open62541/plugins/include/open62541/plugin/log_stdout.h"
+#include "../lib/open62541/plugins/include/open62541/client_config_default.h"
+#include "../lib/open62541/include/open62541/client_highlevel.h"
+#include "../lib/open62541/include/open62541/client_subscriptions.h"
+#include "../lib/open62541/plugins/include/open62541/plugin/log_stdout.h"
 #include <string.h>
 #include <iostream>
 #include <string>
@@ -205,7 +205,7 @@ public:
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
 
-    // escrever caminho que a peça vai percorrer
+    // escrever caminho que a peï¿½a vai percorrer
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
     for (uint16_t i = 0; i < 59; i++) {
         path_UA[i] = path[i];
@@ -237,7 +237,7 @@ public:
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
 
-    // escrever tipo de peça na variável da Warehouse para despoletar a saída da peça
+    // escrever tipo de peï¿½a na variï¿½vel da Warehouse para despoletar a saï¿½da da peï¿½a
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
@@ -275,57 +275,3 @@ typedef struct {
     uint16_t id_piece;
     uint16_t type_piece;
 }piece_object;
-
-
-int main()
-{
-
-    OPCUA_Manager myManager("opc.tcp://127.0.0.1:4840","|var|CODESYS Control Win V3 x64.Application.",4);
-
-    if (myManager.Is_Connected()) {
-
-        piece_object peca;
-        peca.id_piece = 1;
-        peca.transformation = 4;
-        peca.type_piece = 6;
-        for (uint16_t i = 0; i < 59; i++) {
-            peca.path[i] = 0;
-        }
-        peca.path[0] = RIGHT;
-        peca.path[1] = RIGHT;
-        peca.path[2] = DOWN;
-        peca.path[3] = DOWN;
-        peca.path[4] = RIGHT;
-        peca.path[5] = LEFT;
-        peca.path[6] = DOWN;
-        peca.path[7] = DOWN;
-        peca.path[8] = DOWN;
-        peca.path[9] = DOWN;
-        peca.path[10] = LEFT;
-        peca.path[11] = LEFT;
-
-        myManager.SendPieceOPC_UA(peca.path, peca.transformation, peca.id_piece, peca.type_piece, 1);
-        std::cout << "Press ENTER to send next piece..." << std::endl;
-        std::string aux;
-
-        peca.path[0] = RIGHT;
-        peca.path[1] = RIGHT;
-        peca.path[2] = DOWN;
-        peca.path[3] = DOWN;
-        peca.path[4] = LEFT;
-        peca.path[5] = RIGHT;
-        peca.path[6] = DOWN;
-        peca.path[7] = DOWN;
-        peca.path[8] = DOWN;
-        peca.path[9] = DOWN;
-        peca.path[10] = LEFT;
-        peca.path[11] = LEFT;
-        std::getline(std::cin, aux);
-        myManager.SendPieceOPC_UA(peca.path, peca.transformation, peca.id_piece, peca.type_piece, 1);
-    }
-    else {
-        std::cout << "!!!Failed to Connect to OPC-UA Master!!!" << std::endl;
-    }
-
-    return 0;
-}
