@@ -20,6 +20,11 @@ class XMLParser {
 private:
     static int xml_to_int(const char* xml);
     static uint32_t xml_to_uint32(const char* xml);
+
+    static bool parse_Transformation(uint8_t order_id, XMLElement* transform);
+    static bool parse_Unload(uint8_t order_id, XMLElement* unload);
+    static bool parse_RequestStores(uint8_t order_id, XMLElement* request_stores);
+    static void handleParsingError();
 public:
     XMLParser(/* args */);
     ~XMLParser();
@@ -42,24 +47,54 @@ void XMLParser::parseString(std::string str) {
         
         XMLElement* transform = order->FirstChildElement("Transform");
         if (transform) {
-            uint32_t max_delay = (uint32_t)xml_to_int(transform->Attribute("MaxDelay"));
-            auto order = new Order::BaseOrder(order_id, ORDER_TYPE_TRANSFORMATON);
+            if (!parse_Transformation(order_id, transform)) {
+                handleParsingError();
+            }
             continue;
         }
 
         XMLElement* unload = order->FirstChildElement("Unload");
         if (unload) {
-            uint32_t max_delay = (uint32_t)xml_to_int(unload->Attribute("MaxDelay"));
-            auto order = new Order::BaseOrder(order_id, ORDER_TYPE_UNLOAD);
+            if (!parse_Unload(order_id, unload)) {
+                handleParsingError();
+            }
             continue;
         }
 
         XMLElement* request_stores = order->FirstChildElement("Request_Stores");
         if (request_stores) {
-            auto order = new Order::BaseOrder(order_id, ORDER_TYPE_REQUESTSTORES);
+            if (!parse_RequestStores(order_id, request_stores)) {
+                handleParsingError();
+            }
             continue;
         }
     }
+}
+
+bool XMLParser::parse_Transformation(uint8_t order_id, XMLElement* transform) {
+    uint32_t max_delay = (uint32_t)xml_to_int(transform->Attribute("MaxDelay"));
+    auto order = new Order::BaseOrder(order_id, ORDER_TYPE_TRANSFORMATON);
+    return true;
+}
+
+bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {
+    uint32_t max_delay = (uint32_t)xml_to_int(unload->Attribute("MaxDelay"));
+    auto order = new Order::BaseOrder(order_id, ORDER_TYPE_UNLOAD);
+    return true;
+}
+
+bool XMLParser::parse_RequestStores(uint8_t order_id, XMLElement* request_stores) {
+    auto order = new Order::BaseOrder(order_id, ORDER_TYPE_REQUESTSTORES);
+    return true;
+}
+
+void XMLParser::handleParsingError() {
+    /**
+     *  TODO: Handle parsing errors. Should send a message back through UDP
+     *
+     */
+
+    return;
 }
 
 int XMLParser::xml_to_int(const char* xml) {
