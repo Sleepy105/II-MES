@@ -1,63 +1,154 @@
-/* 
-C++ SQLITE
-*/
-#include <string>
-#include <iostream>
-#include <stdio.h>
-#include <sqlite3.h>
-#include <time.h>
-using namespace std;
+/**
+ * @file DBInterface.cpp
+ * @brief 
+ * @version 0.1
+ * @date 2020-04-21
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
 
-#include "helpers.h"
+#include "DBInterface.hpp"
 
-static int checkDB(const char* s); //Verifica se a DB ja existe
-static int createDB(const char* s);  // Cria DB
-static int createTable(const char* s); //Cria Tabelas
-static int insertDataOrder(const char* s, int Order_Number, string Type, string State, string Initial_Piece, string Final_Piece, int Total_Pieces, int Deadline, string Entry_Time);
-/*
-Insere informa��o de uma Ordem. 
-Order_Number: Numero da ordem. Se a Ordem for carga de pe�a ent�o Order_Number = -1
-Type: So pode ser: Transformation, Dispatch, Incoming
-State: So pode ser: Waiting, Executing, Finished
-Initial_Piece: E a peca inicial
-Final_Piece: E a peca final, se for carga ou descarga representa a mesma pe�a que a inicial
-Total_Pieces: Numero total de pecas em questao, se for carga e 1
-DeadLine: Se for carga ou descarga e -1, este valor representa segundos
-Entry_Time: Hora de entrada do pedido. Se for carga a ordem de entrada e come�o de execu��o e o state � logo executing
-Se for tipo Incoming, a seguir a esta fun��o tem que se chamar a insertDataPiece
-*/
-static int insertDataPiece(const char* s, int Order_ID, int Order_Number, string Execution_Start);
-/*
-Insere informacao quando uma pe�a vai para a f�brica, esta pode ser descarga, transforma�ao ou carga.
-Se for carga, esta � chamada logo a seguir � inserDataOrder, logo o ID � o ultimo ID adicionado com tipo Incoming
-*/
-static int updateDataPiece(const char* s, int Piece_ID, string Execution_END);
-/*
-Insere a hora em que a pe�a saiu da fabrica, ou porque entrou no armaz�m, ou porque foi descarregada, � necessario saber o ID da peca em questao
-*/
-static int getOrder_ID(const char* s, string type, int Order_Number);
-/*
-Procura o Order ID com um determinado numero de ordem, se for do tipo incoming retorna o ultimo id
-*/
-static int callback_id(void* id, int argc, char** argv, char** azColName);
-/*
-Fun�ao necessaria para fazer interface com DB quando se pede um valor da DB
-*/
-static int callback(void* Notused, int argc, char** argv, char** azColName);
-static int updateData(const char* s, string State, int Order_ID, string Time);
-/*
-Faz update da informacao: Se for incoming so pode ser para finished e escreve no tempo de fim 
-Se o state for executing escreve no tempo de start executing
-Se o state for finished escreve no tempo de end time.
-*/
-static int deleteData(const char* s);
-string getDateTime();
+int insertDataPiece(const char* s, int Order_ID, int Order_Number, std::string Execution_Start) {
+	sqlite3* DB;
+	char* messageError;
+	int exit = sqlite3_open(s, &DB);
+	std::string sql = ("INSERT INTO Piece(ID_ORDER, Order_Number, Execution_Start) VALUES(" \
+		+ std::to_string(Order_ID) + " ," \
+		+ std::to_string(Order_Number) + " ," \
+		+ "'" + Execution_Start + "'" \
+		+ ");");
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	if (exit != SQLITE_OK)
+	{
+		log(ERROR) << "Error Insert" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		log(INFO) << "Records created Successfully" << std::endl;
+	sqlite3_close(DB);
+	return 0;
+}
+
+
+int updateDataPiece(const char* s, int Piece_ID, std::string Execution_END) {
+	sqlite3* DB;
+	char* messageError;
+	int exit = sqlite3_open(s, &DB);
+	std::string sql = ("UPDATE Piece SET Execution_END = '" + Execution_END + "' WHERE ID = " + std::to_string(Piece_ID));
+
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	if (exit != SQLITE_OK)
+	{
+		log(ERROR) << "Error Insert" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		log(INFO) << "Records created Successfully" << std::endl;
+	sqlite3_close(DB);
+	return 0;
+}
+
+
+int getOrder_ID(const char* s, std::string type, int Order_Number) {
+	sqlite3* DB;
+	int exit = sqlite3_open(s, &DB);
+	int id = 0;
+	std::string sql;
+	if (type == "Transformation" || type == "Dispatch")
+	{
+		sql = "SELECT ID FROM ORDERS WHERE Order_Number = " \
+			+ std::to_string(Order_Number) + " AND Type = '" + type + "';";
+	}
+	else if (type == "Incoming")
+	{
+		sql = "SELECT ID FROM ORDERS WHERE Type = 'Incoming' ORDER BY ID DESC LIMIT 1;";
+	}
+	/* An open database, SQL to be evaluated, callback function, 1st argument to callback, error msg written here*/
+	exit = sqlite3_exec(DB, sql.c_str(), callback_id, &id, NULL);
+	if (exit != SQLITE_OK) {
+		log(ERROR) << "Error in select statement " << std::endl;
+	}
+	else {
+		log(INFO) << "Records returned" << std::endl;
+	}
+	return id;
+}
+
+
+int callback_id(void* id, int argc, char** argv, char** azColName) {
+	int *c = static_cast<int *>(id);
+	*c = atoi(argv[0]);
+	return 0;
+}
+
+
+// note that callback is called each time with the information of row
+// if we have 6 rows, callback it will be called 6 times
+// retrieve contens of database used by selectData()
+/* argc: holds the number of results, azColName: holds each column returned in array, argv: holds each value in array*/
+int callback(void* NotUsed, int argc, char** argv, char** azColName) {
+	for (int i = 0; i < argc; i++) {
+		//column name and value
+		log(INFO) << azColName[i] << ": " << argv[i] << std::endl;
+	}
+	return 0;
+}
+
+
+int updateData(const char* s, std::string State, int Order_ID, std::string Time) {
+	sqlite3* DB;
+	char* messageError;
+	int exit = sqlite3_open(s, &DB);
+	std::string sql1;
+	std::string sql = ("UPDATE ORDERS SET State = '" + State + "' WHERE ID = " + std::to_string(Order_ID));
+
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	if (exit != SQLITE_OK)
+	{
+		log(ERROR) << "Error Insert" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		log(INFO) << "Records created Successfully" << std::endl;
+	if (State == "Finished")
+	{
+		sql1 = ("UPDATE ORDERS SET End_Time = '" + Time + "' WHERE ID = " + std::to_string(Order_ID));
+	}
+	else if (State == "Executing")
+	{
+		sql1 = ("UPDATE ORDERS SET Execution_Start = '" + Time + "' WHERE ID = " + std::to_string(Order_ID));
+	}
+	exit = sqlite3_exec(DB, sql1.c_str(), NULL, 0, &messageError);
+	if (exit != SQLITE_OK)
+	{
+		log(ERROR) << "Error Insert" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		log(INFO) << "Records created Successfully" << std::endl;
+	sqlite3_close(DB);
+	return 0;
+}
+
+
+int deleteData(const char* s) {
+	sqlite3* DB;
+	int exit = sqlite3_open(s, &DB);
+	std::string sql1 = "DELETE FROM Piece;";
+	sqlite3_exec(DB, sql1.c_str(), callback, NULL, NULL);
+	std::string sql = "DELETE FROM ORDERS;";
+	sqlite3_exec(DB, sql.c_str(), callback, NULL, NULL);
+	return 0;
+}
+
+
 /*
 Vai buscar a hora e a data atual e retorna no formato DD-MM-YYY HH:MM:SS
 */
-string getDateTime()
-{
-	string Date;
+std::string getDateTime() {
+	std::string Date;
 	time_t current_time;
 	struct tm  local_time;
 
@@ -72,17 +163,18 @@ string getDateTime()
 	int Hour = local_time.tm_hour;
 	int Min = local_time.tm_min;
 	int Sec = local_time.tm_sec;
-	Date = to_string(Day) + "-" + to_string(Month) + "-" + to_string(Year) + " " + to_string(Hour) + ":" + to_string(Min) + ":" + to_string(Sec);
+	Date = std::to_string(Day) + "-" + std::to_string(Month) + "-" + std::to_string(Year) + " " + std::to_string(Hour) + ":" + std::to_string(Min) + ":" + std::to_string(Sec);
 	return Date;
 }
-static int checkDB(const char* s) 
-{
+
+
+int checkDB(const char* s) {
 	sqlite3* DB;
 	int exit = 0;
 
 	exit = sqlite3_open_v2(s, &DB, SQLITE_OPEN_READONLY, NULL); 
 	if (exit) {
-		std::cerr << "Does not exist " << sqlite3_errmsg(DB) << std::endl;
+		log(ERROR) << "Does not exist " << sqlite3_errmsg(DB) << std::endl;
 		return (-1);
 	}
 	else
@@ -91,13 +183,14 @@ static int checkDB(const char* s)
 
 	return 0;
 }
-static int createDB(const char* s)
-{
+
+
+int createDB(const char* s) {
 	sqlite3* DB;
 	int exit = 0;
 	exit = sqlite3_open(s, &DB);
 	if (exit) {
-		std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
+		log(ERROR) << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
 		return (-1);
 	}
 	else
@@ -106,10 +199,11 @@ static int createDB(const char* s)
 
 	return 0;
 }
-static int createTable(const char* s)
-{
+
+
+int createTable(const char* s) {
 	sqlite3* DB;
-	string sql = ("CREATE TABLE IF NOT EXISTS ORDERS(" \
+	std::string sql = ("CREATE TABLE IF NOT EXISTS ORDERS(" \
 		"ID INTEGER PRIMARY KEY AUTOINCREMENT, " \
 		"Order_Number INT, " \
 		"Type TEXT NOT NULL CHECK(Type ='Transformation' OR Type ='Dispatch' OR Type = 'Incoming'), " \
@@ -137,36 +231,37 @@ static int createTable(const char* s)
 		exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 		if (exit != SQLITE_OK)
 		{
-			cerr << "Error Create Table" << endl;
+			log(ERROR) << "Error Create Table" << std::endl;
 			sqlite3_free(messageError);
 		}
 		else
-			log(INFO) << "Table created Successfully" << endl;
+			log(INFO) << "Table created Successfully" << std::endl;
 		sqlite3_close(DB);
 	}
-	catch (const exception& e)
+	catch (const std::exception e)
 	{
-		cerr << e.what();
+		log(ERROR) << e.what();
 	}
 	return 0;
 }
-static int insertDataOrder(const char* s, int Order_Number, string Type, string State,  string Initial_Piece, string Final_Piece, int Total_Pieces, int Deadline, string Entry_Time)
-{
+
+
+int insertDataOrder(const char* s, int Order_Number, std::string Type, std::string State,  std::string Initial_Piece, std::string Final_Piece, int Total_Pieces, int Deadline, std::string Entry_Time) {
 	sqlite3* DB;
 	char* messageError;
 	int exit = sqlite3_open(s, &DB);
-	string sql;
+	std::string sql;
 	if (Type == "Incoming")
 	{
 		sql = ("INSERT INTO ORDERS (Order_Number, Type, State, Initial_Piece, Final_Piece, Total_Number_Pieces, Deadline, Entry_Time, Execution_Start)" \
 			" VALUES(" \
-			+ to_string(Order_Number) + " ," \
+			+ std::to_string(Order_Number) + " ," \
 			+ "'" + Type + "'" + " ," \
 			+ "'" + "Executing" + "'" + " ," \
 			+ "'" + Initial_Piece + "'" + " ," \
 			+ "'" + Final_Piece + "'" + " ," \
-			+ to_string(Total_Pieces) + " ," \
-			+ "'" + to_string(Deadline) + "'" + " ," \
+			+ std::to_string(Total_Pieces) + " ," \
+			+ "'" + std::to_string(Deadline) + "'" + " ," \
 			+ "'" + Entry_Time + "' ," \
 			+ "'" + Entry_Time + "'" \
 			+ ");");
@@ -175,151 +270,24 @@ static int insertDataOrder(const char* s, int Order_Number, string Type, string 
 	{
 		sql = ("INSERT INTO ORDERS (Order_Number, Type, State, Initial_Piece, Final_Piece, Total_Number_Pieces, Deadline, Entry_Time)" \
 			" VALUES(" \
-			+ to_string(Order_Number) + " ," \
+			+ std::to_string(Order_Number) + " ," \
 			+ "'" + Type + "'" + " ," \
 			+ "'" + State + "'" + " ," \
 			+ "'" + Initial_Piece + "'" + " ," \
 			+ "'" + Final_Piece + "'" + " ," \
-			+ to_string(Total_Pieces) + " ," \
-			+ "'" + to_string(Deadline) + "'" + " ," \
+			+ std::to_string(Total_Pieces) + " ," \
+			+ "'" + std::to_string(Deadline) + "'" + " ," \
 			+ "'" + Entry_Time + "'" \
 			+ ");");
 	}
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK)
 	{
-		cerr << "Error Insert" << endl;
+		log(ERROR) << "Error Insert" << std::endl;
 		sqlite3_free(messageError);
 	}
 	else
-		log(INFO) << "Records created Successfully" << endl; 
+		log(INFO) << "Records created Successfully" << std::endl; 
 	sqlite3_close(DB);
-	return 0;
-}
-static int insertDataPiece(const char* s, int Order_ID, int Order_Number, string Execution_Start)
-{
-	sqlite3* DB;
-	char* messageError;
-	int exit = sqlite3_open(s, &DB);
-	string sql = ("INSERT INTO Piece(ID_ORDER, Order_Number, Execution_Start) VALUES(" \
-		+ to_string(Order_ID) + " ," \
-		+ to_string(Order_Number) + " ," \
-		+ "'" + Execution_Start + "'" \
-		+ ");");
-	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
-	if (exit != SQLITE_OK)
-	{
-		cerr << "Error Insert" << endl;
-		sqlite3_free(messageError);
-	}
-	else
-		log(INFO) << "Records created Successfully" << endl;
-	sqlite3_close(DB);
-	return 0;
-}
-static int updateDataPiece(const char* s, int Piece_ID, string Execution_END)
-{
-	sqlite3* DB;
-	char* messageError;
-	int exit = sqlite3_open(s, &DB);
-	string sql = ("UPDATE Piece SET Execution_END = '" + Execution_END + "' WHERE ID = " + to_string(Piece_ID));
-
-	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
-	if (exit != SQLITE_OK)
-	{
-		cerr << "Error Insert" << endl;
-		sqlite3_free(messageError);
-	}
-	else
-		log(INFO) << "Records created Successfully" << endl;
-	sqlite3_close(DB);
-	return 0;
-}
-static int getOrder_ID(const char* s, string type, int Order_Number)
-{
-	sqlite3* DB;
-	int exit = sqlite3_open(s, &DB);
-	int id = 0;
-	string sql;
-	if (type == "Transformation" || type == "Dispatch")
-	{
-		sql = "SELECT ID FROM ORDERS WHERE Order_Number = " \
-			+ to_string(Order_Number) + " AND Type = '" + type + "';";
-	}
-	else if (type == "Incoming")
-	{
-		sql = "SELECT ID FROM ORDERS WHERE Type = 'Incoming' ORDER BY ID DESC LIMIT 1;";
-	}
-	/* An open database, SQL to be evaluated, callback function, 1st argument to callback, error msg written here*/
-	exit = sqlite3_exec(DB, sql.c_str(), callback_id, &id, NULL);
-	if (exit != SQLITE_OK) {
-		log(ERROR) << "Error in select statement " << endl;
-	}
-	else {
-		log(INFO) << "Records returned" << endl;
-	}
-	return id;
-}
-static int callback_id(void* id, int argc, char** argv, char** azColName)
-{
-	int *c = static_cast<int *>(id);
-	*c = atoi(argv[0]);
-	return 0;
-}
-// note that callback is called each time with the information of row
-// if we have 6 rows, callback it will be called 6 times
-// retrieve contens of database used by selectData()
-/* argc: holds the number of results, azColName: holds each column returned in array, argv: holds each value in array*/
-static int callback(void* NotUsed, int argc, char** argv, char** azColName)
-{
-	for (int i = 0; i < argc; i++) {
-		//column name and value
-		log(INFO) << azColName[i] << ": " << argv[i] << endl;
-	}
-	return 0;
-}
-static int updateData(const char* s, string State, int Order_ID, string Time)
-{
-	sqlite3* DB;
-	char* messageError;
-	int exit = sqlite3_open(s, &DB);
-	string sql1;
-	string sql = ("UPDATE ORDERS SET State = '" + State + "' WHERE ID = " + to_string(Order_ID));
-
-	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
-	if (exit != SQLITE_OK)
-	{
-		cerr << "Error Insert" << endl;
-		sqlite3_free(messageError);
-	}
-	else
-		log(INFO) << "Records created Successfully" << endl;
-	if (State == "Finished")
-	{
-		sql1 = ("UPDATE ORDERS SET End_Time = '" + Time + "' WHERE ID = " + to_string(Order_ID));
-	}
-	else if (State == "Executing")
-	{
-		sql1 = ("UPDATE ORDERS SET Execution_Start = '" + Time + "' WHERE ID = " + to_string(Order_ID));
-	}
-	exit = sqlite3_exec(DB, sql1.c_str(), NULL, 0, &messageError);
-	if (exit != SQLITE_OK)
-	{
-		cerr << "Error Insert" << endl;
-		sqlite3_free(messageError);
-	}
-	else
-		log(INFO) << "Records created Successfully" << endl;
-	sqlite3_close(DB);
-	return 0;
-}
-static int deleteData(const char* s)
-{
-	sqlite3* DB;
-	int exit = sqlite3_open(s, &DB);
-	string sql1 = "DELETE FROM Piece;";
-	sqlite3_exec(DB, sql1.c_str(), callback, NULL, NULL);
-	string sql = "DELETE FROM ORDERS;";
-	sqlite3_exec(DB, sql.c_str(), callback, NULL, NULL);
 	return 0;
 }
