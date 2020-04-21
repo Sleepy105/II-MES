@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include "helpers.h"
+
 #define UDPMANAGER_DEFAULT_BUFFER_SIZE 2000
 
 class UDPManager {
@@ -62,7 +64,7 @@ UDPManager::UDPManager(uint16_t port, uint32_t buffer_size) : port(port), buffer
     socket_fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     if (socket_fd < 0) {
-        std::cout << "Socket creation failed." << std::endl;
+        log(ERROR) << "Socket creation failed." << std::endl;
     }
     
     serverlen = sizeof(server);
@@ -73,15 +75,15 @@ UDPManager::UDPManager(uint16_t port, uint32_t buffer_size) : port(port), buffer
     server.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(socket_fd, (sockaddr*)&server,serverlen)) {
-        std::cout << "Bind Failed." << std::endl;
+        log(ERROR) << "Bind Failed." << std::endl;
     }
 
     buffer = (char*)calloc(buffer_size, sizeof(char));
     if (!buffer) {
-        std::cout << "Buffer allocation Failed." << std::endl;
+        log(ERROR) << "Buffer allocation Failed." << std::endl;
     }
 
-    std::cout << "Online." << std::endl;
+    log(INFO) << "Online" << std::endl;
 }
 
 UDPManager::UDPManager(uint16_t port) : UDPManager(port, UDPMANAGER_DEFAULT_BUFFER_SIZE) {}
@@ -106,5 +108,5 @@ void UDPManager::_worker(void (*callback)(std::string)) {
         }
     }
 
-    std::cout << "ERROR READING FROM SOCKET" << std::endl;
+    log(ERROR) << "Error reading from Socket." << std::endl;
 }

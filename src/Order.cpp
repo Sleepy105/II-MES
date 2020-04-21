@@ -12,6 +12,8 @@
 #include <iostream>
 #include <chrono>
 
+#include "helpers.h"
+
 namespace Order {
     class BaseOrder;
     uint8_t ORDER_TYPE_TRANSFORMATON = 0;
@@ -35,7 +37,7 @@ public:
 };
 
 BaseOrder::BaseOrder(uint8_t order_id, uint8_t order_type) : order_id(order_id), order_type(order_type) {
-    std::cout << "ORDER " << std::to_string(order_id) << " created." << std::endl;
+    log(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
 }
 
 BaseOrder::~BaseOrder() {
