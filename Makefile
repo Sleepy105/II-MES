@@ -17,7 +17,7 @@ INC_DIRS += lib
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
-LDFLAGS ?= -pthread -lsqlite3
+LDFLAGS ?= -pthread -lsqlite3 -lopen62541
 
 
 $(TARGET_EXEC): $(OBJS)
