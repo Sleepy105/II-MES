@@ -8,29 +8,8 @@
  * 
  */
 
-#include <iostream>
-#include <sstream>
-
-#include "../lib/tinyxml2/tinyxml2.h"
+#include "XMLParser.hpp"
 using namespace tinyxml2;
-
-#include "Order.cpp"
-
-class XMLParser {
-private:
-    static int xml_to_int(const char* xml);
-    static uint32_t xml_to_uint32(const char* xml);
-
-    static bool parse_Transformation(uint8_t order_id, XMLElement* transform);
-    static bool parse_Unload(uint8_t order_id, XMLElement* unload);
-    static bool parse_RequestStores(uint8_t order_id, XMLElement* request_stores);
-    static void handleParsingError();
-public:
-    XMLParser(/* args */);
-    ~XMLParser();
-
-    static void parseString(std::string str);
-};
 
 XMLParser::XMLParser(/* args */) {
 }
@@ -73,18 +52,18 @@ void XMLParser::parseString(std::string str) {
 
 bool XMLParser::parse_Transformation(uint8_t order_id, XMLElement* transform) {
     uint32_t max_delay = (uint32_t)xml_to_int(transform->Attribute("MaxDelay"));
-    auto order = new Order::BaseOrder(order_id, ORDER_TYPE_TRANSFORMATON);
+    auto order = new Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON);
     return true;
 }
 
 bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {
     uint32_t max_delay = (uint32_t)xml_to_int(unload->Attribute("MaxDelay"));
-    auto order = new Order::BaseOrder(order_id, ORDER_TYPE_UNLOAD);
+    auto order = new Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD);
     return true;
 }
 
 bool XMLParser::parse_RequestStores(uint8_t order_id, XMLElement* request_stores) {
-    auto order = new Order::BaseOrder(order_id, ORDER_TYPE_REQUESTSTORES);
+    auto order = new Order::BaseOrder(order_id, Order::ORDER_TYPE_REQUESTSTORES);
     return true;
 }
 
