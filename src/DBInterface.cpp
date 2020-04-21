@@ -8,30 +8,32 @@ C++ SQLITE
 #include <time.h>
 using namespace std;
 
-static int checkDB(const char* s); //Verifica se a DB j� existe
+#include "helpers.h"
+
+static int checkDB(const char* s); //Verifica se a DB ja existe
 static int createDB(const char* s);  // Cria DB
 static int createTable(const char* s); //Cria Tabelas
 static int insertDataOrder(const char* s, int Order_Number, string Type, string State, string Initial_Piece, string Final_Piece, int Total_Pieces, int Deadline, string Entry_Time);
 /*
 Insere informa��o de uma Ordem. 
 Order_Number: Numero da ordem. Se a Ordem for carga de pe�a ent�o Order_Number = -1
-Type: S� pode ser: Transformation, Dispatch, Incoming
-State: S� pode ser: Waiting, Executing, Finished
-Initial_Piece: � a pe�a inicial
-Final_Piece: � a pe�a final, se for carga ou descarga representa a mesma pe�a que a inicial
-Total_Pieces: N�mero total de pe�as em quest�o, se for carga � 1
-DeadLine: Se for carga ou descarga � -1, este valor representa segundos
+Type: So pode ser: Transformation, Dispatch, Incoming
+State: So pode ser: Waiting, Executing, Finished
+Initial_Piece: E a peca inicial
+Final_Piece: E a peca final, se for carga ou descarga representa a mesma pe�a que a inicial
+Total_Pieces: Numero total de pecas em questao, se for carga e 1
+DeadLine: Se for carga ou descarga e -1, este valor representa segundos
 Entry_Time: Hora de entrada do pedido. Se for carga a ordem de entrada e come�o de execu��o e o state � logo executing
 Se for tipo Incoming, a seguir a esta fun��o tem que se chamar a insertDataPiece
 */
 static int insertDataPiece(const char* s, int Order_ID, int Order_Number, string Execution_Start);
 /*
-Insere informa��o quando uma pe�a vai para a f�brica, esta pode ser descarga, transforma�ao ou carga.
+Insere informacao quando uma pe�a vai para a f�brica, esta pode ser descarga, transforma�ao ou carga.
 Se for carga, esta � chamada logo a seguir � inserDataOrder, logo o ID � o ultimo ID adicionado com tipo Incoming
 */
 static int updateDataPiece(const char* s, int Piece_ID, string Execution_END);
 /*
-Insere a hora em que a pe�a saiu da f�brica, ou porque entrou no armaz�m, ou porque foi descarregada, � necess�rio saber o ID da pe�a em quest�o
+Insere a hora em que a pe�a saiu da fabrica, ou porque entrou no armaz�m, ou porque foi descarregada, � necessario saber o ID da peca em questao
 */
 static int getOrder_ID(const char* s, string type, int Order_Number);
 /*
@@ -44,7 +46,7 @@ Fun�ao necessaria para fazer interface com DB quando se pede um valor da DB
 static int callback(void* Notused, int argc, char** argv, char** azColName);
 static int updateData(const char* s, string State, int Order_ID, string Time);
 /*
-Faz update da informa�ao: Se for incoming so pode ser para finished e escreve no tempo de fim 
+Faz update da informacao: Se for incoming so pode ser para finished e escreve no tempo de fim 
 Se o state for executing escreve no tempo de start executing
 Se o state for finished escreve no tempo de end time.
 */
@@ -84,7 +86,7 @@ static int checkDB(const char* s)
 		return (-1);
 	}
 	else
-		std::cout << "Database exists!" << std::endl;
+		log(INFO) << "Database exists!" << std::endl;
 	sqlite3_close(DB);
 
 	return 0;
@@ -99,7 +101,7 @@ static int createDB(const char* s)
 		return (-1);
 	}
 	else
-		std::cout << "Opened Database Successfully!" << std::endl;
+		log(INFO) << "Opened Database Successfully!" << std::endl;
 	sqlite3_close(DB);
 
 	return 0;
@@ -139,7 +141,7 @@ static int createTable(const char* s)
 			sqlite3_free(messageError);
 		}
 		else
-			cout << "Table created Successfully" << endl;
+			log(INFO) << "Table created Successfully" << endl;
 		sqlite3_close(DB);
 	}
 	catch (const exception& e)
@@ -190,7 +192,7 @@ static int insertDataOrder(const char* s, int Order_Number, string Type, string 
 		sqlite3_free(messageError);
 	}
 	else
-		cout << "Records created Successfully" << endl; 
+		log(INFO) << "Records created Successfully" << endl; 
 	sqlite3_close(DB);
 	return 0;
 }
@@ -211,7 +213,7 @@ static int insertDataPiece(const char* s, int Order_ID, int Order_Number, string
 		sqlite3_free(messageError);
 	}
 	else
-		cout << "Records created Successfully" << endl;
+		log(INFO) << "Records created Successfully" << endl;
 	sqlite3_close(DB);
 	return 0;
 }
@@ -229,7 +231,7 @@ static int updateDataPiece(const char* s, int Piece_ID, string Execution_END)
 		sqlite3_free(messageError);
 	}
 	else
-		cout << "Records created Successfully" << endl;
+		log(INFO) << "Records created Successfully" << endl;
 	sqlite3_close(DB);
 	return 0;
 }
@@ -251,10 +253,10 @@ static int getOrder_ID(const char* s, string type, int Order_Number)
 	/* An open database, SQL to be evaluated, callback function, 1st argument to callback, error msg written here*/
 	exit = sqlite3_exec(DB, sql.c_str(), callback_id, &id, NULL);
 	if (exit != SQLITE_OK) {
-		std::cerr << "Error in select statement " << endl;
+		log(ERROR) << "Error in select statement " << endl;
 	}
 	else {
-		std::cerr << "Records returned" << endl;
+		log(INFO) << "Records returned" << endl;
 	}
 	return id;
 }
@@ -272,9 +274,8 @@ static int callback(void* NotUsed, int argc, char** argv, char** azColName)
 {
 	for (int i = 0; i < argc; i++) {
 		//column name and value
-		cout << azColName[i] << ": " << argv[i] << endl;
+		log(INFO) << azColName[i] << ": " << argv[i] << endl;
 	}
-	cout << endl;
 	return 0;
 }
 static int updateData(const char* s, string State, int Order_ID, string Time)
@@ -292,7 +293,7 @@ static int updateData(const char* s, string State, int Order_ID, string Time)
 		sqlite3_free(messageError);
 	}
 	else
-		cout << "Records created Successfully" << endl;
+		log(INFO) << "Records created Successfully" << endl;
 	if (State == "Finished")
 	{
 		sql1 = ("UPDATE ORDERS SET End_Time = '" + Time + "' WHERE ID = " + to_string(Order_ID));
@@ -308,7 +309,7 @@ static int updateData(const char* s, string State, int Order_ID, string Time)
 		sqlite3_free(messageError);
 	}
 	else
-		cout << "Records created Successfully" << endl;
+		log(INFO) << "Records created Successfully" << endl;
 	sqlite3_close(DB);
 	return 0;
 }
