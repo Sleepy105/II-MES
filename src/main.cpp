@@ -3,7 +3,7 @@
 
 #include "UDPManager.hpp"
 #include "XMLParser.hpp"
-#include "OPC-UA.cpp"
+#include "OPC-UA.hpp"
 #include "DBInterface.hpp"
 
 #include "helpers.h"
@@ -47,7 +47,7 @@ int main (int argc, char const *argv[]) {
         peca.path[11] = LEFT;
 
         myManager.SendPieceOPC_UA(peca.path, peca.transformation, peca.id_piece, peca.type_piece, 1);
-        std::cout << "Press ENTER to send next piece..." << std::endl;
+        meslog(INFO) << "Press ENTER to send next piece..." << std::endl;
         std::string aux;
 
         peca.path[0] = RIGHT;
@@ -66,7 +66,7 @@ int main (int argc, char const *argv[]) {
         myManager.SendPieceOPC_UA(peca.path, peca.transformation, peca.id_piece, peca.type_piece, 1);
     }
     else {
-        std::cout << "!!!Failed to Connect to OPC-UA Master!!!" << std::endl;
+        meslog(ERROR) << "!!!Failed to Connect to OPC-UA Master!!!" << std::endl;
     }
 
     const char* dir = "factory.db"; // Definir path da DB

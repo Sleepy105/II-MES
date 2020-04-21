@@ -1,88 +1,55 @@
-// OPC-UA-Test.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+/**
+ * @brief 
+ * 
+ */
 
+#include "OPC-UA.hpp"
 
-//#define DEBUG_UA
-#define ASCII_NUMERAL_OFFSET 48
+OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index) {
+    _client = ServerConnect(URL);
+    _nodeIndex = index;
+    _BaseNodeID = BaseID;
+    if (!_client) {
+        _connected = false;
+    }
+    else {
+        _connected = true;
+    }
+}
 
-#define RIGHT   1
-#define DOWN    2
-#define LEFT    3
-#define UP      4
-#define PLACEHOLDER 0
+bool OPCUA_Manager::Is_Connected() const {
+    return _connected;
+}
 
+UA_Client* OPCUA_Manager::ServerConnect(const char* endpointURL) const {
+    UA_Client* client = UA_Client_new();
+    UA_ClientConfig_setDefault(UA_Client_getConfig(client));
 
-#ifndef TRUE
-#define TRUE 1
-#endif
+    UA_StatusCode retval = UA_Client_connect(client, endpointURL);
+    if (retval != UA_STATUSCODE_GOOD) {
+        UA_Client_delete(client);
+        return NULL;
+    }
+    return client;
+}
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-
-#include "open62541/plugins/include/open62541/client_config_default.h"
-#include "open62541/include/open62541/client_highlevel.h"
-#include "open62541/include/open62541/client_subscriptions.h"
-#include "open62541/plugins/include/open62541/plugin/log_stdout.h"
-#include <string.h>
-#include <iostream>
-#include <string>
-
-
-class OPCUA_Manager {
-private:
-    UA_Client *_client;
-    const char* _BaseNodeID;
-    int16_t _nodeIndex;
-    bool _connected;
-
-    UA_Client* ServerConnect(const char* endpointURL) const {
-        UA_Client* client = UA_Client_new();
-        UA_ClientConfig_setDefault(UA_Client_getConfig(client));
-
-        UA_StatusCode retval = UA_Client_connect(client, endpointURL);
-        if (retval != UA_STATUSCODE_GOOD) {
-            UA_Client_delete(client);
-            return NULL;
-        }
-        return client;
+void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
+    int aux = value, size, i;
+    for (size = 1; aux > 9; size = size * 10) {
+        aux = aux / 10;
     }
 
-    void ConvIntToString(char* string, uint16_t value) {
-        int aux = value, size, i;
-        for (size = 1; aux > 9; size = size * 10) {
-            aux = aux / 10;
-        }
-
-        for (i = 0; value > 9; i++) {
-            string[i] = (value / size) + ASCII_NUMERAL_OFFSET;
-            value = value - ((value / size) * size);
-            size = size / 10;
-        }
-        string[i] = (value % 10) + ASCII_NUMERAL_OFFSET;
-        string[i + 1] = 0;
+    for (i = 0; value > 9; i++) {
+        string[i] = (value / size) + ASCII_NUMERAL_OFFSET;
+        value = value - ((value / size) * size);
+        size = size / 10;
     }
+    string[i] = (value % 10) + ASCII_NUMERAL_OFFSET;
+    string[i + 1] = 0;
+}
 
-public:
-    OPCUA_Manager(const char* URL, const char* BaseID, int16_t index = 4) {
-        _client = ServerConnect(URL);
-        _nodeIndex = index;
-        _BaseNodeID = BaseID;
-        if (!_client) {
-            _connected = false;
-        }
-        else {
-            _connected = true;
-        }
-    }
 
-    bool Is_Connected() const {
-        return _connected;
-    }
-
-    bool SendPieceOPC_UA(uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index) {
-
+bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index) {
 #ifdef DEBUG_UA
     printf("\nWriting OBJECT type to master node (4, \"%s\")...\n", _BaseNodeID);
 #endif
@@ -265,13 +232,3 @@ public:
 
     return true;
 }
-
-};
-
-
-typedef struct {
-    uint16_t path[59];
-    uint16_t transformation;
-    uint16_t id_piece;
-    uint16_t type_piece;
-}piece_object;
