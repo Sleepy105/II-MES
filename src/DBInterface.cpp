@@ -22,11 +22,11 @@ int insertDataPiece(const char* s, int Order_ID, int Order_Number, std::string E
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK)
 	{
-		log(ERROR) << "Error Insert" << std::endl;
+		meslog(ERROR) << "Error Insert" << std::endl;
 		sqlite3_free(messageError);
 	}
 	else
-		log(INFO) << "Records created Successfully" << std::endl;
+		meslog(INFO) << "Records created Successfully" << std::endl;
 	sqlite3_close(DB);
 	return 0;
 }
@@ -41,11 +41,11 @@ int updateDataPiece(const char* s, int Piece_ID, std::string Execution_END) {
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK)
 	{
-		log(ERROR) << "Error Insert" << std::endl;
+		meslog(ERROR) << "Error Insert" << std::endl;
 		sqlite3_free(messageError);
 	}
 	else
-		log(INFO) << "Records created Successfully" << std::endl;
+		meslog(INFO) << "Records created Successfully" << std::endl;
 	sqlite3_close(DB);
 	return 0;
 }
@@ -68,10 +68,10 @@ int getOrder_ID(const char* s, std::string type, int Order_Number) {
 	/* An open database, SQL to be evaluated, callback function, 1st argument to callback, error msg written here*/
 	exit = sqlite3_exec(DB, sql.c_str(), callback_id, &id, NULL);
 	if (exit != SQLITE_OK) {
-		log(ERROR) << "Error in select statement " << std::endl;
+		meslog(ERROR) << "Error in select statement " << std::endl;
 	}
 	else {
-		log(INFO) << "Records returned" << std::endl;
+		meslog(INFO) << "Records returned" << std::endl;
 	}
 	return id;
 }
@@ -91,7 +91,7 @@ int callback_id(void* id, int argc, char** argv, char** azColName) {
 int callback(void* NotUsed, int argc, char** argv, char** azColName) {
 	for (int i = 0; i < argc; i++) {
 		//column name and value
-		log(INFO) << azColName[i] << ": " << argv[i] << std::endl;
+		meslog(INFO) << azColName[i] << ": " << argv[i] << std::endl;
 	}
 	return 0;
 }
@@ -107,11 +107,11 @@ int updateData(const char* s, std::string State, int Order_ID, std::string Time)
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK)
 	{
-		log(ERROR) << "Error Insert" << std::endl;
+		meslog(ERROR) << "Error Insert" << std::endl;
 		sqlite3_free(messageError);
 	}
 	else
-		log(INFO) << "Records created Successfully" << std::endl;
+		meslog(INFO) << "Records created Successfully" << std::endl;
 	if (State == "Finished")
 	{
 		sql1 = ("UPDATE ORDERS SET End_Time = '" + Time + "' WHERE ID = " + std::to_string(Order_ID));
@@ -123,11 +123,11 @@ int updateData(const char* s, std::string State, int Order_ID, std::string Time)
 	exit = sqlite3_exec(DB, sql1.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK)
 	{
-		log(ERROR) << "Error Insert" << std::endl;
+		meslog(ERROR) << "Error Insert" << std::endl;
 		sqlite3_free(messageError);
 	}
 	else
-		log(INFO) << "Records created Successfully" << std::endl;
+		meslog(INFO) << "Records created Successfully" << std::endl;
 	sqlite3_close(DB);
 	return 0;
 }
@@ -174,11 +174,11 @@ int checkDB(const char* s) {
 
 	exit = sqlite3_open_v2(s, &DB, SQLITE_OPEN_READONLY, NULL); 
 	if (exit) {
-		log(ERROR) << "Does not exist " << sqlite3_errmsg(DB) << std::endl;
+		meslog(ERROR) << "Does not exist " << sqlite3_errmsg(DB) << std::endl;
 		return (-1);
 	}
 	else
-		log(INFO) << "Database exists!" << std::endl;
+		meslog(INFO) << "Database exists!" << std::endl;
 	sqlite3_close(DB);
 
 	return 0;
@@ -190,11 +190,11 @@ int createDB(const char* s) {
 	int exit = 0;
 	exit = sqlite3_open(s, &DB);
 	if (exit) {
-		log(ERROR) << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
+		meslog(ERROR) << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
 		return (-1);
 	}
 	else
-		log(INFO) << "Opened Database Successfully!" << std::endl;
+		meslog(INFO) << "Opened Database Successfully!" << std::endl;
 	sqlite3_close(DB);
 
 	return 0;
@@ -231,16 +231,16 @@ int createTable(const char* s) {
 		exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 		if (exit != SQLITE_OK)
 		{
-			log(ERROR) << "Error Create Table" << std::endl;
+			meslog(ERROR) << "Error Create Table" << std::endl;
 			sqlite3_free(messageError);
 		}
 		else
-			log(INFO) << "Table created Successfully" << std::endl;
+			meslog(INFO) << "Table created Successfully" << std::endl;
 		sqlite3_close(DB);
 	}
 	catch (const std::exception e)
 	{
-		log(ERROR) << e.what();
+		meslog(ERROR) << e.what();
 	}
 	return 0;
 }
@@ -283,11 +283,11 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK)
 	{
-		log(ERROR) << "Error Insert" << std::endl;
+		meslog(ERROR) << "Error Insert" << std::endl;
 		sqlite3_free(messageError);
 	}
 	else
-		log(INFO) << "Records created Successfully" << std::endl; 
+		meslog(INFO) << "Records created Successfully" << std::endl; 
 	sqlite3_close(DB);
 	return 0;
 }

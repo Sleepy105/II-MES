@@ -3,7 +3,7 @@
 
 #include "UDPManager.hpp"
 #include "XMLParser.hpp"
-//#include "OPC-UA.cpp"
+#include "OPC-UA.cpp"
 #include "DBInterface.hpp"
 
 #include "helpers.h"
@@ -17,12 +17,12 @@ int main (int argc, char const *argv[]) {
 
     FILE* f = fopen("opc-ua-id.txt", "r");
     if (!f) {
-        log(ERROR) << "Couldn't open opc-ua-id.txt" << std::endl;
+        meslog(ERROR) << "Couldn't open opc-ua-id.txt" << std::endl;
     }
     char OpcUa_id[100] = {0};
     int result = fread (OpcUa_id,1,100,f);
 
-    /*OPCUA_Manager myManager("opc.tcp://127.0.0.1:4840", OpcUa_id, 4);
+    OPCUA_Manager myManager("opc.tcp://127.0.0.1:4840", OpcUa_id, 4);
 
     if (myManager.Is_Connected()) {
 
@@ -67,7 +67,7 @@ int main (int argc, char const *argv[]) {
     }
     else {
         std::cout << "!!!Failed to Connect to OPC-UA Master!!!" << std::endl;
-    }*/
+    }
 
     const char* dir = "factory.db"; // Definir path da DB
 	checkDB(dir);

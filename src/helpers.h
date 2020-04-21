@@ -7,7 +7,7 @@
 #define ERROR "error"
 #define WARNING "warning"
 
-#define log(type) log_##type meta_log
+#define meslog(type) log_##type meta_log
 
 #define log_INFO std::cout << INFO 
 #define log_ERROR std::cerr << ERROR 
