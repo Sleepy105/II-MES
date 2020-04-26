@@ -22,6 +22,10 @@ C++ SQLITE
 
 #include "helpers.h"
 
+typedef struct { //struct usada para obter informacao do armazem
+    int* values;
+    int count;
+} struct_values;
 /*
 Insere informacao de uma Ordem. 
 Order_Number: Numero da ordem. Se a Ordem for carga de pe�a ent�o Order_Number = -1
@@ -65,6 +69,11 @@ int checkDB(const char* s); //Verifica se a DB ja existe
 int createDB(const char* s);  // Cria DB
 int createTable(const char* s); //Cria Tabelas
 int insertDataOrder(const char* s, int Order_Number, std::string Type, std::string State, std::string Initial_Piece, std::string Final_Piece, int Total_Pieces, int Deadline, std::string Entry_Time);
-
-
+int initvalues(const char* s); //Cria os dados a serem preenchidos do warehouse e das maquinas
+int getWarehouseInformation(const char* s, int* values); // Preenche o vetor values[9] sendo que cada posicao corresponde ao numero do tipo de peca 0->P1 1->P2 ... 8 ->P9
+int callback_warehouse(void* v, int argc, char** argv, char** azColName);
+int updateWarehouse(const char* s, std::string Type, int Quantity); // Atualiza o valor do armazem acrescentando Quantity unidades, se for -1 ou -2 entao ele retira
+int updateDispatch(const char* s, std::string Zone, std::string PieceType, int Quantity); //Aumenta a quantidade de um determinado tipo de peca de uma zona em Quantity unidades
+int updateMachine(const char* s, std::string Machine, std::string PieceType, int ProductionTime, int Quantity);
+// Aumenta o tempo de producao em ProductionTime e o numero de pecas para valor antigo + Quantity
 #endif
