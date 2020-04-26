@@ -78,7 +78,7 @@ int getOrder_ID(const char* s, std::string type, int Order_Number) {
 
 
 int callback_id(void* id, int argc, char** argv, char** azColName) {
-	int *c = static_cast<int *>(id);
+	int *c = (int *)(id);
 	*c = atoi(argv[0]);
 	return 0;
 }
@@ -140,9 +140,34 @@ int deleteData(const char* s) {
 	sqlite3_exec(DB, sql1.c_str(), callback, NULL, NULL);
 	std::string sql = "DELETE FROM ORDERS;";
 	sqlite3_exec(DB, sql.c_str(), callback, NULL, NULL);
+	std::string sql2 = "DELETE FROM Warehouse;";
+	sqlite3_exec(DB, sql2.c_str(), callback, NULL, NULL);
+	std::string sql3 = "DELETE FROM Machine;";
+	sqlite3_exec(DB, sql3.c_str(), callback, NULL, NULL);
 	return 0;
 }
-
+int initvalues(const char* s)
+{
+	sqlite3* DB;
+	int exit = sqlite3_open(s, &DB);
+	std::string sql = ("INSERT INTO Warehouse (PieceType)" \
+		"VALUES('P1'), ('P2'),('P3'),('P4'),('P5'),('P6'),('P7'),('P8'),('P9');" \
+		"INSERT INTO Machine (MachineType, PieceType) VALUES " \
+		"('A1', 'P1'), ('A1', 'P2'), ('A1', 'P6')," \
+		"('A2', 'P1'), ('A2', 'P2'), ('A2', 'P6')," \
+		"('A3', 'P1'), ('A3', 'P2'), ('A3', 'P6')," \
+		"('B1', 'P1'), ('B1', 'P3'), ('B1', 'P7')," \
+		"('B2', 'P1'), ('B2', 'P3'), ('B2', 'P7')," \
+		"('B3', 'P1'), ('B3', 'P3'), ('B3', 'P7')," \
+		"('C1', 'P1'), ('C1', 'P4'), ('C1', 'P8')," \
+		"('C2', 'P1'), ('C2', 'P4'), ('C2', 'P8')," \
+		"('C3', 'P1'), ('C3', 'P4'), ('C3', 'P8');" \
+		);
+	char* messageError1;
+	int exit1 = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError1);
+	sqlite3_close(DB);
+	return 0;
+}
 
 /*
 Vai buscar a hora e a data atual e retorna no formato DD-MM-YYY HH:MM:SS
@@ -221,7 +246,23 @@ int createTable(const char* s) {
 		"ID_ORDER INT REFERENCES ORDERS(ID) ON DELETE CASCADE ON UPDATE CASCADE, "\
 		"Order_Number INT REFERENCES ORDERS(Order_Number) ON DELETE CASCADE ON UPDATE CASCADE, " \
 		"Execution_Start TEXT NOT NULL, " \
-		"Execution_End TEXT);");
+		"Execution_End TEXT);" \
+		"CREATE TABLE IF NOT EXISTS Warehouse(" \
+		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "\
+		"PieceType CHAR(3) NOT NULL, "\
+		"Quantity INT NOT NULL DEFAULT 0);"\
+		"CREATE TABLE IF NOT EXISTS Dispatch(" \
+		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "\
+		"Zone INTEGER NOT NULL, "\
+		"PieceType CHAR(3) NOT NULL, "\
+		"Quantity INT NOT NULL DEFAULT 0);" \
+		"CREATE TABLE IF NOT EXISTS Machine("\
+		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "\
+		"MachineType CHAR(3) NOT NULL, "\
+		"ProductionTime INTEGER NOT NULL DEFAULT 0, " \
+		"PieceType CHAR(3) NOT NULL, " \
+		"Quantity INT NOT NULL DEFAULT 0);"\
+		);
 	try
 	{
 		int exit = 0;
@@ -288,6 +329,157 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 	}
 	else
 		meslog(INFO) << "Records created Successfully" << std::endl; 
+	sqlite3_close(DB);
+	return 0;
+}
+int initvalues(const char* s)
+{
+	sqlite3* DB;
+	int exit = sqlite3_open(s, &DB);
+	std::string sql = ("INSERT INTO Warehouse (PieceType)" \
+		"VALUES('P1'), ('P2'),('P3'),('P4'),('P5'),('P6'),('P7'),('P8'),('P9');" \
+		"INSERT INTO Machine (MachineType, PieceType) VALUES " \
+		"('A1', 'P1'), ('A1', 'P2'), ('A1', 'P6')," \
+		"('A2', 'P1'), ('A2', 'P2'), ('A2', 'P6')," \
+		"('A3', 'P1'), ('A3', 'P2'), ('A3', 'P6')," \
+		"('B1', 'P1'), ('B1', 'P3'), ('B1', 'P7')," \
+		"('B2', 'P1'), ('B2', 'P3'), ('B2', 'P7')," \
+		"('B3', 'P1'), ('B3', 'P3'), ('B3', 'P7')," \
+		"('C1', 'P1'), ('C1', 'P4'), ('C1', 'P8')," \
+		"('C2', 'P1'), ('C2', 'P4'), ('C2', 'P8')," \
+		"('C3', 'P1'), ('C3', 'P4'), ('C3', 'P8');" \
+		"INSERT INTO Dispatch (Zone, PieceType) VALUES "\
+		"('Zone1', 'P1'), ('Zone1', 'P2'), ('Zone1', 'P3'), ('Zone1', 'P4'), ('Zone1', 'P5'), ('Zone1', 'P6'), ('Zone1', 'P7'), ('Zone1', 'P8'), ('Zone1', 'P9'), " \
+		"('Zone2', 'P1'), ('Zone2', 'P2'), ('Zone2', 'P3'), ('Zone2', 'P4'), ('Zone2', 'P5'), ('Zone2', 'P6'), ('Zone2', 'P7'), ('Zone2', 'P8'), ('Zone2', 'P9'), " \
+		"('Zone3', 'P1'), ('Zone3', 'P2'), ('Zone3', 'P3'), ('Zone3', 'P4'), ('Zone3', 'P5'), ('Zone3', 'P6'), ('Zone3', 'P7'), ('Zone3', 'P8'), ('Zone3', 'P9'); " \
+		);
+	char* messageError1;
+	int exit1 = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError1);
+	sqlite3_close(DB);
+	return 0;
+}
+int callback_warehouse(void* v, int argc, char** argv, char** azColName)
+{
+	struct_values* temp = (struct_values*)(v);
+	temp->values[temp->count] = atoi(argv[0]);
+	temp->count++;
+	if (temp->count == 9)
+	{
+		temp->count = 0;
+	}
+	return 0;
+}
+int getWarehouseInformation(const char* s, int* values)
+{
+	struct_values v;
+	v.count = 0;
+	v.values = values;
+	sqlite3* DB;
+	int exit = sqlite3_open(s, &DB);
+	std::string sql = "SELECT Quantity FROM Warehouse";
+	exit = sqlite3_exec(DB, sql.c_str(), callback_warehouse, &v, NULL);
+	return 0;
+}
+
+int updateWarehouse(const char* s, std::string Type, int Quantity)
+{
+	sqlite3* DB;
+	char* messageError;
+	int exit = sqlite3_open(s, &DB);
+	int value = 0;
+
+	std::string sql = "SELECT Quantity FROM Warehouse WHERE PieceType = " \
+		"'" + Type + "';";
+	exit = sqlite3_exec(DB, sql.c_str(), callback_id, &value, NULL);
+	if (exit != SQLITE_OK) {
+		meslog(ERROR) << "Error in select statement " << std::endl;
+	}
+	else {
+		meslog(INFO) << "Records returned" << std::endl;
+	}
+	value = value + Quantity;
+
+	sql = ("UPDATE Warehouse SET Quantity = " + std::to_string(value) + " WHERE PieceType = '" + Type + "'");
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	if (exit != SQLITE_OK)
+	{
+		meslog(ERROR) << "Error Insert" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		meslog(INFO) << "Records created Successfully" << std::endl;
+	sqlite3_close(DB);
+	return 0;
+}
+int updateDispatch(const char* s, std::string Zone, std::string PieceType, int Quantity)
+{
+	sqlite3* DB;
+	char* messageError;
+	int exit = sqlite3_open(s, &DB);
+	int value = 0;
+
+	std::string sql = "SELECT Quantity FROM Dispatch WHERE PieceType = " \
+		"'" + PieceType + "' AND Zone = '" + Zone + "';";
+	exit = sqlite3_exec(DB, sql.c_str(), callback_id, &value, NULL);
+	if (exit != SQLITE_OK) {
+		meslog(ERROR) << "Error in select statement " << std::endl;
+	}
+	else {
+		meslog(INFO) << "Records returned" << std::endl;
+	}
+	value = value + Quantity;
+	sql = ("UPDATE Dispatch SET Quantity = " + std::to_string(value) + " WHERE PieceType = '" + PieceType + "' AND Zone = '" + Zone + "'");
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	if (exit != SQLITE_OK)
+	{
+		meslog(ERROR) << "Error Insert" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		meslog(INFO) << "Records created Successfully" << std::endl;
+	sqlite3_close(DB);
+	return 0;
+}
+int updateMachine(const char* s, std::string Machine, std::string PieceType, int ProductionTime, int Quantity)
+{
+	sqlite3* DB;
+	char* messageError;
+	int exit = sqlite3_open(s, &DB);
+	int value = 0;
+	int time_p = 0;
+
+	std::string sql = "SELECT Quantity FROM Machine WHERE MachineType = " \
+		"'" + Machine + "' AND PieceType = '" + PieceType + "';";
+	exit = sqlite3_exec(DB, sql.c_str(), callback_id, &value, NULL);
+	if (exit != SQLITE_OK) {
+		meslog(ERROR) << "Error in select statement " << std::endl;
+	}
+	else {
+		meslog(INFO) << "Records returned" << std::endl;
+	}
+	value = value + Quantity;
+
+	sql = "SELECT ProductionTime FROM Machine WHERE MachineType = " \
+		"'" + Machine + "' AND PieceType = '" + PieceType + "';";
+	exit = sqlite3_exec(DB, sql.c_str(), callback_id, &time_p, NULL);
+	if (exit != SQLITE_OK) {
+		meslog(ERROR) << "Error in select statement " << std::endl;
+	}
+	else {
+		meslog(INFO) << "Records returned" << std::endl;
+	}
+	time_p = time_p + ProductionTime;
+
+	sql = ("UPDATE Machine SET Quantity = " + std::to_string(value) + ", ProductionTime = " + std::to_string(time_p) \
+		+ " WHERE PieceType = '" + PieceType + "' AND MachineType = '" + Machine + "'");
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	if (exit != SQLITE_OK)
+	{
+		meslog(ERROR) << "Error Insert" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		meslog(INFO) << "Records created Successfully" << std::endl;
 	sqlite3_close(DB);
 	return 0;
 }
