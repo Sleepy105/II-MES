@@ -16,19 +16,25 @@ Warehouse::Warehouse(uint8_t initial_values[]){
 }
 
 bool Warehouse::AddPiece(uint8_t type){
-
+    pieceTypeCount_[type-1]++;
+    return true;
 }
 
 bool Warehouse::RemovePiece(uint8_t type){
-
+    if (pieceTypeCount_[type-1] > 0){
+        pieceTypeCount_[type-1]--;
+        return true;
+    }
+    return false;
 }
 
 uint8_t Warehouse::GetPieceCount(uint8_t type){
-
+    return pieceTypeCount_[type-1];
 }
 
+//POR IMPLEMENTAR
 uint8_t Warehouse::RestorePiece(uint8_t type){
-
+    
 }
 
 
