@@ -27,20 +27,17 @@
 #include <string.h>
 #include <iostream>
 #include <string>
-
-typedef struct {
-    uint16_t path[59];
-    uint16_t transformation;
-    uint16_t id_piece;
-    uint16_t type_piece;
-}piece_object;
+#include "Order.hpp"
+#include "PathFinder.hpp"
+#include "Warehouse.hpp"
 
 class OPCUA_Manager {
 private:
-    UA_Client *_client;
-    const char* _BaseNodeID;
-    int16_t _nodeIndex;
-    bool _connected;
+    UA_Client *client_;
+    const char* BaseNodeID_;
+    int16_t nodeIndex_;
+    bool connected_;
+    PathFinder pathfinder;
 
     UA_Client* ServerConnect(const char* endpointURL) const;
     void ConvIntToString(char* string, uint16_t value);
@@ -50,8 +47,8 @@ public:
 
     bool Is_Connected() const;
 
-    bool SendPieceOPC_UA(uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index);
-
+    //bool SendPieceOPC_UA(uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index);
+    bool SendPieceOPC_UA (Order::BaseOrder order);
 };
 
 #endif

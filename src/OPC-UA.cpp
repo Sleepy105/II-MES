@@ -6,19 +6,19 @@
 #include "OPC-UA.hpp"
 
 OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index) {
-    _client = ServerConnect(URL);
-    _nodeIndex = index;
-    _BaseNodeID = BaseID;
-    if (!_client) {
-        _connected = false;
+    client_ = ServerConnect(URL);
+    nodeIndex_ = index;
+    BaseNodeID_ = BaseID;
+    if (!client_) {
+        connected_ = false;
     }
     else {
-        _connected = true;
+        connected_ = true;
     }
 }
 
 bool OPCUA_Manager::Is_Connected() const {
-    return _connected;
+    return connected_;
 }
 
 UA_Client* OPCUA_Manager::ServerConnect(const char* endpointURL) const {
@@ -49,18 +49,32 @@ void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
 }
 
 
-bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index) {
+bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index*/) {
 #ifdef DEBUG_UA
-    printf("\nWriting OBJECT type to master node (4, \"%s\")...\n", _BaseNodeID);
+    printf("\nWriting OBJECT type to master node (4, \"%s\")...\n", BaseNodeID_);
 #endif
 
     uint16_t pathIDcounter = 1;
+
+    uint16_t object_index = 1;
+    uint16_t transformation = (uint16_t)order.GetType();
+    uint16_t type_piece = 6;
+    uint16_t id_piece = 1;
+    uint16_t path[59];
+    pathfinder.FindPath(path);
+
+    // Criar vetor em formato compatível com OPC-UA
+    UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
+    for (uint16_t i = 0; i < 59; i++) {
+        path_UA[i] = path[i];
+    }
+
 
     // Converter dados em string identificadora do no
     char NodeID[128];
     char NodeID_backup[128];
     char aux[20];
-    strcpy(NodeID, _BaseNodeID);
+    strcpy(NodeID, BaseNodeID_);
     strcat(NodeID, "GVL.OBJECT[");
     ConvIntToString(aux, object_index);
     strcat(NodeID, aux);
@@ -76,13 +90,13 @@ bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, ui
 #ifdef DEBUG_UA
     printf("writting to \"%s\"\n", NodeID);
 #endif
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
     wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
     wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
     wReq.nodesToWrite[0].value.value.data = &transformation;
-    UA_WriteResponse wResp = UA_Client_Service_write(_client, wReq);
+    UA_WriteResponse wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
 #ifdef DEBUG_UA
@@ -103,13 +117,13 @@ bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, ui
 #ifdef DEBUG_UA
     printf("writting to \"%s\"\n", NodeID);
 #endif
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
     wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
     wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
     wReq.nodesToWrite[0].value.value.data = &type_piece;
-    wResp = UA_Client_Service_write(_client, wReq);
+    wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
 #ifdef DEBUG_UA
@@ -129,13 +143,13 @@ bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, ui
 #ifdef DEBUG_UA
     printf("writting to \"%s\"\n", NodeID);
 #endif
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
     wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
     wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
     wReq.nodesToWrite[0].value.value.data = &pathIDcounter;
-    wResp = UA_Client_Service_write(_client, wReq);
+    wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
 #ifdef DEBUG_UA
@@ -155,13 +169,13 @@ bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, ui
 #ifdef DEBUG_UA
     printf("writting to \"%s\"\n", NodeID);//|var|CODESYS Control Win V3 x64.Application.GVL.OBJECT[1].transformation
 #endif
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
     wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
     wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
     wReq.nodesToWrite[0].value.value.data = &id_piece;
-    wResp = UA_Client_Service_write(_client, wReq);
+    wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
 #ifdef DEBUG_UA
@@ -173,11 +187,6 @@ bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, ui
     UA_WriteResponse_clear(&wResp);
 
     // escrever caminho que a pe�a vai percorrer
-    UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
-    for (uint16_t i = 0; i < 59; i++) {
-        path_UA[i] = path[i];
-    }
-
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
@@ -186,14 +195,14 @@ bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, ui
 #ifdef DEBUG_UA
     printf("writting to \"%s\"\n", NodeID);
 #endif
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
     wReq.nodesToWrite[0].value.value.arrayLength = 59;
     wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
     wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
     wReq.nodesToWrite[0].value.value.data = path_UA;
-    wResp = UA_Client_Service_write(_client, wReq);
+    wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
 #ifdef DEBUG_UA
@@ -208,18 +217,18 @@ bool OPCUA_Manager::SendPieceOPC_UA(uint16_t path[], uint16_t transformation, ui
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
-    strcpy(NodeID, _BaseNodeID);
+    strcpy(NodeID, BaseNodeID_);
     strcat(NodeID, "GVL.AT1_tp");
 #ifdef DEBUG_UA
     printf("writting to \"%s\"\n", NodeID);//|var|CODESYS Control Win V3 x64.Application.GVL.OBJECT[1].transformation
 #endif
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
     wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
     wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
     wReq.nodesToWrite[0].value.value.data = &type_piece;
-    wResp = UA_Client_Service_write(_client, wReq);
+    wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
 #ifdef DEBUG_UA

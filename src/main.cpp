@@ -5,15 +5,23 @@
 #include "XMLParser.hpp"
 #include "OPC-UA.hpp"
 #include "DBInterface.hpp"
+#include "OrderQueue.hpp"
 
 #include "helpers.h"
 
 int main (int argc, char const *argv[]) {
 
+    OrderQueue OrdrQueue;
+
     XMLParser XMLParser;
 
     UDPManager UDPManager(54321);
     std::thread udp_worker = UDPManager.spawn_worker(XMLParser.parseString);
+
+    // algures aqui teria de se retirar a informação obtida por XML
+    Order::BaseOrder order_from_xml(1, 4, 1);
+    
+    OrdrQueue.AddOrder(order_from_xml);
 
     FILE* f = fopen("opc-ua-id.txt", "r");
     if (!f) {
@@ -25,45 +33,7 @@ int main (int argc, char const *argv[]) {
     OPCUA_Manager myManager("opc.tcp://127.0.0.1:4840", OpcUa_id, 4);
 
     if (myManager.Is_Connected()) {
-
-        piece_object peca;
-        peca.id_piece = 1;
-        peca.transformation = 4;
-        peca.type_piece = 6;
-        for (uint16_t i = 0; i < 59; i++) {
-            peca.path[i] = 0;
-        }
-        peca.path[0] = RIGHT;
-        peca.path[1] = RIGHT;
-        peca.path[2] = DOWN;
-        peca.path[3] = DOWN;
-        peca.path[4] = RIGHT;
-        peca.path[5] = LEFT;
-        peca.path[6] = DOWN;
-        peca.path[7] = DOWN;
-        peca.path[8] = DOWN;
-        peca.path[9] = DOWN;
-        peca.path[10] = LEFT;
-        peca.path[11] = LEFT;
-
-        myManager.SendPieceOPC_UA(peca.path, peca.transformation, peca.id_piece, peca.type_piece, 1);
-        meslog(INFO) << "Press ENTER to send next piece..." << std::endl;
-        std::string aux;
-
-        peca.path[0] = RIGHT;
-        peca.path[1] = RIGHT;
-        peca.path[2] = DOWN;
-        peca.path[3] = DOWN;
-        peca.path[4] = LEFT;
-        peca.path[5] = RIGHT;
-        peca.path[6] = DOWN;
-        peca.path[7] = DOWN;
-        peca.path[8] = DOWN;
-        peca.path[9] = DOWN;
-        peca.path[10] = LEFT;
-        peca.path[11] = LEFT;
-        std::getline(std::cin, aux);
-        myManager.SendPieceOPC_UA(peca.path, peca.transformation, peca.id_piece, peca.type_piece, 1);
+        myManager.SendPieceOPC_UA(OrdrQueue.GetNextOrder());
     }
     else {
         meslog(ERROR) << "!!!Failed to Connect to OPC-UA Master!!!" << std::endl;

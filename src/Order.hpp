@@ -32,10 +32,14 @@ private:
     uint64_t creation_epoch = 0;
     uint64_t deadline = 0;
 public:
-    BaseOrder(uint8_t order_id, uint8_t order_type);
+    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t quantity = 0);
     ~BaseOrder();
 
     bool is_valid();
+    uint8_t GetID();
+    uint8_t GetType();
+    bool operator == (Order::BaseOrder &ordr) const {return order_id == ordr.GetID();}
+    bool operator != (Order::BaseOrder &ordr) const {return !operator == (ordr);}
 };
 
 #endif

@@ -11,9 +11,16 @@
 #include "Order.hpp"
 using namespace Order;
 
-BaseOrder::BaseOrder(uint8_t order_id, uint8_t order_type) : order_id(order_id), order_type(order_type) {
+BaseOrder::BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t quantity) : order_id(order_id), order_type(order_type), quantity(quantity) {
     meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
 }
 
 BaseOrder::~BaseOrder() {
+}
+uint8_t BaseOrder::GetID(){
+    return order_id;
+}
+
+uint8_t BaseOrder::GetType(){
+    return order_type;
 }
