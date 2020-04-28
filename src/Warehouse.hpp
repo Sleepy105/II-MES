@@ -1,3 +1,6 @@
+#ifndef _UDPMANAGER_HPP_
+#define _UDPMANAGER_HPP_
+
 #include <iostream>
 
 class Warehouse{
@@ -14,3 +17,5 @@ public:
     uint8_t GetPieceCount(uint8_t type);
     uint8_t RestorePiece(uint8_t type);
 };
+
+#endif

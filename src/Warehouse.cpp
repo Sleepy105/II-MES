@@ -34,7 +34,7 @@ uint8_t Warehouse::GetPieceCount(uint8_t type){
 
 //POR IMPLEMENTAR
 uint8_t Warehouse::RestorePiece(uint8_t type){
-    
+    return false;
 }
 
 

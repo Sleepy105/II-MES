@@ -1,3 +1,6 @@
+#ifndef _ORDERQUEUE_HPP_
+#define _ORDERQUEUE_HPP_
+
 #include <list>
 #include <iterator>
 #include "Order.hpp"
@@ -15,3 +18,5 @@ class OrderQueue{
         Order::BaseOrder GetNextOrder();
         bool update();
 };
+
+#endif
