@@ -146,29 +146,6 @@ int deleteData(const char* s) {
 	sqlite3_exec(DB, sql3.c_str(), callback, NULL, NULL);
 	return 0;
 }
-int initvalues(const char* s)
-{
-	sqlite3* DB;
-	int exit = sqlite3_open(s, &DB);
-	std::string sql = ("INSERT INTO Warehouse (PieceType)" \
-		"VALUES('P1'), ('P2'),('P3'),('P4'),('P5'),('P6'),('P7'),('P8'),('P9');" \
-		"INSERT INTO Machine (MachineType, PieceType) VALUES " \
-		"('A1', 'P1'), ('A1', 'P2'), ('A1', 'P6')," \
-		"('A2', 'P1'), ('A2', 'P2'), ('A2', 'P6')," \
-		"('A3', 'P1'), ('A3', 'P2'), ('A3', 'P6')," \
-		"('B1', 'P1'), ('B1', 'P3'), ('B1', 'P7')," \
-		"('B2', 'P1'), ('B2', 'P3'), ('B2', 'P7')," \
-		"('B3', 'P1'), ('B3', 'P3'), ('B3', 'P7')," \
-		"('C1', 'P1'), ('C1', 'P4'), ('C1', 'P8')," \
-		"('C2', 'P1'), ('C2', 'P4'), ('C2', 'P8')," \
-		"('C3', 'P1'), ('C3', 'P4'), ('C3', 'P8');" \
-		);
-	char* messageError1;
-	int exit1 = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError1);
-	sqlite3_close(DB);
-	return 0;
-}
-
 /*
 Vai buscar a hora e a data atual e retorna no formato DD-MM-YYY HH:MM:SS
 */
