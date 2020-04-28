@@ -41,7 +41,7 @@ $(BUILD_DIR)/%.cpp.o: %.cpp
 
 .PHONY: clean
 .PHONY: run
-.PHONY: test
+.PHONY: setup
 
 clean:
 	$(RM) -r $(BUILD_DIR)
@@ -49,10 +49,12 @@ clean:
 run:
 	./$(TARGET_EXEC)
 
-test:
-	@echo $(SRCS)
-	@echo $(SRC_DIRS)
-	@echo $(INC_DIRS)
+setup:
+	sudo add-apt-repository ppa:open62541-team/ppa
+	sudo apt update
+	sudo apt install libopen62541-1-dev
+	sudo apt install libsqlite3-dev
+	cp opc-ua-id.txt.windows opc-ua-id.txt
 
 
 -include $(DEPS)

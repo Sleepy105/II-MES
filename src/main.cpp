@@ -11,7 +11,7 @@
 
 int main (int argc, char const *argv[]) {
 
-    OrderQueue OrdrQueue;
+    OrderQueue OrderQueue;
 
     XMLParser XMLParser;
 
@@ -21,7 +21,7 @@ int main (int argc, char const *argv[]) {
     // algures aqui teria de se retirar a informação obtida por XML
     Order::BaseOrder order_from_xml(1, 4, 1);
     
-    OrdrQueue.AddOrder(order_from_xml);
+    OrderQueue.AddOrder(order_from_xml);
 
     FILE* f = fopen("opc-ua-id.txt", "r");
     if (!f) {
@@ -33,7 +33,7 @@ int main (int argc, char const *argv[]) {
     OPCUA_Manager myManager("opc.tcp://127.0.0.1:4840", OpcUa_id, 4);
 
     if (myManager.Is_Connected()) {
-        myManager.SendPieceOPC_UA(OrdrQueue.GetNextOrder());
+        myManager.SendPieceOPC_UA(OrderQueue.GetNextOrder());
     }
     else {
         meslog(ERROR) << "!!!Failed to Connect to OPC-UA Master!!!" << std::endl;
