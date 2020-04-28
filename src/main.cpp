@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-//#include "UDPManager.hpp"
+#include "UDPManager.hpp"
 #include "XMLParser.hpp"
 #include "OPC-UA.hpp"
 #include "DBInterface.hpp"
@@ -15,8 +15,8 @@ int main (int argc, char const *argv[]) {
 
     XMLParser XMLParser;
 
-    //UDPManager UDPManager(54321);
-    //std::thread udp_worker = UDPManager.spawn_worker(XMLParser.parseString);
+    UDPManager UDPManager(54321);
+    std::thread udp_worker = UDPManager.spawn_worker(XMLParser.parseString);
 
     // algures aqui teria de se retirar a informação obtida por XML
     Order::BaseOrder order_from_xml(1, 4, 1);
@@ -57,6 +57,6 @@ int main (int argc, char const *argv[]) {
 	updateData(dir, NewState, getOrder_ID(dir, Type, num_Order), getDateTime());
 
     // Wait for threads to close
-    //udp_worker.join();
+    udp_worker.join();
     return 0;
 }
