@@ -76,7 +76,6 @@ int updateWarehouse(const char* s, std::string Type, int Quantity); // Atualiza 
 int updateDispatch(const char* s, std::string Zone, std::string PieceType, int Quantity); //Aumenta a quantidade de um determinado tipo de peca de uma zona em Quantity unidades
 int updateMachine(const char* s, std::string Machine, std::string PieceType, int ProductionTime, int Quantity);
 // Aumenta o tempo de producao em ProductionTime e o numero de pecas para valor antigo + Quantity
-
-std::string DateTime(const char* s, std::string Deadline);
+std::string DateTime(const char* s, std::string Deadline); //retorna a data atual mais um deadline em segundos. Se for zero e so a data atual
 int callback_hour(void* DateTim, int argc, char** argv, char** azColName);
 #endif
