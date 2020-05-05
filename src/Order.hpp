@@ -14,35 +14,63 @@
 #include <stdlib.h>
 #include <iostream>
 #include <chrono>
+#include <list>
+#include <iterator>
+#include <string>
 
 #include "helpers.h"
 
 namespace Order {
     class BaseOrder;
+    class Piece;
     const uint8_t ORDER_TYPE_TRANSFORMATON = 0;
     const uint8_t ORDER_TYPE_UNLOAD = 1;
     const uint8_t ORDER_TYPE_REQUESTSTORES = 2;
+    const uint8_t ORDER_TYPE_LOAD = 3;
 };
 
 class Order::BaseOrder {
 private:
+    uint32_t order_id = 0;
     uint32_t order_pk = 0;
-    uint8_t order_id = 0;
     uint8_t order_type = 0;
-    uint32_t quantity = 0;
-    uint64_t creation_epoch = 0;
-    uint64_t deadline = 0;
-    uint8_t from_part_type = 0;
-    uint8_t to_part_type = 0;
+    uint32_t count = 0;
+    time_t CreationTime;
+    time_t Deadline;
+    uint8_t initialPiece;
+    uint8_t finalPiece;
+    std::list<Piece> pieces;
+
 public:
-    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t quantity = 0, uint8_t from_part_type = 0, uint8_t to_part_type = 0);
+    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t quantity = 0, uint8_t initialPiece = 0, uint8_t finalPiece = 0);
     ~BaseOrder();
 
     bool is_valid();
-    uint8_t GetID();
+    uint32_t GetID();
+    uint32_t GetPK();
     uint8_t GetType();
+    uint32_t GetCount();
+    time_t GetCreationTime();
+    time_t GetDeadline();
+    uint8_t GetInitialPiece();
+    uint8_t GetFinalPiece();
+    std::list<Piece> GetPieces();
+
+
     bool operator == (Order::BaseOrder &ordr) const {return order_id == ordr.GetID();}
     bool operator != (Order::BaseOrder &ordr) const {return !operator == (ordr);}
+};
+
+class Order::Piece {
+private:
+    uint32_t PieceID;
+    uint8_t Path[59] = {0};
+
+public:
+    Piece(uint32_t id);
+    uint32_t GetID();
+    uint8_t *GetPath();
+
 };
 
 #endif
