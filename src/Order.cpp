@@ -20,6 +20,12 @@ BaseOrder::BaseOrder(uint8_t order_id,
 }
 BaseOrder::~BaseOrder() {
 }
+
+bool BaseOrder::is_valid() {
+    // TODO check this shizzz
+    return true;
+}
+
 uint32_t BaseOrder::GetID(){
     return order_id;
 }
