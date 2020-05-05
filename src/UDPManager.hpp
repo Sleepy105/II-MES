@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include "XMLParser.hpp"
+
 #include "helpers.h"
 
 #define UDPMANAGER_DEFAULT_BUFFER_SIZE 2000
@@ -33,7 +35,7 @@ private:
     socklen_t serverlen, clientlen;
     char* buffer = NULL;
 
-    void _worker(void (*callback)(std::string));
+    void _worker(XMLParser* obj);
 public:
     /**
      * @brief Construct a new UDPManager object
@@ -60,7 +62,7 @@ public:
      * @brief Spawn a new thread, which listens to the selected port
      * 
      */
-    std::thread spawn_worker(void (*callback)(std::string));
+    std::thread spawn_worker(XMLParser* obj);
 };
 
 #endif

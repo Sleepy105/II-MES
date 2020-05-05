@@ -41,18 +41,18 @@ UDPManager::UDPManager(uint16_t port) : UDPManager(port, UDPMANAGER_DEFAULT_BUFF
 UDPManager::~UDPManager() {
 }
 
-std::thread UDPManager::spawn_worker(void (*callback)(std::string)) {
-    std::thread worker (&UDPManager::_worker, this, callback);
+std::thread UDPManager::spawn_worker(XMLParser* obj) {
+    std::thread worker (&UDPManager::_worker, this, obj);
     return worker;
 }
 
-void UDPManager::_worker(void (*callback)(std::string)) {
+void UDPManager::_worker(XMLParser* obj) {
     int rc = 0;
     while (true) {
         rc = recvfrom(socket_fd, buffer, buffer_size, 0, (sockaddr *)&client, &clientlen);
         if (rc && buffer) {
             std::string str = buffer;
-            callback(str);
+            obj->parseString(str);
         } else {
             break;
         }

@@ -23,15 +23,15 @@ private:
     static int xml_to_int(const char* xml);
     static uint32_t xml_to_uint32(const char* xml);
 
-    static bool parse_Transformation(uint8_t order_id, tinyxml2::XMLElement* transform);
-    static bool parse_Unload(uint8_t order_id, tinyxml2::XMLElement* unload);
-    static bool parse_RequestStores(uint8_t order_id, tinyxml2::XMLElement* request_stores);
-    static void handleParsingError();
+    bool parse_Transformation(uint8_t order_id, tinyxml2::XMLElement* transform);
+    bool parse_Unload(uint8_t order_id, tinyxml2::XMLElement* unload);
+    bool parse_RequestStores(uint8_t order_id, tinyxml2::XMLElement* request_stores);
+    void handleParsingError();
 public:
     XMLParser(/* args */);
     ~XMLParser();
 
-    static void parseString(std::string str);
+    void parseString(std::string str);
 };
 
 #endif

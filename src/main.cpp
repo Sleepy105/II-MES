@@ -16,7 +16,7 @@ int main (int argc, char const *argv[]) {
     XMLParser XMLParser;
 
     UDPManager UDPManager(54321);
-    std::thread udp_worker = UDPManager.spawn_worker(XMLParser.parseString);
+    std::thread udp_worker = UDPManager.spawn_worker(&XMLParser);
 
     // algures aqui teria de se retirar a informação obtida por XML
     Order::BaseOrder order_from_xml(1, 4, 1);
