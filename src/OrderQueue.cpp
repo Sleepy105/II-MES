@@ -16,6 +16,9 @@ OrderQueue::~OrderQueue(){
 */
 bool OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 {
+	if (!order_to_add.is_valid())
+		return false;
+
 	orders_.push_back(order_to_add);
 	return true;
 }

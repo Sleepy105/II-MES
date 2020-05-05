@@ -26,13 +26,16 @@ namespace Order {
 
 class Order::BaseOrder {
 private:
+    uint32_t order_pk = 0;
     uint8_t order_id = 0;
     uint8_t order_type = 0;
     uint32_t quantity = 0;
     uint64_t creation_epoch = 0;
     uint64_t deadline = 0;
+    uint8_t from_part_type = 0;
+    uint8_t to_part_type = 0;
 public:
-    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t quantity = 0);
+    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t quantity = 0, uint8_t from_part_type = 0, uint8_t to_part_type = 0);
     ~BaseOrder();
 
     bool is_valid();

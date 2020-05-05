@@ -13,15 +13,10 @@ int main (int argc, char const *argv[]) {
 
     OrderQueue OrderQueue;
 
-    XMLParser XMLParser;
+    XMLParser XMLParser(&OrderQueue);
 
     UDPManager UDPManager(54321);
     std::thread udp_worker = UDPManager.spawn_worker(&XMLParser);
-
-    // algures aqui teria de se retirar a informação obtida por XML
-    Order::BaseOrder order_from_xml(1, 4, 1);
-    
-    OrderQueue.AddOrder(order_from_xml);
 
     FILE* f = fopen("opc-ua-id.txt", "r");
     if (!f) {

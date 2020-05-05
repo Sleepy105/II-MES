@@ -11,7 +11,7 @@
 #include "XMLParser.hpp"
 using namespace tinyxml2;
 
-XMLParser::XMLParser(/* args */) {
+XMLParser::XMLParser(OrderQueue* obj) : queue(obj) {
 }
 
 XMLParser::~XMLParser() {
@@ -51,20 +51,21 @@ void XMLParser::parseString(std::string str) {
 }
 
 bool XMLParser::parse_Transformation(uint8_t order_id, XMLElement* transform) {
+    uint32_t from = (uint32_t)xml_to_int(transform->Attribute("From"));
+    uint32_t to = (uint32_t)xml_to_int(transform->Attribute("To"));
+    uint32_t quantity = (uint32_t)xml_to_int(transform->Attribute("quantity"));
     uint32_t max_delay = (uint32_t)xml_to_int(transform->Attribute("MaxDelay"));
-    auto order = new Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON);
-    return true;
+    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, from, to));
 }
 
 bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {
+    uint32_t quantity = (uint32_t)xml_to_int(unload->Attribute("quantity"));
     uint32_t max_delay = (uint32_t)xml_to_int(unload->Attribute("MaxDelay"));
-    auto order = new Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD);
-    return true;
+    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD, quantity));
 }
 
 bool XMLParser::parse_RequestStores(uint8_t order_id, XMLElement* request_stores) {
-    auto order = new Order::BaseOrder(order_id, Order::ORDER_TYPE_REQUESTSTORES);
-    return true;
+    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_REQUESTSTORES));
 }
 
 void XMLParser::handleParsingError() {
