@@ -5,21 +5,28 @@
 
 #include "OPC-UA.hpp"
 
-OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index) {
+OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index, OrderQueue *order_queue_reference, Warehouse *warehouse_reference) {
     client_ = ServerConnect(URL);
     nodeIndex_ = index;
     BaseNodeID_ = BaseID;
+    strcpy(URL_, URL);
     if (!client_) {
         connected_ = false;
     }
     else {
         connected_ = true;
     }
+
+
 }
 
-bool OPCUA_Manager::Is_Connected() const {
-    return connected_;
+
+
+bool OPCUA_Manager::Is_Connected() {
+    return (UA_Client_connect(client_, URL_) == UA_STATUSCODE_GOOD);
 }
+
+
 
 UA_Client* OPCUA_Manager::ServerConnect(const char* endpointURL) const {
     UA_Client* client = UA_Client_new();
@@ -32,6 +39,8 @@ UA_Client* OPCUA_Manager::ServerConnect(const char* endpointURL) const {
     }
     return client;
 }
+
+
 
 void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
     int aux = value, size, i;
@@ -49,19 +58,25 @@ void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
 }
 
 
-bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index*/) {
-#ifdef DEBUG_UA
-    printf("\nWriting OBJECT type to master node (4, \"%s\")...\n", BaseNodeID_);
-#endif
+
+bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
 
     uint16_t pathIDcounter = 1;
 
     uint16_t object_index = 1;
-    uint16_t transformation = (uint16_t)order.GetType();
-    uint16_t type_piece = 6;
-    uint16_t id_piece = 1;
-    uint16_t path[59];
-    pathfinder.FindPath(path);
+    uint16_t transformation = 1;
+    uint16_t type_piece = order.GetInitialPiece();
+
+    std::list<Order::Piece>::iterator piece_iter = order.GetPieces().begin();
+	while ( !((*piece_iter).isOnHold()) ){
+		if (piece_iter == order.GetPieces().end()){
+			return false;
+		}
+		piece_iter++;
+	}
+
+    uint32_t id_piece = (*piece_iter).GetID();
+    uint8_t *path = (*piece_iter).GetPath();
 
     // Criar vetor em formato compatível com OPC-UA
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
@@ -87,9 +102,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
     strcat(NodeID, "transformation");
-#ifdef DEBUG_UA
-    printf("writting to \"%s\"\n", NodeID);
-#endif
+
     wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
@@ -99,9 +112,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     UA_WriteResponse wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-#ifdef DEBUG_UA
-        printf("Values Written successfully to OBJECT node!\n");
-#endif
+
     }
     else return false;
 
@@ -114,9 +125,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wReq.nodesToWriteSize = 1;
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "type_piece");
-#ifdef DEBUG_UA
-    printf("writting to \"%s\"\n", NodeID);
-#endif
+
     wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
@@ -126,9 +135,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-#ifdef DEBUG_UA
-        printf("Values Written successfully to OBJECT node!\n");
-#endif
+
     }
     else return false;
     UA_WriteRequest_clear(&wReq);
@@ -140,9 +147,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wReq.nodesToWriteSize = 1;
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "path_id_counter");
-#ifdef DEBUG_UA
-    printf("writting to \"%s\"\n", NodeID);
-#endif
+
     wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
@@ -152,9 +157,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-#ifdef DEBUG_UA
-        printf("Values Written successfully to OBJECT node!\n");
-#endif
+
     }
     else return false;
     UA_WriteRequest_clear(&wReq);
@@ -166,9 +169,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wReq.nodesToWriteSize = 1;
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "id_piece");
-#ifdef DEBUG_UA
-    printf("writting to \"%s\"\n", NodeID);//|var|CODESYS Control Win V3 x64.Application.GVL.OBJECT[1].transformation
-#endif
+
     wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
@@ -178,9 +179,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-#ifdef DEBUG_UA
-        printf("Values Written successfully to OBJECT node!\n");
-#endif
+
     }
     else return false;
     UA_WriteRequest_clear(&wReq);
@@ -192,9 +191,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wReq.nodesToWriteSize = 1;
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "path");
-#ifdef DEBUG_UA
-    printf("writting to \"%s\"\n", NodeID);
-#endif
+
     wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
@@ -205,9 +202,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-#ifdef DEBUG_UA
-        printf("Values Written successfully to OBJECT node!\nWritting to Warehouse piece selector\n");
-#endif
+
     }
     else return false;
     UA_WriteRequest_clear(&wReq);
@@ -219,9 +214,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wReq.nodesToWriteSize = 1;
     strcpy(NodeID, BaseNodeID_);
     strcat(NodeID, "GVL.AT1_tp");
-#ifdef DEBUG_UA
-    printf("writting to \"%s\"\n", NodeID);//|var|CODESYS Control Win V3 x64.Application.GVL.OBJECT[1].transformation
-#endif
+
     wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
@@ -231,13 +224,72 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order/*uint16_t path[], uin
     wResp = UA_Client_Service_write(client_, wReq);
 
     if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-#ifdef DEBUG_UA
-        printf("Values Written successfully to OBJECT node!\n");
-#endif
+
     }
     else return false;
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
+
+    return true;
+}
+
+
+
+bool OPCUA_Manager::CheckPiecesFinished(){
+    // Check if there are true booleans in warehouse exit
+    return true;
+}
+
+
+
+bool OPCUA_Manager::CheckIncomingPieces(){
+    UA_WriteRequest wReq;
+    UA_WriteResponse wResp;
+    Order::BaseOrder *order_to_add;
+
+
+    //Check if there's a piece in carpet C7T1b
+    char NodeID[128];
+    strcpy (NodeID,BaseNodeID_);
+    strcat (NodeID,"POU.C7T1b.piece_p");
+
+    UA_Boolean value = 0;
+    UA_Boolean Mes_is_ok = true;
+    UA_Variant *val = UA_Variant_new();
+    UA_StatusCode retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+    if(retval == UA_STATUSCODE_GOOD) {
+            value = *(UA_Boolean*)val->data;
+    }
+    UA_Variant_delete(val);
+
+    if (value != false){
+        strcpy (NodeID,BaseNodeID_);
+        strcat (NodeID,"POU.C7T1b.MES_ok");
+
+        UA_Variant *val = UA_Variant_new();
+        UA_StatusCode retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+        if(retval == UA_STATUSCODE_GOOD) {
+            value = *(UA_Boolean*)val->data;
+        }
+        if (value == false){
+            order_queue->AddOrder(*order_to_add);
+
+            UA_WriteRequest_init(&wReq);
+            wReq.nodesToWrite = UA_WriteValue_new();
+            wReq.nodesToWriteSize = 1;
+            wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+            wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+            wReq.nodesToWrite[0].value.hasValue = true;
+            wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
+            wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+            wReq.nodesToWrite[0].value.value.data = &Mes_is_ok;
+            wResp = UA_Client_Service_write(client_, wReq);
+
+            UA_WriteRequest_clear(&wReq);
+            UA_WriteResponse_clear(&wResp);
+        }
+    UA_Variant_delete(val);
+    }
 
     return true;
 }

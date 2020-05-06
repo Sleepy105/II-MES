@@ -15,6 +15,10 @@ Warehouse::Warehouse(uint8_t initial_values[]){
 
 }
 
+Warehouse::~Warehouse(){
+    
+}
+
 bool Warehouse::AddPiece(uint8_t type){
     pieceTypeCount_[type-1]++;
     return true;
@@ -34,6 +38,7 @@ uint8_t Warehouse::GetPieceCount(uint8_t type){
 
 //POR IMPLEMENTAR
 bool Warehouse::RestoreStatus(){
+    
     return false;
 }
 

@@ -27,7 +27,10 @@
 #include <string.h>
 #include <iostream>
 #include <string>
+#include <list>
+#include <iterator>
 #include "Order.hpp"
+#include "OrderQueue.hpp"
 #include "PathFinder.hpp"
 #include "Warehouse.hpp"
 
@@ -35,20 +38,28 @@ class OPCUA_Manager {
 private:
     UA_Client *client_;
     const char* BaseNodeID_;
+    char URL_[128];
     int16_t nodeIndex_;
     bool connected_;
-    PathFinder pathfinder;
+
+    OrderQueue *order_queue;
+    Warehouse *warehouse;
+
 
     UA_Client* ServerConnect(const char* endpointURL) const;
     void ConvIntToString(char* string, uint16_t value);
 
 public:
-    OPCUA_Manager(const char* URL, const char* BaseID, int16_t index = 4);
+    OPCUA_Manager(const char* URL, const char* BaseID, int16_t index, OrderQueue *order_queue_reference, Warehouse *warehouse_reference);
 
-    bool Is_Connected() const;
+    bool Is_Connected();
 
     //bool SendPieceOPC_UA(uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index);
     bool SendPieceOPC_UA (Order::BaseOrder order);
+
+    bool CheckPiecesFinished();
+
+    bool CheckIncomingPieces();
 };
 
 #endif

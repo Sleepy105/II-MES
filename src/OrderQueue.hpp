@@ -3,17 +3,23 @@
 
 #include <list>
 #include <iterator>
+#include <string>
 #include "Order.hpp"
 #include "Warehouse.hpp"
+#include "DBInterface.hpp"
+#include "PathFinder.hpp"
 
 class OrderQueue{
     private:
         std::list<Order::BaseOrder> orders_;
+        Warehouse *warehouse;
+        PathFinder pathfinder;
+        
 
     public:
         OrderQueue(); //vamos usar argumentos para o construtor?
         ~OrderQueue();
-        bool AddOrder(Order::BaseOrder order_to_add);
+        int AddOrder(Order::BaseOrder order_to_add);
         bool RemoveOrder(Order::BaseOrder order_to_remove);
         Order::BaseOrder GetNextOrder();
         bool update();
