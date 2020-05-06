@@ -22,6 +22,7 @@ class OrderQueue{
         int AddOrder(Order::BaseOrder order_to_add);
         bool RemoveOrder(Order::BaseOrder order_to_remove);
         Order::BaseOrder GetNextOrder();
+        time_t GetDataTime(std::string datatime);
         bool update();
 };
 

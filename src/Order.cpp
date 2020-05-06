@@ -50,7 +50,7 @@ void BaseOrder::SetCreationTime(std::string creationtime){
     CreationTime = DateTime("factory.db", "0");
 }
 
-time_t BaseOrder::GetDeadline(){
+std::string BaseOrder::GetDeadline(){
     return Deadline;
 }
 uint8_t BaseOrder::GetInitialPiece(){

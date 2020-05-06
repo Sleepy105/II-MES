@@ -100,7 +100,85 @@ Order::BaseOrder OrderQueue::GetNextOrder()
     Penso que isto supostamente atualiza a ordem das Orders?
     Retorna true se tiver sucesso(em principio nao vai ser usado)
 */
+time_t OrderQueue::GetDataTime(std::string datatime)
+{
+	time_t rawtime1;
+	struct tm  timeinfo1;
+	size_t pos = 0;
+	int posicao = 0;
+	std::string token;
+
+	while ((pos = datatime.find(delimiter)) != std::string::npos) {
+		token = datatime.substr(0, pos);
+		if (posicao == 0)
+			timeinfo1.tm_year = stoi(token);
+		else
+			timeinfo1.tm_mon = stoi(token);
+
+		posicao++;
+		datatime.erase(0, pos + delimiter.length());
+	}
+
+	delimiter = " ";
+	while ((pos = datatime.find(delimiter)) != std::string::npos) {
+		token = datatime.substr(0, pos);
+		timeinfo1.tm_mday = stoi(token);
+		posicao++;
+		datatime.erase(0, pos + delimiter.length());
+	}
+
+	delimiter = ":";
+	while ((pos = datatime.find(delimiter)) != std::string::npos) {
+		token = datatime.substr(0, pos);
+		if (posicao == 3)
+			timeinfo1.tm_hour = stoi(token);
+		else
+			timeinfo1.tm_min = stoi(token);
+		posicao++;
+		datatime.erase(0, pos + delimiter.length());
+	}
+	timeinfo1.tm_sec = stoi(datatime);
+	rawtime1 = mktime(&timeinfo1);
+	return rawtime1;
+}
 bool OrderQueue::update()
 {
+	std::string deadline_string;
+	std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin();
+	std::list<Order::BaseOrder>::iterator orders_iterend_ = orders_.end();
+	time_t enddeadline = OrderQueue::GetDataTime((*orders_iterend_).GetDeadline);
+	
+	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
+	if(((*orders_iterend_).GetType() == "Incoming") OR ((*orders_iterend_).GetType() == "Dispatch")) {
+
+	}
+	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline 
+	else{
+		
+	}
+	
 	return false;
 }
+/*time_t rawtime, rawtime1;
+	struct tm timeinfo, timeinfo1;
+
+	timeinfo.tm_year = 2016;
+	timeinfo.tm_mon = 03;
+	timeinfo.tm_mday = 02;
+	timeinfo.tm_hour = 10;
+	timeinfo.tm_min = 17;
+	timeinfo.tm_sec = 10;
+	rawtime = mktime(&timeinfo);
+
+
+	timeinfo1.tm_year = 2016;
+	timeinfo1.tm_mon = 03;
+	timeinfo1.tm_mday = 02;
+	timeinfo1.tm_hour = 10;
+	timeinfo1.tm_min = 18;
+	timeinfo1.tm_sec = 15;
+	rawtime1 = mktime(&timeinfo1);
+
+	std::cout << rawtime1 << std::endl;
+	std::cout << "Diff: " << difftime(rawtime1, rawtime)<<std::endl;
+	*/
