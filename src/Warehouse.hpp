@@ -1,5 +1,5 @@
-#ifndef _UDPMANAGER_HPP_
-#define _UDPMANAGER_HPP_
+#ifndef _WAREHOUSE_HPP
+#define _WAREHOUSE_HPP
 
 #include <iostream>
 

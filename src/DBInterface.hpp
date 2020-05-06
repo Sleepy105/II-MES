@@ -38,7 +38,7 @@ DeadLine: Se for carga ou descarga e -1, este valor representa segundos
 Entry_Time: Hora de entrada do pedido. Se for carga a ordem de entrada e comeco de execucao e o state e logo executing
 Se for tipo Incoming, a seguir a esta funcao tem que se chamar a insertDataPiece
 */
-int insertDataPiece(const char* s, int Order_ID, int Order_Number);
+int insertDataPiece(const char* s, int Order_ID);
 /*
 Insere informacao quando uma peca vai para a fabrica, esta pode ser descarga, transformacao ou carga.
 Se for carga, esta e chamada logo a seguir � inserDataOrder, logo o ID � o ultimo ID adicionado com tipo Incoming

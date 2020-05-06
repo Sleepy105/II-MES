@@ -1,7 +1,7 @@
 #include "OrderQueue.hpp"
 
 OrderQueue::OrderQueue(){
-
+	warehouse = new Warehouse(NULL);
 }
 
 OrderQueue::~OrderQueue(){
@@ -12,15 +12,59 @@ OrderQueue::~OrderQueue(){
         /// STUB (i.e. so serve para ser utilizável no main) ///
 	Adiciona order_to_add com base na sua prioridade perante as outras Orders.
 	Orders de Carregar e Descarregar vao sempre para o topo.
-	Retorna true se tiver sucesso (em principio nao vai ser usado).
+	Retorna pk da order se tiver sucesso. -1 se falhar. Se for uma order de load, retorna id da peca.
 */
-bool OrderQueue::AddOrder(Order::BaseOrder order_to_add)
+int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 {
-	if (!order_to_add.is_valid())
-		return false;
+	if (!order_to_add.is_valid()){
+		return -1; // Request stores não precisam de ser guardadas na DB, nem na order queue
+	}
 
-	orders_.push_back(order_to_add);
-	return true;
+	orders_.push_back(order_to_add); // adiciona order à queue
+
+	std::string type_string;
+	std::string state_string;
+	std::string initPiece_string = std::to_string(order_to_add.GetInitialPiece());
+	std::string finalPiece_string = std::to_string(order_to_add.GetFinalPiece());
+	std::string deadline_string = std::to_string(order_to_add.GetDeadline());
+	int total_pieces = order_to_add.GetCount();
+
+	int return_value;
+	bool load_order = false;
+
+	switch (order_to_add.GetType())
+	{
+	case Order::ORDER_TYPE_TRANSFORMATON:
+		type_string = "Transformation";
+		state_string = "Waiting";
+		break;
+	case Order::ORDER_TYPE_LOAD:
+		type_string = "Incoming";
+		state_string = "Executing"; //As operações de carga nunca estao "Waiting", começam logo a executar
+		load_order = true;
+		break;
+	case Order::ORDER_TYPE_UNLOAD:
+		type_string = "Dispatch";
+		type_string = "Waiting";
+		break;
+	}
+
+	// adiciona order à base de dados
+	return_value = insertDataOrder("factory.db", 
+						(int) order_to_add.GetID(), 
+						type_string, 
+						state_string, 
+						initPiece_string, 
+						finalPiece_string, 
+						total_pieces, 
+						deadline_string);
+
+	// se for uma order de carga, adiciona piece também
+	if (load_order){
+		return_value = insertDataPiece("factory.db", return_value);
+	}
+
+	return return_value;
 }
 
 /*

@@ -42,7 +42,7 @@ private:
     std::list<Piece> pieces;
 
 public:
-    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t quantity = 0, uint8_t initialPiece = 0, uint8_t finalPiece = 0);
+    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t count, uint8_t initialPiece, uint8_t finalPiece, time_t deadline);
     ~BaseOrder();
 
     bool is_valid();
@@ -65,11 +65,14 @@ class Order::Piece {
 private:
     uint32_t PieceID;
     uint8_t Path[59] = {0};
+    bool piece_on_hold;
 
 public:
     Piece(uint32_t id);
     uint32_t GetID();
     uint8_t *GetPath();
+    bool isOnHold();
+    void setPieceAsNotOnHold();
 
 };
 
