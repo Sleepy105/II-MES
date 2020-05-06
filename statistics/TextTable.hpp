@@ -5,7 +5,7 @@
 #include <map>
 #include <iomanip>
 #include <vector>
-#include <string>
+#include <string.h>
 #include "sqlite3.h"
 #ifdef TEXTTABLE_ENCODE_MULTIBYTE_STRINGS
 #include <clocale>

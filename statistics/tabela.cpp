@@ -141,9 +141,15 @@ int printStatisticsOrderWait(const char* s, TextTable* t)
 	t->add("State");
 	t->add("Waiting");
 	t->add("Entry Time");
+	t->add("Remaining Time");
 	t->endOfRow();
-	std::string sql = ("SELECT Order_Number As Order_Number, Type, State , Total_Number_Pieces AS Waiting, Entry_Time "\
-		"FROM ORDERS t Where State = 'Waiting' AND(Type = 'Dispatch' OR Type = 'Transformation') ORDER BY Order_Number");
+	std::string sql = ("SELECT ID, Type, State, Total_Number_Pieces AS Waiting, Entry_Time, "\
+		"CASE "\
+		"WHEN(falta) < 0 THEN '-' || time(abs(falta), 'unixepoch') "\
+		"ELSE time(abs(falta), 'unixepoch') "\
+		"END AS Remaining_Time "\
+		"FROM(SELECT Order_Number As ID, Type, State, Total_Number_Pieces, Entry_Time, Execution_Start, strftime('%s', Deadline) - strftime('%s', datetime('now', 'localtime')) as falta "\
+		"FROM ORDERS Where(State = 'Waiting') AND(Type = 'Dispatch' OR Type = 'Transformation')) t;); ");
 	sqlite3_exec(DB, sql.c_str(), callback2, t, NULL);
 	return 0;
 }
@@ -159,12 +165,19 @@ int printStatisticsOrderExecuting(const char* s, TextTable* t)
 	t->add("Waiting");
 	t->add("Entry Time");
 	t->add("Execution Start");
+	t->add("Remaining Time");
 	t->endOfRow();
-	std::string sql = ("SELECT Order_Number As ID, Type, State , t1.cont AS Executing, t2.cont AS Produced, (Total_Number_Pieces - t1.cont - t2.cont) AS Waiting, Entry_Time, Execution_Start " \
-		"FROM ORDERS t LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece " \
-		"Where Execution_End is NULL Group By Id_Order) t1 ON t1.ID_Order = t.ID " \
-		"LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece Where Execution_End is NOT NULL Group By Id_Order) t2 ON t2.ID_Order = t.ID  "\
-		"Where State = 'Executing' AND(Type = 'Dispatch' OR Type = 'Transformation') ORDER BY Order_Number");
+	std::string sql = ("SELECT Order_ID, Type, State, Case When t1.cont IS NULL Then 0 ELSE t1.cont END AS Executing, Case When t2.cont IS NULL Then 0 ELSE t2.cont END AS Produced, (Total_Number_Pieces - (Case When t1.cont IS NULL Then 0 ELSE t1.cont END) - (Case When t2.cont IS NULL Then 0 ELSE t2.cont END)) AS Waiting, Entry_Time, Execution_Start, "\
+		"CASE "\
+		"WHEN(falta) < 0 THEN '-' || time(abs(falta), 'unixepoch') "\
+		"ELSE time(abs(falta), 'unixepoch') "\
+		"END AS Remaining_Time "\
+		"FROM(SELECT Order_Number As Order_ID, ID, Type, State, Total_Number_Pieces, Entry_Time, Execution_Start, strftime('%s', Deadline) - strftime('%s', datetime('now', 'localtime')) as falta "\
+		"FROM ORDERS Where(State = 'Executing') AND(Type = 'Dispatch' OR Type = 'Transformation')) t "\
+		"LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece "\
+		"Where Execution_End is NULL Group By Id_Order) t1 ON t1.ID_Order = t.ID "\
+		"LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece Where Execution_End is NOT NULL Group By Id_Order) t2 ON t2.ID_Order = t.ID "\
+		"Where State = 'Executing' AND(Type = 'Dispatch' OR Type = 'Transformation') ORDER BY ID ASC;); ");
 	sqlite3_exec(DB, sql.c_str(), callback2, t, NULL);
 	sqlite3_close(DB);
 	return 0;
@@ -175,7 +188,12 @@ int callback2(void* t, int argc, char** argv, char** azColName)
 	for (int i = 0; i < argc; i++) {
 		//column name and valu
 		if (argv[i] == NULL)
-			c->add("0");
+		{
+			if (!strcmp(azColName[i], "Remaining_Time"))
+				c->add(" ");
+			else
+				c->add("0");
+		}
 		else
 			c->add(argv[i]);
 	}
@@ -291,3 +309,29 @@ int printStatisticsMachine(const char* s, TextTable *t)
 	sqlite3_close(DB);
 	return 0;
 }
+/* 
+Executing 
+
+SELECT ID, Type, State , t1.cont AS Executing, t2.cont AS Produced, (Total_Number_Pieces - t1.cont - t2.cont) AS Waiting, Entry_Time, Execution_Start,
+						CASE
+		WHEN(falta) < 0 THEN '-' || time(abs(falta), 'unixepoch')
+		ELSE time(abs(falta), 'unixepoch')
+		END AS Remaining_Time
+		FROM  (SELECT Order_Number As ID, Type, State, Total_Number_Pieces, Entry_Time, Execution_Start, strftime('%s', Deadline) - strftime('%s', datetime('now', 'localtime')) as falta
+		 FROM ORDERS Where (State = 'Executing') AND(Type = 'Dispatch' OR Type = 'Transformation')) t
+
+					   LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece
+		Where Execution_End is NULL Group By Id_Order) t1 ON t1.ID_Order = t.ID
+		LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece Where Execution_End is NOT NULL Group By Id_Order) t2 ON t2.ID_Order = t.ID
+		Where State = 'Executing' AND(Type = 'Dispatch' OR Type = 'Transformation') ORDER BY ID ASC;
+
+Waiting
+SELECT ID, Type, State , Total_Number_Pieces AS Waiting, Entry_Time,
+		 CASE
+		WHEN(falta) < 0 THEN '-' || time(abs(falta), 'unixepoch')
+		ELSE time(abs(falta), 'unixepoch')
+		END AS Remaining_Time
+		FROM  (SELECT Order_Number As ID, Type, State, Total_Number_Pieces, Entry_Time, Execution_Start, strftime('%s', Deadline) - strftime('%s', datetime('now', 'localtime')) as falta
+		 FROM ORDERS Where (State = 'Waiting') AND(Type = 'Dispatch' OR Type = 'Transformation')) t ;
+
+*/
