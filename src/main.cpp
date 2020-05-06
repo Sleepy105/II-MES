@@ -14,21 +14,10 @@ int main (int argc, char const *argv[]) {
     OrderQueue *order_queue = new OrderQueue();
     Warehouse *warehouse = new Warehouse();
 
-    XMLParser XMLParser(&OrderQueue);
+    XMLParser XMLParser(order_queue);
 
     UDPManager UDPManager(54321);
-<<<<<<< HEAD
-    std::thread udp_worker = UDPManager.spawn_worker(XMLParser.parseString);
-
-    // algures aqui teria de se retirar a informação obtida por XML
-    time_t now;
-    localtime(&now);
-    Order::BaseOrder order_from_xml(1, Order::ORDER_TYPE_TRANSFORMATON, 1, 1, 2, now);
-    
-    order_queue->AddOrder(order_from_xml);
-=======
     std::thread udp_worker = UDPManager.spawn_worker(&XMLParser);
->>>>>>> f91193dd2ded03ed76bbe75c9cc4124b622bffaf
 
     FILE* f = fopen("opc-ua-id.txt", "r");
     if (!f) {

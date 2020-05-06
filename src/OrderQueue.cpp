@@ -16,8 +16,7 @@ OrderQueue::~OrderQueue(){
 */
 int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 {
-<<<<<<< HEAD
-	if (order_to_add.GetType() == Order::ORDER_TYPE_REQUESTSTORES){
+	if (!order_to_add.is_valid()){
 		return -1; // Request stores não precisam de ser guardadas na DB, nem na order queue
 	}
 
@@ -66,13 +65,6 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	}
 
 	return return_value;
-=======
-	if (!order_to_add.is_valid())
-		return false;
-
-	orders_.push_back(order_to_add);
-	return true;
->>>>>>> f91193dd2ded03ed76bbe75c9cc4124b622bffaf
 }
 
 /*
