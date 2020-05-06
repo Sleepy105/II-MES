@@ -16,7 +16,7 @@ BaseOrder::BaseOrder(uint8_t order_id,
                      uint32_t quantity,
                      uint8_t initialPiece,
                      uint8_t finalPiece,
-                     time_t deadline) : order_id(order_id), order_type(order_type), count(quantity), initialPiece(initialPiece), finalPiece(finalPiece) {
+                     std::string deadline) : order_id(order_id), order_type(order_type), count(quantity), initialPiece(initialPiece), finalPiece(finalPiece) {
     meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
     if (order_type == Order::ORDER_TYPE_UNLOAD){
         order_id = -1;
@@ -43,9 +43,13 @@ uint8_t BaseOrder::GetType(){
 uint32_t BaseOrder::GetCount(){
     return count;
 }
-time_t BaseOrder::GetCreationTime(){
+std::string BaseOrder::GetCreationTime(){
     return CreationTime;
 }
+void BaseOrder::SetCreationTime(std::string creationtime){
+    CreationTime = DateTime("factory.db", "0");
+}
+
 time_t BaseOrder::GetDeadline(){
     return Deadline;
 }
@@ -75,4 +79,3 @@ bool Piece::isOnHold(){
 void Piece::setPieceAsNotOnHold(){
     piece_on_hold = false;
 }
-

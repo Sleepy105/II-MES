@@ -17,7 +17,7 @@
 #include <list>
 #include <iterator>
 #include <string>
-
+#include "DBInterface.hpp"
 #include "helpers.h"
 
 namespace Order {
@@ -35,8 +35,8 @@ private:
     uint32_t order_pk = 0;
     uint8_t order_type = 0;
     uint32_t count = 0;
-    time_t CreationTime;
-    time_t Deadline;
+    std::string CreationTime;
+    std::string Deadline;
     uint8_t initialPiece;
     uint8_t finalPiece;
     std::list<Piece> pieces;
@@ -50,8 +50,9 @@ public:
     uint32_t GetPK();
     uint8_t GetType();
     uint32_t GetCount();
-    time_t GetCreationTime();
-    time_t GetDeadline();
+    std::string GetCreationTime();
+    void SetCreationTime(std::string creationtime);
+    std::string GetDeadline();
     uint8_t GetInitialPiece();
     uint8_t GetFinalPiece();
     std::list<Piece> GetPieces();
