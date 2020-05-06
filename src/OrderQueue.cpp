@@ -87,7 +87,8 @@ bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 /*
         /// STUB (i.e. so serve para ser utilizável no main) ///
 	Devolve a próxima Order a executar com base na prioridade (Orders do topo primeiro)
-    e com as peças disponíveis em Armazém.
+    e com as peças disponíveis em Armazém. No caso de ser descarga, se os pushers estiverem
+	cheios nao podemos enviar
 */
 Order::BaseOrder OrderQueue::GetNextOrder()
 {
