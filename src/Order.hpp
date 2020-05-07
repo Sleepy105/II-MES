@@ -42,7 +42,7 @@ private:
     std::list<Piece> pieces;
 
 public:
-    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t count, uint8_t initialPiece, uint8_t finalPiece, time_t deadline);
+    BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t count, uint8_t initialPiece, uint8_t finalPiece, std::string deadline);
     ~BaseOrder();
 
     bool is_valid();

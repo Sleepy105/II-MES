@@ -26,7 +26,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	std::string state_string;
 	std::string initPiece_string = std::to_string(order_to_add.GetInitialPiece());
 	std::string finalPiece_string = std::to_string(order_to_add.GetFinalPiece());
-	std::string deadline_string = std::to_string(order_to_add.GetDeadline());
+	std::string deadline_string = order_to_add.GetDeadline();
 	int total_pieces = order_to_add.GetCount();
 
 	int return_value;
@@ -57,7 +57,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 						initPiece_string, 
 						finalPiece_string, 
 						total_pieces, 
-						deadline_string);
+						DateTime("factory.db", deadline_string);
 
 	// se for uma order de carga, adiciona piece também
 	if (load_order){
@@ -107,6 +107,7 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	size_t pos = 0;
 	int posicao = 0;
 	std::string token;
+	std::string delimiter;
 
 	while ((pos = datatime.find(delimiter)) != std::string::npos) {
 		token = datatime.substr(0, pos);
@@ -146,10 +147,15 @@ bool OrderQueue::update()
 	std::string deadline_string;
 	std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin();
 	std::list<Order::BaseOrder>::iterator orders_iterend_ = orders_.end();
-	time_t enddeadline = OrderQueue::GetDataTime((*orders_iterend_).GetDeadline);
-	
+	time_t enddeadline = OrderQueue::GetDataTime((*orders_iterend_).GetDeadline());
 	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
-	if(((*orders_iterend_).GetType() == "Incoming") OR ((*orders_iterend_).GetType() == "Dispatch")) {
+
+	// ISTO ESTÁ MAL
+	//>>>if(((*orders_iterend_).GetType() == "Incoming") OR ((*orders_iterend_).GetType() == "Dispatch")) {
+	// nos estamos a usar formatos diferentes para guardar o tipo de order na DB e no MES. No MES o order_type nao é uma string, mas sim um número, 
+	// no Order.hpp estao la os "defines" (que na verdade são variáveis const) que dizem os inteiros que representam cada tipo de order ("Incoming" 
+	// seria Order::ORDER_TYPE_LOAD p. ex.) por isso este "if" fica:
+	if(((*orders_iterend_).GetType() == Order::ORDER_TYPE_LOAD) || ((*orders_iterend_).GetType() == Order::ORDER_TYPE_UNLOAD)) {
 
 	}
 	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline 
