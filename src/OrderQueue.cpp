@@ -180,26 +180,3 @@ bool OrderQueue::update()
 	
 	return true;
 }
-/*time_t rawtime, rawtime1;
-	struct tm timeinfo, timeinfo1;
-
-	timeinfo.tm_year = 2016;
-	timeinfo.tm_mon = 03;
-	timeinfo.tm_mday = 02;
-	timeinfo.tm_hour = 10;
-	timeinfo.tm_min = 17;
-	timeinfo.tm_sec = 10;
-	rawtime = mktime(&timeinfo);
-
-
-	timeinfo1.tm_year = 2016;
-	timeinfo1.tm_mon = 03;
-	timeinfo1.tm_mday = 02;
-	timeinfo1.tm_hour = 10;
-	timeinfo1.tm_min = 18;
-	timeinfo1.tm_sec = 15;
-	rawtime1 = mktime(&timeinfo1);
-
-	std::cout << rawtime1 << std::endl;
-	std::cout << "Diff: " << difftime(rawtime1, rawtime)<<std::endl;
-	*/
