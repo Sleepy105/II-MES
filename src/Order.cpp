@@ -79,3 +79,9 @@ bool Piece::isOnHold(){
 void Piece::setPieceAsNotOnHold(){
     piece_on_hold = false;
 }
+void Piece::SetPath(uint8_t path_to_copy[]){
+    int i;
+    for (i = 0; i<59; i++){
+        Path[i] = path_to_copy[i];
+    }
+}
