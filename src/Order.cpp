@@ -86,6 +86,12 @@ uint32_t Piece::GetID(){
 uint8_t *Piece::GetPath(){
     return Path;
 }
+void Piece::SetPath(uint8_t path_to_copy[]){
+    int i;
+    for (i = 0; i<59; i++){
+        Path[i] = path_to_copy[i];
+    }
+}
 bool Piece::isOnHold(){
     return piece_on_hold;
 }

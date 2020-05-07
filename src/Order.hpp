@@ -73,6 +73,7 @@ public:
     Piece(uint32_t id);
     uint32_t GetID();
     uint8_t *GetPath();
+    void SetPath(uint8_t[]);
     bool isOnHold();
     void setPieceAsNotOnHold();
 
