@@ -12,7 +12,7 @@ OrderQueue::~OrderQueue(){
         /// STUB (i.e. so serve para ser utilizável no main) ///
 	Adiciona order_to_add com base na sua prioridade perante as outras Orders.
 	Orders de Carregar e Descarregar vao sempre para o topo.
-	Retorna pk da order se tiver sucesso. -1 se falhar. Se for uma order de load, retorna id da peca.
+	Retorna pk da order se tiver sucesso. -1 se falhar. Se for uma order de load, retorna id (pk) da peca.
 */
 int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 {
@@ -20,19 +20,53 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 		return -1; // Request stores não precisam de ser guardadas na DB, nem na order queue
 	}
 
-	orders_.push_back(order_to_add); // adiciona order à queue
-
 	std::string type_string;
 	std::string state_string;
 	std::string initPiece_string = std::to_string(order_to_add.GetInitialPiece());
 	std::string finalPiece_string = std::to_string(order_to_add.GetFinalPiece());
 	std::string deadline_string = order_to_add.GetDeadline();
 	int total_pieces = order_to_add.GetCount();
+	uint8_t order_type = order_to_add.GetType();
+	time_t enddeadline = GetDataTime(order_to_add.GetDeadline());
 
 	int return_value;
 	bool load_order = false;
 
-	switch (order_to_add.GetType())
+	// Adicionar na list do MES
+	
+	std::list<Order::BaseOrder>::iterator destination;
+	time_t tempdeadline;
+	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
+	if((order_type == Order::ORDER_TYPE_LOAD) || (order_type == Order::ORDER_TYPE_UNLOAD)) {
+		for (destination = orders_.begin(); destination != orders_.end(); ++destination)
+		{
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON)
+			{
+				orders_.insert(destination, order_to_add)
+				break;
+			}
+		}
+	}
+	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline das orders do tipo transformation
+	else{
+		for (destination = orders_.begin(); destination != orders_.end(); ++destination) {
+
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON){
+
+				tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
+				if (difftime(enddeadline, tempdeadline) < 0){
+
+					orders_.insert(destination, order_to_add);
+					break;
+				}
+			}
+		}
+	}
+
+
+	// Adicionar na base de dados
+
+	switch (order_type)
 	{
 	case Order::ORDER_TYPE_TRANSFORMATON:
 		type_string = "Transformation";
@@ -95,11 +129,7 @@ Order::BaseOrder OrderQueue::GetNextOrder()
 	return orders_.front();
 }
 
-/*
-        /// POR IMPLEMENTAR ///
-    Penso que isto supostamente atualiza a ordem das Orders?
-    Retorna true se tiver sucesso(em principio nao vai ser usado)
-*/
+
 time_t OrderQueue::GetDataTime(std::string datatime)
 {
 	time_t rawtime1;
@@ -145,25 +175,41 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 bool OrderQueue::update()
 {
 	std::string deadline_string;
-	std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin();
-	std::list<Order::BaseOrder>::iterator orders_iterend_ = orders_.end();
-	time_t enddeadline = OrderQueue::GetDataTime((*orders_iterend_).GetDeadline());
+
+	// visto que a nova ordem aponta sempre para o fim
+	std::list<Order::BaseOrder>::iterator source = orders_.end();
+	std::list<Order::BaseOrder>::iterator destination;
+	time_t enddeadline = OrderQueue::GetDataTime((*source).GetDeadline());
+
+	time_t tempdeadline;
 	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
-
-	// ISTO ESTÁ MAL
-	//>>>if(((*orders_iterend_).GetType() == "Incoming") OR ((*orders_iterend_).GetType() == "Dispatch")) {
-	// nos estamos a usar formatos diferentes para guardar o tipo de order na DB e no MES. No MES o order_type nao é uma string, mas sim um número, 
-	// no Order.hpp estao la os "defines" (que na verdade são variáveis const) que dizem os inteiros que representam cada tipo de order ("Incoming" 
-	// seria Order::ORDER_TYPE_LOAD p. ex.) por isso este "if" fica:
-	if(((*orders_iterend_).GetType() == Order::ORDER_TYPE_LOAD) || ((*orders_iterend_).GetType() == Order::ORDER_TYPE_UNLOAD)) {
-
+	if(((*source).GetType() == Order::ORDER_TYPE_LOAD) OR ((*source).GetType() == Order::ORDER_TYPE_UNLOAD)) {
+		for (destination = orders_.begin(); destination != orders_.end(); ++destination)
+		{
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON)
+			{
+				orders_.insert(destination, order_to_add)
+				break;
+			}
+		}
 	}
-	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline 
+	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline das orders do tipo transformation
 	else{
-		
+		for (destination = orders_.begin(); destination != orders_.end(); ++destination) {
+
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON){
+
+				time_t tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
+				if (difftime(source, destination) < 0){
+
+					orders_.insert(destination, order_to_add);
+					break;
+				}
+			}
+		}
 	}
 	
-	return false;
+	return true;
 }
 /*time_t rawtime, rawtime1;
 	struct tm timeinfo, timeinfo1;
