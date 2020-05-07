@@ -26,7 +26,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	std::string state_string;
 	std::string initPiece_string = std::to_string(order_to_add.GetInitialPiece());
 	std::string finalPiece_string = std::to_string(order_to_add.GetFinalPiece());
-	std::string deadline_string = std::to_string(order_to_add.GetDeadline());
+	std::string deadline_string = (order_to_add.GetDeadline());
 	int total_pieces = order_to_add.GetCount();
 
 	int return_value;
@@ -144,20 +144,41 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 bool OrderQueue::update()
 {
 	std::string deadline_string;
-	std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin();
-	std::list<Order::BaseOrder>::iterator orders_iterend_ = orders_.end();
-	time_t enddeadline = OrderQueue::GetDataTime((*orders_iterend_).GetDeadline);
-	
-	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
-	if(((*orders_iterend_).GetType() == "Incoming") OR ((*orders_iterend_).GetType() == "Dispatch")) {
+	std::list<Order::BaseOrder>::iterator destination;
 
+	// visto que a nova ordem aponta sempre para o fim
+	std::list<Order::BaseOrder>::iterator source = orders_.end();
+	time_t enddeadline = OrderQueue::GetDataTime((*source).GetDeadline());
+
+	time_t tempdeadline;
+	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
+	if(((*source).GetType() == Order::ORDER_TYPE_LOAD) OR ((*source).GetType() == Order::ORDER_TYPE_UNLOAD)) {
+		for (destination = orders_.begin(); destination != --orders_.end(); ++destination)
+		{
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON)
+			{
+				list.splice(destination, order_, source);
+				break;
+			}
+		}
 	}
-	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline 
+	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline das orders do tipo transformation
 	else{
-		
+		for (destination = orders_.begin(); destination != --orders_.end(); ++destination) {
+
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON){
+
+				time_t tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
+				if (difftime(source, destination) < 0){
+
+					list.splice(destination, order_, source);
+					break;
+				}
+			}
+		}
 	}
 	
-	return false;
+	return true;
 }
 /*time_t rawtime, rawtime1;
 	struct tm timeinfo, timeinfo1;

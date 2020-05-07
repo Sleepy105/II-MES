@@ -1,6 +1,8 @@
 #ifndef _ORDERQUEUE_HPP_
 #define _ORDERQUEUE_HPP_
 
+#include <chrono>
+#include <algorithm>
 #include <list>
 #include <iterator>
 #include <string>
