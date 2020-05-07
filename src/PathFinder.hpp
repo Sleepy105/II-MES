@@ -5,7 +5,7 @@
 
 class PathFinder{
 public:
-    void FindPath (uint16_t path[]);
+    void FindPath (Order::BaseOrder order_path);
 };
 
 #endif

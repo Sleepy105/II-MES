@@ -1,11 +1,15 @@
 #include "PathFinder.hpp"
 
+/*
+1 - direita
+2 - baixo 
+3 - esquerda
+4 - cima
+*/
 // STUB: escreve sempre o mesmo caminho no vetor path[]
-void PathFinder::FindPath(uint16_t path[]){
+void PathFinder::FindPath(Order::BaseOrder order_path){
     uint8_t i;
-    for (i = 0; i  < 59; i++){
-        path[i] = 0;
-    }
+  /*  
     path[0] = 1;
     path[1] = 1;
     path[2] = 2;
@@ -17,5 +21,5 @@ void PathFinder::FindPath(uint16_t path[]){
     path[8] = 2;
     path[9] = 2;
     path[10] = 3;
-    path[11] = 3;
+    path[11] = 3;*/
 }
