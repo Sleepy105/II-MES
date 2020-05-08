@@ -58,8 +58,40 @@ void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
 }
 
 
+bool OPCUA_Manager::warehouseOutCarpetIsFree() {
+    char NodeID[128];
+    strcpy(NodeID, BaseNodeID_);
+    strcat(NodeID, "GVL.AT1_tp") // this variable will got to 0 after a piece has exited the warehouse carpet
+
+    UA_ReadRequest request;
+    UA_ReadRequest_init(&request);
+    UA_ReadValueId ids[1];
+    ids[0].attributeId = UA_ATTRIBUTEID_VALUE;
+    ids[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    request.nodesToRead = ids;
+    request.nodesToReadSize = 1;
+
+    UA_ReadResponse response = UA_Client_Service_read(_client, request);
+    if (*(UA_UInt16*) response.results[0].value.data != 0){ // there's already a piece, can't send new one
+        return false
+    } // else, carpet is free, can send new piece
+    return true;
+}
+
 
 bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
+
+    // Create base string for node access
+    char NodeID[128];
+    char NodeID_backup[128];
+    char aux[20];
+    strcpy(NodeID_backup, BaseNodeID_);
+    strcat(NodeID_backup, "GVL.OBJECT[1]."); // we'll use this multiple times
+
+    // Check if we can insert the piece (Entry carpet is free)
+    if (!warehouseOutCarpetIsFree()){
+        return false; // warehouse carpet is not free, can't send piece
+    }
 
     uint16_t pathIDcounter = 1;
 
@@ -67,144 +99,121 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
     uint16_t transformation = 1;
     uint16_t type_piece = order.GetInitialPiece();
 
-    std::list<Order::Piece>::iterator piece_iter = order.GetPieces().begin();
-	while ( !((*piece_iter).isOnHold()) ){
-		if (piece_iter == order.GetPieces().end()){
-			return false;
-		}
-		piece_iter++;
-	}
+    // OLD IMPLEMENTATION: scan pieces for pieces that haven't been processed (not On Hold). Turns out this is the last piece, always
+    // std::list<Order::Piece>::iterator piece_iter = order.GetPieces().begin();
+	// while ( !((*piece_iter).isOnHold()) ){
+	// 	if (piece_iter == order.GetPieces().end()){
+	// 		return false;
+	// 	}
+	// 	piece_iter++;
+	// }
 
-    uint32_t id_piece = (*piece_iter).GetID();
-    uint8_t *path = (*piece_iter).GetPath();
+    // NEW IMPLEMENTATION: get pieces from Piece list back, aka end
+    uint32_t id_piece = order.GetPieces().back().GetID();
+    uint8_t *path = order.GetPieces().back().GetPath();
 
     // Criar vetor em formato compatível com OPC-UA
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
     for (uint16_t i = 0; i < 59; i++) {
-        path_UA[i] = path[i];
+        path_UA[i] = (uint16_t) path[i];
     }
 
-
-    // Converter dados em string identificadora do no
-    char NodeID[128];
-    char NodeID_backup[128];
-    char aux[20];
-    strcpy(NodeID, BaseNodeID_);
-    strcat(NodeID, "GVL.OBJECT[1].");
-    strcpy(NodeID_backup, NodeID); // Copiar backup, vamos voltar a esta string varias vezes
-
-    // escrever transformacao
+    // TESTING PENDING!!! Found out how to write in multiple places in a single write request, 
+    // but this was found out by me (didn't see anyone else doing this), and might have unforeseen problems
     UA_WriteRequest wReq;
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = UA_WriteValue_new();
-    wReq.nodesToWriteSize = 1;
+    UA_WriteValue my_nodes[5];
+    UA_WriteValue_init(&my_nodes[0]);
+    UA_WriteValue_init(&my_nodes[1]);
+    UA_WriteValue_init(&my_nodes[2]);
+    UA_WriteValue_init(&my_nodes[3]);
+    UA_WriteValue_init(&my_nodes[4]);
+    wReq.nodesToWrite = my_nodes;
+    wReq.nodesToWriteSize = 5;
+    i=0;
+    // transformation node write
+    strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "transformation");
+    my_nodes[i].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    my_nodes[i].attributeId = UA_ATTRIBUTEID_VALUE;
+    my_nodes[i].value.hasValue = true;
+    my_nodes[i].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    my_nodes[i].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    my_nodes[i].value.value.data = &transformation;
+    i++;
 
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    wReq.nodesToWrite[0].value.hasValue = true;
-    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
-    wReq.nodesToWrite[0].value.value.data = &transformation;
-    UA_WriteResponse wResp = UA_Client_Service_write(client_, wReq);
-
-    if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-
-    }
-    else return false;
-
-    UA_WriteRequest_clear(&wReq);
-    UA_WriteResponse_clear(&wResp);
-
-    // escrever tipo de peca
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = UA_WriteValue_new();
-    wReq.nodesToWriteSize = 1;
+    // piece type node write
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "type_piece");
+    my_nodes[i].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    my_nodes[i].attributeId = UA_ATTRIBUTEID_VALUE;
+    my_nodes[i].value.hasValue = true;
+    my_nodes[i].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    my_nodes[i].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    my_nodes[i].value.value.data = &type_piece;
+    i++;
 
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    wReq.nodesToWrite[0].value.hasValue = true;
-    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
-    wReq.nodesToWrite[0].value.value.data = &type_piece;
-    wResp = UA_Client_Service_write(client_, wReq);
-
-    if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD){
-        return false;
-    }
-    UA_WriteRequest_clear(&wReq);
-    UA_WriteResponse_clear(&wResp);
-
-    // escrever valor inicial do path_id_counter
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = UA_WriteValue_new();
-    wReq.nodesToWriteSize = 1;
+    // path_id_counter node write
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "path_id_counter");
 
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    wReq.nodesToWrite[0].value.hasValue = true;
-    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
-    wReq.nodesToWrite[0].value.value.data = &pathIDcounter;
-    wResp = UA_Client_Service_write(client_, wReq);
+    my_nodes[i].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    my_nodes[i].attributeId = UA_ATTRIBUTEID_VALUE;
+    my_nodes[i].value.hasValue = true;
+    my_nodes[i].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    my_nodes[i].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    my_nodes[i].value.value.data = &pathIDcounter;
+    i++;
 
-    if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-
-    }
-    else return false;
-    UA_WriteRequest_clear(&wReq);
-    UA_WriteResponse_clear(&wResp);
-
-    // escrever ID da peca
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = UA_WriteValue_new();
-    wReq.nodesToWriteSize = 1;
+    // piece id node write
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "id_piece");
 
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    wReq.nodesToWrite[0].value.hasValue = true;
-    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
-    wReq.nodesToWrite[0].value.value.data = &id_piece;
-    wResp = UA_Client_Service_write(client_, wReq);
+    my_nodes[i].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    my_nodes[i].attributeId = UA_ATTRIBUTEID_VALUE;
+    my_nodes[i].value.hasValue = true;
+    my_nodes[i].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    my_nodes[i].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    my_nodes[i].value.value.data = &id_piece;
+    i++;
 
-    if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-
-    }
-    else return false;
-    UA_WriteRequest_clear(&wReq);
-    UA_WriteResponse_clear(&wResp);
-
-    // escrever caminho que a pe�a vai percorrer
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = UA_WriteValue_new();
-    wReq.nodesToWriteSize = 1;
+    // path node write
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "path");
 
-    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    wReq.nodesToWrite[0].value.hasValue = true;
-    wReq.nodesToWrite[0].value.value.arrayLength = 59;
-    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    wReq.nodesToWrite[0].value.value.data = path_UA;
+    my_nodes[i].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    my_nodes[i].attributeId = UA_ATTRIBUTEID_VALUE;
+    my_nodes[i].value.hasValue = true;
+    my_nodes[i].value.value.arrayLength = 59;
+    my_nodes[i].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    my_nodes[i].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    my_nodes[i].value.value.data = path_UA;
+
+    // Send all node writes at once
     wResp = UA_Client_Service_write(client_, wReq);
 
-    if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-
+    if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        return false;
     }
-    else return false;
+    // A parte que tenho duvidas surge agora nestas proximas 4 linhas de codigo:
+    // O problema que surge esta no "WriteRequest_clear()" tentar apagar os my_nodes[].
+    // Ele chama um free interno, mas os my_nodes[] estao declarados na stack (logo o free() falha).
+    // tentei po-los na heap (*my_nodes = malloc(sizeof(UA_WriteValue)*5) em vez de my_nodes[5]), mas
+    // nao funcionou, nao consigo perceber porque.
+    // A solucao que arranjei foi "enganar" o clear em pensar que as variaveis estao vazias (NULL).
+    // Efetivamente isto resulta, mas tenho medo que hajam memory leaks que me estejam a escapar...
+    // Penso que nao hajam, visto que, estando na stack, depois de sair da funcao estas variaveis vao
+    // a vida. Mas nao sei ate que ponto o UA_WriteValue_init() chamado no inicio faz alocacoes sem
+    // eu saber...
+    wReq.nodesToWrite = NULL;
+    wReq.nodesToWriteSize = 0;
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
 
-    // escrever tipo de pe�a na vari�vel da Warehouse para despoletar a sa�da da pe�a
+    // Escrever tipo de peca na variavel da Warehouse para despoletar a saida da peca.
+    //
+    //  Este tem mesmo de ser escrito num pedido a parte, porque tem de ser escrito no fim,
+    // como eu escrevi os outros nao sei se o OPC-UA escreve tudo numa so operacao atomica
+    // ou se vai escrevendo simplesmente por uma ordem aleatoria, sem grande criterio...
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
@@ -215,14 +224,13 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;
     wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
+    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
     wReq.nodesToWrite[0].value.value.data = &type_piece;
     wResp = UA_Client_Service_write(client_, wReq);
 
-    if (wResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-
+    if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        return false;
     }
-    else return false;
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
 

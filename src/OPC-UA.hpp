@@ -54,12 +54,13 @@ public:
 
     bool Is_Connected();
 
-    //bool SendPieceOPC_UA(uint16_t path[], uint16_t transformation, uint16_t id_piece, uint16_t type_piece, uint16_t object_index);
     bool SendPieceOPC_UA (Order::BaseOrder order);
 
     bool CheckPiecesFinished();
 
     bool CheckIncomingPieces();
+
+    bool warehouseOutCarpetIsFree();
 };
 
 #endif
