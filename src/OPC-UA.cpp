@@ -249,103 +249,114 @@ bool OPCUA_Manager::CheckPiecesFinished(){
 
 
 bool OPCUA_Manager::CheckIncomingPieces(){
+    // to write stuff with OPC_UA (might go unused)
     UA_WriteRequest wReq;
     UA_WriteResponse wResp;
-    Order::BaseOrder *order_to_add;
+    UA_WriteValue nodes_to_write[2];
     uint16_t PieceID;
+    bool Mes_is_ok = true;
+    
+    bool MES_ok;
+
+    Order::BaseOrder *order_to_add;
 
     ////////////////////////////////////////////////////////////// CARPET C7T1B
-    //Check if there's a piece in carpet C7T1b, which is just checking if PLC wrote to MES_ok
     char NodeID[128];
     
-    // MES ok variable is not set (we haven't processed this piece yet)
+    // Check if MES ok variable in PLC is not set (we haven't processed this piece yet)
     strcpy (NodeID,BaseNodeID_);
     strcat (NodeID,"POU.C7T1b.MES_ok");
 
     UA_Variant *val = UA_Variant_new();
     UA_StatusCode retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
     if(retval == UA_STATUSCODE_GOOD) {
-        value = *(UA_Boolean*)val->data;
+        MES_ok = *(UA_Boolean*)val->data;
     }
+    UA_Variant_delete(val);
     // MES ok is false: we have not yet processed this piece
-    if (value == false){
+    if (!MES_ok){
         PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 1, 1, 1, "0")); //deadline não interessa, pus "0" just in case
 
+        UA_WriteValue nodes_to_write[2];
+        UA_WriteValue_init(&nodes_to_write[0]);
+        UA_WriteValue_init(&nodes_to_write[1]);
         UA_WriteRequest_init(&wReq);
-        wReq.nodesToWrite = UA_WriteValue_new();
-        wReq.nodesToWriteSize = 1;
-        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-        wReq.nodesToWrite[0].value.hasValue = true;
-        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        wReq.nodesToWrite[0].value.value.data = &PieceID;
-        wResp = UA_Client_Service_write(client_, wReq);
 
-        UA_WriteRequest_clear(&wReq);
-        UA_WriteResponse_clear(&wResp);
-
+        strcpy(NodeID, BaseNodeID_);
+        strcat(NodeID, "GVL.OBJECT[9].id_piece");
+        nodes_to_write[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        nodes_to_write[0].attributeId = UA_ATTRIBUTEID_VALUE;
+        nodes_to_write[0].value.hasValue = true;
+        nodes_to_write[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+        nodes_to_write[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        nodes_to_write[0].value.value.data = &PieceID;
+        
+        strcpy(NodeID, BaseNodeID_);
+        strcat(NodeID, "POU.C7T1b.MES_ok");
+        nodes_to_write[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        nodes_to_write[1].attributeId = UA_ATTRIBUTEID_VALUE;
+        nodes_to_write[1].value.hasValue = true;
+        nodes_to_write[1].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
+        nodes_to_write[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        nodes_to_write[1].value.value.data = &Mes_is_ok;
+    
         UA_WriteRequest_init(&wReq);
-        wReq.nodesToWrite = UA_WriteValue_new();
-        wReq.nodesToWriteSize = 1;
-        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-        wReq.nodesToWrite[0].value.hasValue = true;
-        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        wReq.nodesToWrite[0].value.value.data = &Mes_is_ok;
+        wReq.nodesToWrite = nodes_to_write;
+        wReq.nodesToWriteSize = 2;
         wResp = UA_Client_Service_write(client_, wReq);
-
-        UA_WriteRequest_clear(&wReq);
+        wReq.nodesToWrite = NULL;
+        wReq.nodesToWriteSize = 0;
         UA_WriteResponse_clear(&wResp);
+        UA_WriteRequest_clear(&wReq);
     }
 
     ////////////////////////////////////////////////////////////// CARPET C7T7B
-    //Check if there's a piece in carpet C7T7b
+    // Check if MES ok variable in PLC is not set (we haven't processed this piece yet)
     strcpy (NodeID,BaseNodeID_);
     strcat (NodeID,"POU.C7T7b.MES_ok");
 
     retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
     if(retval == UA_STATUSCODE_GOOD) {
-        value = *(UA_Boolean*)val->data;
+        MES_ok = *(UA_Boolean*)val->data;
     }
+    UA_Variant_delete(val);
     // MES ok is false: we have not yet processed this piece
-    if (value == false){
+    if (!MES_ok){
         // Adicionar Order antes de mandar o MES_ok
         PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 1, 2, 2, "0")); //deadline não interessa, pus "0" just in case
 
-        // Atribuir ID da peça
+        UA_WriteValue nodes_to_write[2];
+        UA_WriteValue_init(&nodes_to_write[0]);
+        UA_WriteValue_init(&nodes_to_write[1]);
         UA_WriteRequest_init(&wReq);
-        strcpy (NodeID,BaseNodeID_);
-        strcat (NodeID,"GVL.OBJECT");
-        wReq.nodesToWrite = UA_WriteValue_new();
-        wReq.nodesToWriteSize = 1;
-        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-        wReq.nodesToWrite[0].value.hasValue = true;
-        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        wReq.nodesToWrite[0].value.value.data = &PieceID;
-        wResp = UA_Client_Service_write(client_, wReq);
 
-        UA_WriteRequest_clear(&wReq);
-        UA_WriteResponse_clear(&wResp);
-
+        strcpy(NodeID, BaseNodeID_);
+        strcat(NodeID, "GVL.OBJECT[59].id_piece");
+        nodes_to_write[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        nodes_to_write[0].attributeId = UA_ATTRIBUTEID_VALUE;
+        nodes_to_write[0].value.hasValue = true;
+        nodes_to_write[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+        nodes_to_write[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        nodes_to_write[0].value.value.data = &PieceID;
+        
+        strcpy(NodeID, BaseNodeID_);
+        strcat(NodeID, "POU.C7T7b.MES_ok");
+        nodes_to_write[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        nodes_to_write[1].attributeId = UA_ATTRIBUTEID_VALUE;
+        nodes_to_write[1].value.hasValue = true;
+        nodes_to_write[1].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
+        nodes_to_write[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        nodes_to_write[1].value.value.data = &Mes_is_ok;
+    
         UA_WriteRequest_init(&wReq);
-        wReq.nodesToWrite = UA_WriteValue_new();
-        wReq.nodesToWriteSize = 1;
-        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-        wReq.nodesToWrite[0].value.hasValue = true;
-        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        wReq.nodesToWrite[0].value.value.data = &Mes_is_ok;
+        wReq.nodesToWrite = nodes_to_write;
+        wReq.nodesToWriteSize = 2;
         wResp = UA_Client_Service_write(client_, wReq);
-
-        UA_WriteRequest_clear(&wReq);
+        wReq.nodesToWrite = NULL;
+        wReq.nodesToWriteSize = 0;
         UA_WriteResponse_clear(&wResp);
+        UA_WriteRequest_clear(&wReq);
     }
-    UA_Variant_delete(val);
 
 
     return true;
