@@ -65,10 +65,10 @@ bool OPCUA_Manager::warehouseOutCarpetIsFree() {
 
     UA_ReadRequest request;
     UA_ReadRequest_init(&request);
-    UA_ReadValueId ids[1];
-    ids[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    ids[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
-    request.nodesToRead = ids;
+    UA_ReadValueId nodes_to_read[1];
+    nodes_to_read[0].attributeId = UA_ATTRIBUTEID_VALUE;
+    nodes_to_read[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    request.nodesToRead = nodes_to_read;
     request.nodesToReadSize = 1;
 
     UA_ReadResponse response = UA_Client_Service_read(_client, request);
@@ -240,9 +240,132 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
 
 
 bool OPCUA_Manager::CheckPiecesFinished(){
-    // Check if there are true booleans in warehouse exit
-    // POU.AT2.piece_queue[10]
-    // POU.AT2.piece_id_array[10]
+    char NodeID[128];
+    char NodeID_backup[128];
+    char aux[3];
+    uint16_t number_of_ids_to_read;
+    uint16_t piece_ids[10] = {0};
+    bool all_up_to_date = true;
+
+    strcpy (NodeID_backup, BaseNodeID_);
+    strcat (NodeID_backup, "POU.AT2.piece_queue[");
+    
+
+    // Check if there are true booleans in warehouse entry carpet (pieces that the warehouse 
+    // received but haven't yet been processed by MES)
+    bool piece_queue[10] = { false };
+    UA_ReadRequest request;
+    UA_ReadRequest_init(&request);
+    UA_ReadValueId nodes_to_read[10];
+
+    uint16_t i;
+
+    for (i = 0; i < 10; i++) {
+        strcpy(NodeID, NodeID_backup);
+        ConvIntToString(aux, i + 1); //PLC array indexes start at 1
+        strcat(NodeID, aux);
+        strcat(NodeID, "]");
+
+        UA_ReadValueId_init(&nodes_to_read[i]);
+        nodes_to_read[i].attributeId = UA_ATTRIBUTEID_VALUE;
+        nodes_to_read[i].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    }
+
+    request.nodesToRead = nodes_to_read;
+    request.nodesToReadSize = 10;
+
+    UA_ReadResponse response = UA_Client_Service_read(_client, request);
+    if (response.results[0].value.type == &UA_TYPES[UA_TYPES_BOOLEAN]) {
+        for (i = 0; i < 10; i++) {
+            piece_queue[i] = *(UA_Boolean*)response.results[i].value.data;
+        }
+    } 
+    // bool results are now in piece_queue[10];
+
+    
+    strcpy (NodeID_backup, BaseNodeID_);
+    strcat (NodeID_backup, "POU.AT2.piece_id_array[");
+
+    // check if the queue has any unprocessed pieces and count how many nodes we need to read
+    // start initializing nodes_to_read as we go (save us from another loop)
+    number_of_ids_to_read = 0;
+    for (i = 0; i < 10; i++){
+        if (piece_queue[i]){
+            all_up_to_date = false; // at least one element is true -> not all is up to date
+
+            strcpy(NodeID, NodeID_backup);
+            ConvIntToString(aux, i + 1); //PLC array indexes start at 1
+            strcat(NodeID, aux);
+            strcat(NodeID, "]");
+
+            UA_ReadValueId_init(&nodes_to_read[number_of_ids_to_read]);
+            nodes_to_read[number_of_ids_to_read].attributeId = UA_ATTRIBUTEID_VALUE;
+            nodes_to_read[number_of_ids_to_read].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+
+            number_of_ids_to_read++;
+        }
+    }
+
+    if (all_up_to_date){
+        return false; // nothing to do, return "false" meaning no pieces were finished
+    }
+
+    // Not all_up_to_date. Start reading id's
+    request.nodesToRead = nodes_to_read;
+    request.nodesToReadSize = number_of_ids_to_read;
+
+    UA_ReadResponse response = UA_Client_Service_read(_client, request);
+    if (response.results[0].value.type == &UA_TYPES[UA_TYPES_UINT16]) {
+        for (i = 0; i < number_of_ids_to_read; i++) {
+            piece_ids[i] = *(UA_UInt16*)response.results[i].value.data;
+        }
+    }
+
+    // Now that we have the ids, we can tag the read piece_queue indexes as "false".
+    // We don't need to overwrite the old ids, they will just be overwritten later on by the PLC upon
+    // checking that the piece_queue index that corresponds to it is "false".
+
+    uint16_t node_index = 0;
+    UA_WriteRequest wReq;
+    UA_WriteResponse wResp;
+    UA_WriteValue nodes_to_write[10];
+    bool write_false = false;
+
+    strcpy (NodeID_backup, BaseNodeID_);
+    strcat (NodeID_backup, "POU.AT2.piece_queue[");
+
+    // fill in which nodes to write to
+    for (i = 0; i < 10; i++){
+        if (piece_queue[i]){
+
+            strcpy(NodeID, NodeID_backup);
+            ConvIntToString(aux, i + 1); //PLC array indexes start at 1
+            strcat(NodeID, aux);
+            strcat(NodeID, "]");
+
+            nodes_to_write[node_index].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+            nodes_to_write[node_index].attributeId = UA_ATTRIBUTEID_VALUE;
+            nodes_to_write[node_index].value.hasValue = true;
+            nodes_to_write[node_index].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+            nodes_to_write[node_index].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+            nodes_to_write[node_index].value.value.data = &write_false;
+            node_index++;
+        }
+    }
+
+    // start write request
+    UA_WriteRequest_init(&wReq);
+    wReq.nodesToWrite = nodes_to_write;
+    wReq.nodesToWriteSize = node_index; // same as total node amount which is the same as "number_of_ids_to_read" obtained previously
+    wResp = UA_Client_Service_write(_client, wReq);
+    wReq.nodesToWrite = NULL;
+    wReq.nodesToWriteSize = 0;
+    UA_WriteResponse_clear(&wResp);
+    UA_WriteRequest_clear(&wReq);
+
+    // We now have an array, in piece_ids with all ids of pieces that have finished. But we haven't processed them yet
+    // TO BE IMPLEMENTED: UPDATE ORDERS BASED ON RETRIEVED IDS
+
     return true;
 }
 
