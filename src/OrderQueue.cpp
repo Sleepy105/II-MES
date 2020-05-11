@@ -12,7 +12,7 @@ OrderQueue::~OrderQueue(){
         /// STUB (i.e. so serve para ser utilizável no main) ///
 	Adiciona order_to_add com base na sua prioridade perante as outras Orders.
 	Orders de Carregar e Descarregar vao sempre para o topo.
-	Retorna pk da order se tiver sucesso. -1 se falhar. Se for uma order de load, retorna id da peca.
+	Retorna pk da order se tiver sucesso. -1 se falhar. Se for uma order de load, retorna id (pk) da peca.
 */
 int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 {
@@ -20,19 +20,53 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 		return -1; // Request stores não precisam de ser guardadas na DB, nem na order queue
 	}
 
-	orders_.push_back(order_to_add); // adiciona order à queue
-
 	std::string type_string;
 	std::string state_string;
 	std::string initPiece_string = std::to_string(order_to_add.GetInitialPiece());
 	std::string finalPiece_string = std::to_string(order_to_add.GetFinalPiece());
-	std::string deadline_string = (order_to_add.GetDeadline());
+	std::string deadline_string = order_to_add.GetDeadline();
 	int total_pieces = order_to_add.GetCount();
+	uint8_t order_type = order_to_add.GetType();
+	time_t enddeadline = GetDataTime(order_to_add.GetDeadline());
 
 	int return_value;
 	bool load_order = false;
 
-	switch (order_to_add.GetType())
+	// Adicionar na list do MES
+	
+	std::list<Order::BaseOrder>::iterator destination;
+	time_t tempdeadline;
+	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
+	if((order_type == Order::ORDER_TYPE_LOAD) || (order_type == Order::ORDER_TYPE_UNLOAD)) {
+		for (destination = orders_.begin(); destination != orders_.end(); ++destination)
+		{
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON)
+			{
+				orders_.insert(destination, order_to_add);
+				break;
+			}
+		}
+	}
+	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline das orders do tipo transformation
+	else{
+		for (destination = orders_.begin(); destination != orders_.end(); ++destination) {
+
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON){
+
+				tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
+				if (difftime(enddeadline, tempdeadline) < 0){
+
+					orders_.insert(destination, order_to_add);
+					break;
+				}
+			}
+		}
+	}
+
+
+	// Adicionar na base de dados
+
+	switch (order_type)
 	{
 	case Order::ORDER_TYPE_TRANSFORMATON:
 		type_string = "Transformation";
@@ -57,7 +91,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 						initPiece_string, 
 						finalPiece_string, 
 						total_pieces, 
-						deadline_string);
+						DateTime("factory.db", deadline_string));
 
 	// se for uma order de carga, adiciona piece também
 	if (load_order){
@@ -95,11 +129,7 @@ Order::BaseOrder OrderQueue::GetNextOrder()
 	return orders_.front();
 }
 
-/*
-        /// POR IMPLEMENTAR ///
-    Penso que isto supostamente atualiza a ordem das Orders?
-    Retorna true se tiver sucesso(em principio nao vai ser usado)
-*/
+
 time_t OrderQueue::GetDataTime(std::string datatime)
 {
 	time_t rawtime1;
@@ -107,6 +137,7 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	size_t pos = 0;
 	int posicao = 0;
 	std::string token;
+	std::string delimiter;
 
 	while ((pos = datatime.find(delimiter)) != std::string::npos) {
 		token = datatime.substr(0, pos);
@@ -141,9 +172,11 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	rawtime1 = mktime(&timeinfo1);
 	return rawtime1;
 }
+
+// O que fazer aqui? Implementacao de ordenar orders aquando da sua insercao movida para AddOrder()
 bool OrderQueue::update()
 {
-	std::string deadline_string;
+	/*std::string deadline_string;
 	std::list<Order::BaseOrder>::iterator destination;
 
 	// visto que a nova ordem aponta sempre para o fim
@@ -171,12 +204,12 @@ bool OrderQueue::update()
 				time_t tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
 				if (difftime(source, destination) < 0){
 
-					list.splice(destination, order_, source);
+					orders_.insert(destination, order_to_add);
 					break;
 				}
 			}
 		}
-	}
+	}*/
 	
 	return true;
 }

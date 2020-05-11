@@ -20,6 +20,7 @@ C++ SQLITE
 #include <sqlite3.h>
 #include <time.h>
 #include <string.h>
+#include <string>
 #include "helpers.h"
 
 typedef struct { //struct usada para obter informacao do armazem
