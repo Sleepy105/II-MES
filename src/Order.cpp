@@ -91,9 +91,3 @@ void Piece::SetPath(uint8_t path_to_copy[]){
         Path[i] = path_to_copy[i];
     }
 }
-void Piece::SetPath(uint8_t path_to_copy[]){
-    int i;
-    for (i = 0; i<59; i++){
-        Path[i] = path_to_copy[i];
-    }
-}

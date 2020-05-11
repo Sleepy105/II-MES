@@ -75,7 +75,6 @@ public:
     void SetPath(uint8_t[]);
     bool isOnHold();
     void setPieceAsNotOnHold();
-    void SetPath(uint8_t[]);
 
 };
 
