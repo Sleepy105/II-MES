@@ -21,13 +21,13 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index,
 }
 
 
-
+// Completo: reconecta para testar conecao
 bool OPCUA_Manager::Is_Connected() {
     return (UA_Client_connect(client_, URL_) == UA_STATUSCODE_GOOD);
 }
 
 
-
+// Completo: conecta ao servidor e retorna objeto (estrutura) client a ser usado por outras funcoes
 UA_Client* OPCUA_Manager::ServerConnect(const char* endpointURL) const {
     UA_Client* client = UA_Client_new();
     UA_ClientConfig_setDefault(UA_Client_getConfig(client));
@@ -41,7 +41,7 @@ UA_Client* OPCUA_Manager::ServerConnect(const char* endpointURL) const {
 }
 
 
-
+// Completo: pega em value e guarda-o numa string old fashioned C
 void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
     int aux = value, size, i;
     for (size = 1; aux > 9; size = size * 10) {
@@ -57,7 +57,7 @@ void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
     string[i + 1] = 0;
 }
 
-
+// Completo: retorna true se nao houver pecas/transicao de pecas na carpete de saida de armazem
 bool OPCUA_Manager::warehouseOutCarpetIsFree() {
     char NodeID[128];
     strcpy(NodeID, BaseNodeID_);
@@ -78,7 +78,9 @@ bool OPCUA_Manager::warehouseOutCarpetIsFree() {
     return true;
 }
 
-
+// Quase completo: falta substituir dummy value de transformation.
+// Envia ultima peca que esteja na lista de pecas da order. 
+// Nesta altura a peca ja deve estar na base de dados e ter um id atribuido
 bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
 
     // Create base string for node access
@@ -99,16 +101,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
     uint16_t transformation = 1;
     uint16_t type_piece = order.GetInitialPiece();
 
-    // OLD IMPLEMENTATION: scan pieces for pieces that haven't been processed (not On Hold). Turns out this is the last piece, always
-    // std::list<Order::Piece>::iterator piece_iter = order.GetPieces().begin();
-	// while ( !((*piece_iter).isOnHold()) ){
-	// 	if (piece_iter == order.GetPieces().end()){
-	// 		return false;
-	// 	}
-	// 	piece_iter++;
-	// }
-
-    // NEW IMPLEMENTATION: get pieces from Piece list back, aka end
+    // Get last piece from order list
     uint32_t id_piece = order.GetPieces().back().GetID();
     uint8_t *path = order.GetPieces().back().GetPath();
 
@@ -240,7 +233,14 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
 }
 
 
-
+// Incompleto e nao testado: id das pecas e lido, mas nao se faz nada quanto a isso.
+// Falta remover as pecas da lista de pecas e atualizar orders conforme ids lidos.
+// Verifica buffer de pecas que deram entrada no armazem. Le as pecas todas imediatamente
+// i.e. nao e preciso executar esta funcao 5x para ler 5 pecas, sempre que se chama a
+// funcao ela lê as pecas todas e limpa o buffer. Consoante o buffer, leem-se os ids
+// das pecas para um vetor e mete-se as flags respetivas do buffer como "lidas" para
+// o PLC saber que pode escrever nesse sitio do buffer. Falta remover as pecas recebidas
+// da lista de pecas da OrderQueue
 bool OPCUA_Manager::CheckPiecesFinished(){
     char NodeID[128];
     char NodeID_backup[128];
@@ -372,7 +372,12 @@ bool OPCUA_Manager::CheckPiecesFinished(){
 }
 
 
-
+// Completo mas nao testado.
+// Verifica pecas que estejam nos tapetes de carga. Se houver pecas adiciona-as
+// imediatamente a uma order que tambem e criada pela funcao. Esta funcao tambem
+// serve para o PLC poder prosseguir e colocar a peca acabada de chegar no armazem.
+// Retorna true se tiver detetado pecas (em qualquer um dos tapetes) e false se ambos
+// os tapetes estava vazios
 bool OPCUA_Manager::CheckIncomingPieces(){
     // to write stuff with OPC_UA (might go unused)
     UA_WriteRequest wReq;
