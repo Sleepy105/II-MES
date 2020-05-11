@@ -2,6 +2,7 @@
 #define _PATHFINDER_HPP_
 
 #include <iostream>
+#include "Order.hpp"
 
 class PathFinder{
 public:
