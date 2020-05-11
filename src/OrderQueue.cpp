@@ -107,14 +107,13 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 {
 	std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin();
-	while ((*orders_iter_).GetID() != order_to_remove.GetID()){
-		if (orders_iter_ == orders_.end()){
-			return false;
+
+	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+		if ((*orders_iter_).GetID() == order_to_remove.GetID()){
+			orders_.erase(orders_iter_);
 		}
-		orders_iter_++;
 	}
-	orders_.erase(orders_iter_);
-	return true;
+	return false; // end of function reached only if order was not found
 }
 
 
