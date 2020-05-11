@@ -67,7 +67,6 @@ class Order::Piece {
 private:
     uint32_t PieceID;
     uint8_t Path[59] = {0};
-    bool piece_on_hold;
 
 public:
     Piece(uint32_t id);

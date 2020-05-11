@@ -9,7 +9,6 @@ OrderQueue::~OrderQueue(){
 }
 
 /*
-        /// STUB (i.e. so serve para ser utilizável no main) ///
 	Adiciona order_to_add com base na sua prioridade perante as outras Orders.
 	Orders de Carregar e Descarregar vao sempre para o topo.
 	Retorna pk da order se tiver sucesso. -1 se falhar. Se for uma order de load, retorna id (pk) da peca.

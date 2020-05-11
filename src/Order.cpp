@@ -78,7 +78,6 @@ std::list<Piece> BaseOrder::GetPieces(){
 
 Piece::Piece(uint32_t id){
     PieceID = id;
-    piece_on_hold = true;
 }
 uint32_t Piece::GetID(){
     return PieceID;
@@ -91,12 +90,6 @@ void Piece::SetPath(uint8_t path_to_copy[]){
     for (i = 0; i<59; i++){
         Path[i] = path_to_copy[i];
     }
-}
-bool Piece::isOnHold(){
-    return piece_on_hold;
-}
-void Piece::setPieceAsNotOnHold(){
-    piece_on_hold = false;
 }
 void Piece::SetPath(uint8_t path_to_copy[]){
     int i;
