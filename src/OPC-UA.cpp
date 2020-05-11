@@ -241,6 +241,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
 // das pecas para um vetor e mete-se as flags respetivas do buffer como "lidas" para
 // o PLC saber que pode escrever nesse sitio do buffer. Falta remover as pecas recebidas
 // da lista de pecas da OrderQueue
+// Retorna true se conseguiu ler pecas, ou false se nao conseguiu (porque nao havia)
 bool OPCUA_Manager::CheckPiecesFinished(){
     char NodeID[128];
     char NodeID_backup[128];
@@ -320,6 +321,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     if (response.results[0].value.type == &UA_TYPES[UA_TYPES_UINT16]) {
         for (i = 0; i < number_of_ids_to_read; i++) {
             piece_ids[i] = *(UA_UInt16*)response.results[i].value.data;
+            order_queue->RemovePiece((uint32_t)piece_ids[i]);
         }
     }
 
@@ -337,11 +339,14 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     strcat (NodeID_backup, "POU.AT2.piece_queue[");
 
     // fill in which nodes to write to
+    // we could simply write to all nodes in the queue, but we risk that the PLC writes to a node while this function
+    // executes and then we'd miss that read, and a piece would disappear from the MES (as if it would be stuck forever 
+    // in the factory floor)
     for (i = 0; i < 10; i++){
         if (piece_queue[i]){
 
             strcpy(NodeID, NodeID_backup);
-            ConvIntToString(aux, i + 1); //PLC array indexes start at 1
+            ConvIntToString(aux, i + 1); // PLC array indexes start at 1
             strcat(NodeID, aux);
             strcat(NodeID, "]");
 
