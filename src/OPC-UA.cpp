@@ -61,19 +61,19 @@ void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
 bool OPCUA_Manager::warehouseOutCarpetIsFree() {
     char NodeID[128];
     strcpy(NodeID, BaseNodeID_);
-    strcat(NodeID, "GVL.AT1_tp") // this variable will got to 0 after a piece has exited the warehouse carpet
+    strcat(NodeID, "GVL.AT1_tp"); // this variable will got to 0 after a piece has exited the warehouse carpet
 
     UA_ReadRequest request;
     UA_ReadRequest_init(&request);
     UA_ReadValueId nodes_to_read[1];
     nodes_to_read[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    nodes_to_read[0].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+    nodes_to_read[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     request.nodesToRead = nodes_to_read;
     request.nodesToReadSize = 1;
 
-    UA_ReadResponse response = UA_Client_Service_read(_client, request);
+    UA_ReadResponse response = UA_Client_Service_read(client_, request);
     if (*(UA_UInt16*) response.results[0].value.data != 0){ // there's already a piece, can't send new one
-        return false
+        return false;
     } // else, carpet is free, can send new piece
     return true;
 }
@@ -114,12 +114,14 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
 
     // Criar vetor em formato compatível com OPC-UA
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
-    for (uint16_t i = 0; i < 59; i++) {
+    uint16_t i;
+    for (i = 0; i < 59; i++) {
         path_UA[i] = (uint16_t) path[i];
     }
 
     // TESTING PENDING!!! Found out how to write in multiple places in a single write request, 
     // but this was found out by me (didn't see anyone else doing this), and might have unforeseen problems
+    UA_WriteResponse wResp;
     UA_WriteRequest wReq;
     UA_WriteValue my_nodes[5];
     UA_WriteValue_init(&my_nodes[0]);
@@ -268,13 +270,13 @@ bool OPCUA_Manager::CheckPiecesFinished(){
 
         UA_ReadValueId_init(&nodes_to_read[i]);
         nodes_to_read[i].attributeId = UA_ATTRIBUTEID_VALUE;
-        nodes_to_read[i].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+        nodes_to_read[i].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     }
 
     request.nodesToRead = nodes_to_read;
     request.nodesToReadSize = 10;
 
-    UA_ReadResponse response = UA_Client_Service_read(_client, request);
+    UA_ReadResponse response = UA_Client_Service_read(client_, request);
     if (response.results[0].value.type == &UA_TYPES[UA_TYPES_BOOLEAN]) {
         for (i = 0; i < 10; i++) {
             piece_queue[i] = *(UA_Boolean*)response.results[i].value.data;
@@ -300,7 +302,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
 
             UA_ReadValueId_init(&nodes_to_read[number_of_ids_to_read]);
             nodes_to_read[number_of_ids_to_read].attributeId = UA_ATTRIBUTEID_VALUE;
-            nodes_to_read[number_of_ids_to_read].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+            nodes_to_read[number_of_ids_to_read].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
 
             number_of_ids_to_read++;
         }
@@ -314,7 +316,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     request.nodesToRead = nodes_to_read;
     request.nodesToReadSize = number_of_ids_to_read;
 
-    UA_ReadResponse response = UA_Client_Service_read(_client, request);
+    response = UA_Client_Service_read(client_, request);
     if (response.results[0].value.type == &UA_TYPES[UA_TYPES_UINT16]) {
         for (i = 0; i < number_of_ids_to_read; i++) {
             piece_ids[i] = *(UA_UInt16*)response.results[i].value.data;
@@ -343,7 +345,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
             strcat(NodeID, aux);
             strcat(NodeID, "]");
 
-            nodes_to_write[node_index].nodeId = UA_NODEID_STRING_ALLOC(_nodeIndex, NodeID);
+            nodes_to_write[node_index].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
             nodes_to_write[node_index].attributeId = UA_ATTRIBUTEID_VALUE;
             nodes_to_write[node_index].value.hasValue = true;
             nodes_to_write[node_index].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
@@ -357,7 +359,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = nodes_to_write;
     wReq.nodesToWriteSize = node_index; // same as total node amount which is the same as "number_of_ids_to_read" obtained previously
-    wResp = UA_Client_Service_write(_client, wReq);
+    wResp = UA_Client_Service_write(client_, wReq);
     wReq.nodesToWrite = NULL;
     wReq.nodesToWriteSize = 0;
     UA_WriteResponse_clear(&wResp);
