@@ -117,6 +117,36 @@ bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 	return true;
 }
 
+
+/*
+	Remove primeira peca que de match com o target_id, independentemente da order (nao verifica se ha pecas duplicadas).
+	Se esta peca for a ultima peca da order, remove a order também.
+	Se conseguir encontrar e remover a peca retorna true, senao retorna false.
+*/
+bool OrderQueue::RemovePiece(uint32_t target_id){
+	std::list<Order::BaseOrder>::iterator orders_iter_;
+	std::list<Order::Piece>::iterator pieces_iter_;
+	std::list<Order::Piece> piece_list;
+
+	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+	// for each order
+		piece_list = (*orders_iter_).GetPieces(); // just to avoid writting (*orders_iter_).GetPieces() over and over
+		for (pieces_iter_ = piece_list.begin(); pieces_iter_ != piece_list.end(); pieces_iter_++){
+		// for each piece
+			if ((*pieces_iter_).GetID() == target_id){
+				piece_list.erase(pieces_iter_);
+				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
+				if (((*orders_iter_).GetCount() == 0) && (piece_list.size() == 0)){
+					RemoveOrder((*orders_iter_));
+				}
+				return true; // a piece was found and deleted, return true
+			}
+		}
+	}
+
+	return false; // end of function reached only if piece was not found
+}
+
 /*
         /// STUB (i.e. so serve para ser utilizável no main) ///
 	Devolve a próxima Order a executar com base na prioridade (Orders do topo primeiro)
