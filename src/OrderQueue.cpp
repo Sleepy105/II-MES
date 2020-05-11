@@ -42,7 +42,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 		{
 			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON)
 			{
-				orders_.insert(destination, order_to_add)
+				orders_.insert(destination, order_to_add);
 				break;
 			}
 		}
@@ -91,7 +91,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 						initPiece_string, 
 						finalPiece_string, 
 						total_pieces, 
-						DateTime("factory.db", deadline_string);
+						DateTime("factory.db", deadline_string));
 
 	// se for uma order de carga, adiciona piece também
 	if (load_order){
@@ -172,9 +172,11 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	rawtime1 = mktime(&timeinfo1);
 	return rawtime1;
 }
+
+// O que fazer aqui? Implementacao de ordenar orders aquando da sua insercao movida para AddOrder()
 bool OrderQueue::update()
 {
-	std::string deadline_string;
+	/*std::string deadline_string;
 
 	// visto que a nova ordem aponta sempre para o fim
 	std::list<Order::BaseOrder>::iterator source = orders_.end();
@@ -183,12 +185,12 @@ bool OrderQueue::update()
 
 	time_t tempdeadline;
 	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
-	if(((*source).GetType() == Order::ORDER_TYPE_LOAD) OR ((*source).GetType() == Order::ORDER_TYPE_UNLOAD)) {
+	if(((*source).GetType() == Order::ORDER_TYPE_LOAD) || ((*source).GetType() == Order::ORDER_TYPE_UNLOAD)) {
 		for (destination = orders_.begin(); destination != orders_.end(); ++destination)
 		{
 			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON)
 			{
-				orders_.insert(destination, order_to_add)
+				orders_.insert(destination, order_to_add);
 				break;
 			}
 		}
@@ -207,30 +209,7 @@ bool OrderQueue::update()
 				}
 			}
 		}
-	}
+	}*/
 	
 	return true;
 }
-/*time_t rawtime, rawtime1;
-	struct tm timeinfo, timeinfo1;
-
-	timeinfo.tm_year = 2016;
-	timeinfo.tm_mon = 03;
-	timeinfo.tm_mday = 02;
-	timeinfo.tm_hour = 10;
-	timeinfo.tm_min = 17;
-	timeinfo.tm_sec = 10;
-	rawtime = mktime(&timeinfo);
-
-
-	timeinfo1.tm_year = 2016;
-	timeinfo1.tm_mon = 03;
-	timeinfo1.tm_mday = 02;
-	timeinfo1.tm_hour = 10;
-	timeinfo1.tm_min = 18;
-	timeinfo1.tm_sec = 15;
-	rawtime1 = mktime(&timeinfo1);
-
-	std::cout << rawtime1 << std::endl;
-	std::cout << "Diff: " << difftime(rawtime1, rawtime)<<std::endl;
-	*/
