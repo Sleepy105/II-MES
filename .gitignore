@@ -5,6 +5,7 @@ src/packages
 src/sqlite3.c
 *.db
 opc-ua-id.txt
+II_comands_competitionA_v1/**
 
 # Prerequisites
 *.d
