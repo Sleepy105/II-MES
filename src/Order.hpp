@@ -80,8 +80,8 @@ public:
     uint8_t *GetTransformations();
     uint8_t *GetMachines();
     void SetPath(uint8_t[]);
-    void SetPath(uint8_t[]);
-    void SetPath(uint8_t[]);
+    void SetTransformations(uint8_t[]);
+    void SetMachines(uint8_t[]);
     bool isOnHold();
     void setPieceAsNotOnHold();
 
