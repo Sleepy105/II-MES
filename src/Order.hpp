@@ -23,7 +23,7 @@
 namespace Order {
     class BaseOrder;
     class Piece;
-    const uint8_t ORDER_TYPE_TRANSFORMATON = 0;
+    const uint8_t ORDER_TYPE_TRANSFORMATION = 0;
     const uint8_t ORDER_TYPE_UNLOAD = 1;
     const uint8_t ORDER_TYPE_REQUESTSTORES = 2;
     const uint8_t ORDER_TYPE_LOAD = 3;
