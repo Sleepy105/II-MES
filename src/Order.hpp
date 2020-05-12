@@ -69,11 +69,18 @@ class Order::Piece {
 private:
     uint32_t PieceID;
     uint8_t Path[59] = {0};
+    uint8_t Transformations[12];
+    uint8_t Machines[9];
+
 
 public:
     Piece(uint32_t id);
     uint32_t GetID();
     uint8_t *GetPath();
+    uint8_t *GetTransformations();
+    uint8_t *GetMachines();
+    void SetPath(uint8_t[]);
+    void SetPath(uint8_t[]);
     void SetPath(uint8_t[]);
     bool isOnHold();
     void setPieceAsNotOnHold();

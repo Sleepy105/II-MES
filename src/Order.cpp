@@ -105,9 +105,28 @@ uint32_t Piece::GetID(){
 uint8_t *Piece::GetPath(){
     return Path;
 }
+uint8_t *Piece::GetTransformations(){
+    return Transformations;
+}
+uint8_t *Piece::GetMachines(){
+    return Machines;
+}
+
 void Piece::SetPath(uint8_t path_to_copy[]){
     int i;
     for (i = 0; i<59; i++){
+        Path[i] = path_to_copy[i];
+    }
+}
+void Piece::SetTransformations(uint8_t path_to_copy[]){
+    int i;
+    for (i = 0; i<12; i++){
+        Path[i] = path_to_copy[i];
+    }
+}
+void Piece::SetMachines(uint8_t path_to_copy[]){
+    int i;
+    for (i = 0; i<9; i++){
         Path[i] = path_to_copy[i];
     }
 }
