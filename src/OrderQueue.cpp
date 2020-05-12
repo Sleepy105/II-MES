@@ -157,21 +157,25 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 	cheios nao podemos enviar. Devolve NULL se nao houver orders para enviar (nao ha orders,
 	estao todas a executar, ou nenhuma esta em condicoes de comecar a executar)
 */
-Order::BaseOrder OrderQueue::GetNextOrder(){
+Order::BaseOrder *OrderQueue::GetNextOrder(){
 
 	std::list<Order::BaseOrder>::iterator orders_iter_;
+	int new_piece_id;
 
 	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
 		
 		// if it's an unload/transformation order, count is bigger than 0 and there are pieces of desired type in warehouse
-		if  ((((*orders_iter_).GetType() == Order::ORDER_TYPE_UNLOAD) || ((*orders_iter_).GetType() == Order::ORDER_TYPE_TRANSFORMATION)) 
-			((*orders_iter_).GetCount() > 0) && 
+		if  ((((*orders_iter_).GetType() == Order::ORDER_TYPE_UNLOAD) || ((*orders_iter_).GetType() == Order::ORDER_TYPE_TRANSFORMATION)) &&
+			(((*orders_iter_).GetCount()) > 0) && 
 			(warehouse->GetPieceCount((*orders_iter_).GetInitialPiece()) > 0)){
-				return (*orders_iter_);
+				// order encontrada: inserir-lhe uma peca (e na base de dados tambem) e devolver a order
+				new_piece_id = insertDataPiece("factory.db",(*orders_iter_).GetPK());
+				(*orders_iter_).GetPieces().push_back(Order::Piece(new_piece_id));
+				return &(*orders_iter_);
 		}
 	}
 
-	throw std::exception;
+	throw "No orders found!";
 }
 
 
@@ -183,6 +187,8 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	int posicao = 0;
 	std::string token;
 	std::string delimiter;
+
+	delimiter = "-";
 
 	while ((pos = datatime.find(delimiter)) != std::string::npos) {
 		token = datatime.substr(0, pos);
