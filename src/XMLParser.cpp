@@ -55,7 +55,12 @@ bool XMLParser::parse_Transformation(uint8_t order_id, XMLElement* transform) {
     uint32_t to = (uint32_t)xml_to_int(transform->Attribute("To"));
     uint32_t quantity = (uint32_t)xml_to_int(transform->Attribute("Quantity"));
     uint32_t max_delay = (uint32_t)xml_to_int(transform->Attribute("MaxDelay"));
-    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, from, to));
+
+        //// Old return:
+    //// return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, from, to));
+
+        //// Esta proxima linha foi adicionada por mim (Capi) para por o main a funcionar
+    return queue->AddOrder(Order::BaseOrder((uint8_t)order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, (uint8_t)from, (uint8_t)to, max_delay));
 }
 
 bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {
@@ -63,7 +68,12 @@ bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {
     //uint32_t destination = (uint32_t)xml_to_int(unload->Attribute("Destination"));
     uint32_t quantity = (uint32_t)xml_to_int(unload->Attribute("Quantity"));
     // TODO
-    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD, quantity, type));
+
+        //// Old return:
+    //// return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD, quantity, type));
+
+        //// Esta proxima linha foi adicionada por mim (Capi) para por o main a funcionar
+    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD, quantity, type, type));
 }
 
 bool XMLParser::parse_RequestStores(uint8_t order_id, XMLElement* request_stores) {
