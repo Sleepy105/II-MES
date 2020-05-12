@@ -35,8 +35,13 @@ BaseOrder::BaseOrder(uint8_t order_id,
     }
     Deadline = std::to_string(deadline);
 }
+BaseOrder::BaseOrder(uint8_t order_id, uint8_t order_type): order_id(order_id), order_type(order_type){
+    meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
+}
 
 BaseOrder::~BaseOrder() {
+    // A partida nao vai ser preciso. Variaveis std:: sao self managed (destroem-se e desreferenciam-se automaticamente, na maioria
+    // dos casos) por isso nao deve ser preciso destruir a lista de pecas (que em principio estara vazia de qualquer forma)
 }
 
 
