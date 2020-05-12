@@ -21,12 +21,12 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 
 	std::string type_string;
 	std::string state_string;
-	std::string initPiece_string = std::to_string(order_to_add.GetInitialPiece());
-	std::string finalPiece_string = std::to_string(order_to_add.GetFinalPiece());
+	std::string initPiece_string = "P"+std::to_string(order_to_add.GetInitialPiece());
+	std::string finalPiece_string = "P"+std::to_string(order_to_add.GetFinalPiece());
 	std::string deadline_string = order_to_add.GetDeadline();
 	int total_pieces = order_to_add.GetCount();
 	uint8_t order_type = order_to_add.GetType();
-	time_t enddeadline = GetDataTime(order_to_add.GetDeadline());
+	time_t enddeadline;
 
 	int return_value;
 	bool load_order = false;
@@ -48,6 +48,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	}
 	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline das orders do tipo transformation
 	else{
+		enddeadline = GetDataTime(order_to_add.GetDeadline());
 		for (destination = orders_.begin(); destination != orders_.end(); ++destination) {
 
 			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATION){
@@ -61,7 +62,6 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 			}
 		}
 	}
-
 
 	// Adicionar na base de dados
 
@@ -81,8 +81,8 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 		type_string = "Waiting";
 		break;
 	}
-
 	// adiciona order à base de dados
+	
 	return_value = insertDataOrder("factory.db", 
 						(int) order_to_add.GetID(), 
 						type_string, 
@@ -90,12 +90,13 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 						initPiece_string, 
 						finalPiece_string, 
 						total_pieces, 
-						DateTime("factory.db", deadline_string));
+						deadline_string);
 
 	// se for uma order de carga, adiciona piece também
 	if (load_order){
 		return_value = insertDataPiece("factory.db", return_value);
 	}
+	
 
 	return return_value;
 }
@@ -181,6 +182,7 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 
 time_t OrderQueue::GetDataTime(std::string datatime)
 {
+	meslog(ERROR) << datatime << std::endl;
 	time_t rawtime1;
 	struct tm  timeinfo1;
 	size_t pos = 0;

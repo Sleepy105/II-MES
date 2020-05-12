@@ -160,13 +160,13 @@ int updateOrder(const char* s, std::string State, int Order_ID) {
 int deleteData(const char* s) {
 	sqlite3* DB;
 	int exit = sqlite3_open(s, &DB);
-	std::string sql1 = "DELETE FROM Piece;";
+	std::string sql1 = "DELETE * FROM Piece;";
 	sqlite3_exec(DB, sql1.c_str(), callback, NULL, NULL);
-	std::string sql = "DELETE FROM ORDERS;";
+	std::string sql = "DELETE * FROM ORDERS;";
 	sqlite3_exec(DB, sql.c_str(), callback, NULL, NULL);
-	std::string sql2 = "DELETE FROM Warehouse;";
+	std::string sql2 = "DELETE * FROM Warehouse;";
 	sqlite3_exec(DB, sql2.c_str(), callback, NULL, NULL);
-	std::string sql3 = "DELETE FROM Machine;";
+	std::string sql3 = "DELETE * FROM Machine;";
 	sqlite3_exec(DB, sql3.c_str(), callback, NULL, NULL);
 	sqlite3_close(DB);
 	return 0;
@@ -496,6 +496,7 @@ std::string DateTime(const char* s, std::string Deadline)
 }
 int callback_hour(void* DateTim, int argc, char** argv, char** azColName)
 {
+	meslog(INFO) << argv[0] << std::endl;
 	strcpy((char*)(DateTim), argv[0]);
 	return 0;
 }
