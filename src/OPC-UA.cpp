@@ -23,7 +23,12 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index,
 
 // Completo: reconecta para testar conecao
 bool OPCUA_Manager::Is_Connected() {
-    return (UA_Client_connect(client_, URL_) == UA_STATUSCODE_GOOD);
+    if (client_) {
+        return (UA_Client_connect(client_, URL_) == UA_STATUSCODE_GOOD);
+    }
+    else {
+        return false;
+    }
 }
 
 
