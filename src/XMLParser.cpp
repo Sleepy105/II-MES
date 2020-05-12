@@ -9,9 +9,10 @@
  */
 
 #include "XMLParser.hpp"
+#include "UDPManager.hpp"
 using namespace tinyxml2;
 
-XMLParser::XMLParser(OrderQueue* obj) : queue(obj) {
+XMLParser::XMLParser(OrderQueue* obj, void* udp) : queue(obj), udp(udp) {
 }
 
 XMLParser::~XMLParser() {
@@ -76,7 +77,8 @@ void XMLParser::handleParsingError() {
      *  TODO: Handle parsing errors. Should send a message back through UDP
      *
      */
-
+    char data[] = "hello\n";
+    ((UDPManager*)udp)->sendData(data);
     return;
 }
 

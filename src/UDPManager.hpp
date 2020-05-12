@@ -63,6 +63,16 @@ public:
      * 
      */
     std::thread spawn_worker(XMLParser* obj);
+
+    /**
+     * @brief Checks the validity of the created socket
+     * 
+     * @return true Is Valid
+     * @return false Is Not Valid
+     */
+    bool isSocketValid();
+
+    bool sendData(char* data, size_t data_size = 0);
 };
 
 #endif

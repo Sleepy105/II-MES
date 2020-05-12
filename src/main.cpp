@@ -14,9 +14,8 @@ int main (int argc, char const *argv[]) {
     OrderQueue *order_queue = new OrderQueue();
     Warehouse *warehouse = new Warehouse();
 
-    XMLParser XMLParser(order_queue);
-
     UDPManager UDPManager(54321);
+    XMLParser XMLParser(order_queue, &UDPManager);
     std::thread udp_worker = UDPManager.spawn_worker(&XMLParser);
 
     FILE* f = fopen("opc-ua-id.txt", "r");
