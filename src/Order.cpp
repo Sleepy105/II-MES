@@ -10,7 +10,10 @@
 
 #include "Order.hpp"
 using namespace Order;
-
+// 3 construtores possiveis:
+//  -com deadline em string: mais rapido, envolve ter a string em YYYY-MM-DD HH:MM:SS
+//  -com deadline em inteiro: mais lento (converte para string pela base de dados)
+//  -sem deadline: no caso de request stores
 BaseOrder::BaseOrder(uint8_t order_id, 
                      uint8_t order_type, 
                      uint32_t count,
@@ -37,7 +40,8 @@ BaseOrder::BaseOrder(uint8_t order_id,
     if (order_type == Order::ORDER_TYPE_UNLOAD){
         order_id = -1;
     }
-    Deadline = std::to_string(deadline);
+    // deadline (letras minusculas) esta em segundos
+    Deadline = DateTime("factory.db", std::to_string(deadline));
 }
 BaseOrder::BaseOrder(uint8_t order_id, uint8_t order_type): order_id(order_id), order_type(order_type){
     meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
@@ -56,7 +60,7 @@ bool BaseOrder::is_valid() {
 uint32_t BaseOrder::GetID(){
     return order_id;
 }
-uint32_t BaseOrder::GetPK(){
+int BaseOrder::GetPK(){
     return order_pk;
 }
 uint8_t BaseOrder::GetType(){
@@ -64,6 +68,13 @@ uint8_t BaseOrder::GetType(){
 }
 uint32_t BaseOrder::GetCount(){
     return count;
+}
+bool BaseOrder::DecreaseCount(){
+    if (count>0){
+        count--;
+        return true;
+    }
+    return false;
 }
 std::string BaseOrder::GetCreationTime(){
     return CreationTime;

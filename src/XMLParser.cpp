@@ -57,7 +57,7 @@ bool XMLParser::parse_Transformation(uint8_t order_id, XMLElement* transform) {
     uint32_t quantity = (uint32_t)xml_to_int(transform->Attribute("Quantity"));
     uint32_t max_delay = (uint32_t)xml_to_int(transform->Attribute("MaxDelay"));
 
-    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, from, to, max_delay));
+    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATION, quantity, from, to, max_delay));
 }
 
 bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {

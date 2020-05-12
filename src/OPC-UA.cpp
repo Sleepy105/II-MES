@@ -395,8 +395,9 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     UA_WriteValue nodes_to_write[2];
     uint16_t PieceID;
     bool Mes_is_ok = true;
-    
     bool MES_ok;
+
+    bool return_value = false;
 
     Order::BaseOrder *order_to_add;
 
@@ -448,6 +449,9 @@ bool OPCUA_Manager::CheckIncomingPieces(){
         wReq.nodesToWriteSize = 0;
         UA_WriteResponse_clear(&wResp);
         UA_WriteRequest_clear(&wReq);
+
+        meslog(INFO) << "Received piece P1 on carpet C7T1b" << std::endl;
+        return_value = true;
     }
 
     ////////////////////////////////////////////////////////////// CARPET C7T7B
@@ -496,8 +500,11 @@ bool OPCUA_Manager::CheckIncomingPieces(){
         wReq.nodesToWriteSize = 0;
         UA_WriteResponse_clear(&wResp);
         UA_WriteRequest_clear(&wReq);
+
+        meslog(INFO) << "Received piece P2 on carpet C7T7b" << std::endl;
+        return_value = true;
     }
 
 
-    return true;
+    return return_value;
 }

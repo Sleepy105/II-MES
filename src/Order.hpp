@@ -23,7 +23,7 @@
 namespace Order {
     class BaseOrder;
     class Piece;
-    const uint8_t ORDER_TYPE_TRANSFORMATON = 0;
+    const uint8_t ORDER_TYPE_TRANSFORMATION = 0;
     const uint8_t ORDER_TYPE_UNLOAD = 1;
     const uint8_t ORDER_TYPE_REQUESTSTORES = 2;
     const uint8_t ORDER_TYPE_LOAD = 3;
@@ -32,7 +32,7 @@ namespace Order {
 class Order::BaseOrder {
 private:
     uint32_t order_id = 0;
-    uint32_t order_pk = 0;
+    int order_pk = 0;
     uint8_t order_type = 0;
     uint32_t count = 0;
     std::string CreationTime;
@@ -49,9 +49,10 @@ public:
 
     bool is_valid();
     uint32_t GetID();
-    uint32_t GetPK();
+    int GetPK();
     uint8_t GetType();
     uint32_t GetCount();
+    bool DecreaseCount();
     std::string GetCreationTime();
     void SetCreationTime(std::string creationtime);
     std::string GetDeadline();

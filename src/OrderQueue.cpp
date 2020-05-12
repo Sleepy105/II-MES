@@ -39,7 +39,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	if((order_type == Order::ORDER_TYPE_LOAD) || (order_type == Order::ORDER_TYPE_UNLOAD)) {
 		for (destination = orders_.begin(); destination != orders_.end(); ++destination)
 		{
-			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON)
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATION)
 			{
 				orders_.insert(destination, order_to_add);
 				break;
@@ -50,7 +50,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	else{
 		for (destination = orders_.begin(); destination != orders_.end(); ++destination) {
 
-			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON){
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATION){
 
 				tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
 				if (difftime(enddeadline, tempdeadline) < 0){
@@ -67,7 +67,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 
 	switch (order_type)
 	{
-	case Order::ORDER_TYPE_TRANSFORMATON:
+	case Order::ORDER_TYPE_TRANSFORMATION:
 		type_string = "Transformation";
 		state_string = "Waiting";
 		break;
@@ -154,11 +154,28 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
         /// STUB (i.e. so serve para ser utilizável no main) ///
 	Devolve a próxima Order a executar com base na prioridade (Orders do topo primeiro)
     e com as peças disponíveis em Armazém. No caso de ser descarga, se os pushers estiverem
-	cheios nao podemos enviar
+	cheios nao podemos enviar. Devolve NULL se nao houver orders para enviar (nao ha orders,
+	estao todas a executar, ou nenhuma esta em condicoes de comecar a executar)
 */
-Order::BaseOrder OrderQueue::GetNextOrder()
-{
-	return orders_.front();
+Order::BaseOrder *OrderQueue::GetNextOrder(){
+
+	std::list<Order::BaseOrder>::iterator orders_iter_;
+	int new_piece_id;
+
+	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+		
+		// if it's an unload/transformation order, count is bigger than 0 and there are pieces of desired type in warehouse
+		if  ((((*orders_iter_).GetType() == Order::ORDER_TYPE_UNLOAD) || ((*orders_iter_).GetType() == Order::ORDER_TYPE_TRANSFORMATION)) &&
+			(((*orders_iter_).GetCount()) > 0) && 
+			(warehouse->GetPieceCount((*orders_iter_).GetInitialPiece()) > 0)){
+				// order encontrada: inserir-lhe uma peca (e na base de dados tambem) e devolver a order
+				new_piece_id = insertDataPiece("factory.db",(*orders_iter_).GetPK());
+				(*orders_iter_).GetPieces().push_back(Order::Piece(new_piece_id));
+				return &(*orders_iter_);
+		}
+	}
+
+	throw "No orders found!";
 }
 
 
@@ -170,6 +187,8 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	int posicao = 0;
 	std::string token;
 	std::string delimiter;
+
+	delimiter = "-";
 
 	while ((pos = datatime.find(delimiter)) != std::string::npos) {
 		token = datatime.substr(0, pos);
@@ -220,7 +239,7 @@ bool OrderQueue::update()
 	if(((*source).GetType() == Order::ORDER_TYPE_LOAD) OR ((*source).GetType() == Order::ORDER_TYPE_UNLOAD)) {
 		for (destination = orders_.begin(); destination != --orders_.end(); ++destination)
 		{
-			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON)
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATION)
 			{
 				list.splice(destination, order_, source);
 				break;
@@ -231,7 +250,7 @@ bool OrderQueue::update()
 	else{
 		for (destination = orders_.begin(); destination != --orders_.end(); ++destination) {
 
-			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATON){
+			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATION){
 
 				time_t tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
 				if (difftime(source, destination) < 0){
