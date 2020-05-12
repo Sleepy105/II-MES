@@ -60,7 +60,7 @@ bool XMLParser::parse_Transformation(uint8_t order_id, XMLElement* transform) {
     //// return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, from, to));
 
         //// Esta proxima linha foi adicionada por mim (Capi) para por o main a funcionar
-    return queue->AddOrder(Order::BaseOrder((uint8_t)order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, (uint8_t)from, (uint8_t)to, max_delay));
+    return queue->AddOrder(Order::BaseOrder((uint8_t)order_id, Order::ORDER_TYPE_TRANSFORMATION, quantity, (uint8_t)from, (uint8_t)to, max_delay));
 }
 
 bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {
