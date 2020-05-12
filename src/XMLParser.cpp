@@ -51,29 +51,20 @@ void XMLParser::parseString(std::string str) {
 }
 
 bool XMLParser::parse_Transformation(uint8_t order_id, XMLElement* transform) {
-    uint32_t from = (uint32_t)xml_to_int(transform->Attribute("From"));
-    uint32_t to = (uint32_t)xml_to_int(transform->Attribute("To"));
+    uint8_t from = (uint8_t)xml_to_int(transform->Attribute("From"));
+    uint8_t to = (uint8_t)xml_to_int(transform->Attribute("To"));
     uint32_t quantity = (uint32_t)xml_to_int(transform->Attribute("Quantity"));
     uint32_t max_delay = (uint32_t)xml_to_int(transform->Attribute("MaxDelay"));
 
-        //// Old return:
-    //// return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, from, to));
-
-        //// Esta proxima linha foi adicionada por mim (Capi) para por o main a funcionar
-    return queue->AddOrder(Order::BaseOrder((uint8_t)order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, (uint8_t)from, (uint8_t)to, max_delay));
+    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_TRANSFORMATON, quantity, from, to, max_delay));
 }
 
 bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {
-    uint32_t type = (uint32_t)xml_to_int(unload->Attribute("Type"));
-    //uint32_t destination = (uint32_t)xml_to_int(unload->Attribute("Destination"));
+    uint8_t type = (uint8_t)xml_to_int(unload->Attribute("Type"));
+    uint32_t destination = (uint32_t)xml_to_int(unload->Attribute("Destination"));
     uint32_t quantity = (uint32_t)xml_to_int(unload->Attribute("Quantity"));
-    // TODO
 
-        //// Old return:
-    //// return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD, quantity, type));
-
-        //// Esta proxima linha foi adicionada por mim (Capi) para por o main a funcionar
-    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD, quantity, type, type));
+    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD, quantity, type, destination));
 }
 
 bool XMLParser::parse_RequestStores(uint8_t order_id, XMLElement* request_stores) {
@@ -90,9 +81,13 @@ void XMLParser::handleParsingError() {
 }
 
 int XMLParser::xml_to_int(const char* xml) {
+    const char* in = xml;
+    if (xml[0] == 'P' || xml[0] == 'D') {
+        in = xml+1;
+    }
     std::stringstream strValue;
     int intValue;
-    strValue << xml;
+    strValue << in;
     strValue >> intValue;
     return intValue;
 }

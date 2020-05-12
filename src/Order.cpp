@@ -18,6 +18,10 @@ BaseOrder::BaseOrder(uint8_t order_id,
                      uint8_t finalPiece,
                      std::string deadline) : order_id(order_id), order_type(order_type), count(count), initialPiece(initialPiece), finalPiece(finalPiece) {
     meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
+    meslog(INFO) << "\ttype:" << std::to_string(order_type) << std::endl;
+    meslog(INFO) << "\tquantity:" << std::to_string(count) << std::endl;
+    meslog(INFO) << "\tinitialPiece:" << std::to_string(initialPiece) << std::endl;
+    meslog(INFO) << "\tfinalPiece:" << std::to_string(finalPiece) << std::endl;
     if (order_type == Order::ORDER_TYPE_UNLOAD){
         order_id = -1;
     }
