@@ -29,7 +29,6 @@ int main (int argc, char const *argv[]) {
 	createTable(dir); // fazer isto na primeira vez para criar a base de dados
     initvalues(dir);
 
-
     // Configurar OPC-UA
     FILE* f = fopen("opc-ua-id.txt", "r");
     char OpcUa_id[100] = {0};

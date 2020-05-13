@@ -333,6 +333,7 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 			+ " datetime('now','localtime') " + \
 			+ ");");
 	}
+	//meslog(INFO) << sql << std::endl;
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK)
 	{
