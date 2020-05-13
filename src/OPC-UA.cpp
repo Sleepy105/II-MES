@@ -95,11 +95,10 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     char aux[20];
     strcpy(NodeID_backup, BaseNodeID_);
     strcat(NodeID_backup, "GVL.OBJECT[1]."); // we'll use this multiple times
-    printf("Sending piece from %d which has %zu pieces.\n", order->GetID(), order->GetPieces().size());
 
     // Check if we can insert the piece (Entry carpet is free)
     if (!warehouseOutCarpetIsFree()){
-        printf("Can't send piece! Warehouse carpet is occupied\n");
+        meslog(ERROR) << "Can't send piece, warehouse carpet is occupied. Piece has been wrongly added to piece list!" << std::endl;
         return false; // warehouse carpet is not free, can't send piece
     }
 
@@ -121,12 +120,10 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
         path_UA[i] = (uint16_t) path[i];
     }
     UA_Int16* transformation_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
-    uint16_t i;
     for (i = 0; i < 12; i++) {
         transformation_UA[i] = (uint16_t) transformation[i];
     }
     UA_Int16* machines_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
-    uint16_t i;
     for (i = 0; i < 9; i++) {
         machines_UA[i] = (uint16_t) machines[i];
     }
