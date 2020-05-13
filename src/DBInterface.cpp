@@ -296,7 +296,7 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 			+ "'" + Initial_Piece + "'" + " ," \
 			+ "'" + Final_Piece + "'" + " ," \
 			+ std::to_string(Total_Pieces) + " ," \
-			+ Deadline + " ," \
+			+ "'" + Deadline + "' " + " ," \
 			+ " datetime('now','localtime') " + \
 			+ ");");
 	}
@@ -313,6 +313,7 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 			+ " datetime('now','localtime') " + \
 			+ ");");
 	}
+	//meslog(INFO) << sql << std::endl;
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK)
 	{
