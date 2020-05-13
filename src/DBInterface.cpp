@@ -309,7 +309,7 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 			+ "'" + Initial_Piece + "'" + " ," \
 			+ "'" + Final_Piece + "'" + " ," \
 			+ std::to_string(Total_Pieces) + " ," \
-			+ Deadline + " ," \
+			+ "'" + Deadline + "' " + " ," \
 			+ " datetime('now','localtime') " + \
 			+ ");");
 	}
