@@ -215,7 +215,7 @@ int createTable(const char* s) {
 		"Order_Number INT UNIQUE, " \
 		"Type TEXT NOT NULL CHECK(Type ='Transformation' OR Type ='Dispatch' OR Type = 'Incoming'), " \
 		"State TEXT NOT NULL DEFAULT 'Waiting' CHECK( State='Waiting' OR State ='Executing' OR State = 'Finished'), " \
-		"Initial_Piece CHAR(3) NOT NULL CHECK(Initial_Piece ='P1' OR Initial_Piece ='P2' OR Initial_Piece ='P3' OR Initial_Piece ='P4' OR Initial_Piece ='P6' OR Initial_Piece ='P7' OR Initial_Piece ='P8'), " \
+		"Initial_Piece CHAR(3) NOT NULL CHECK(Initial_Piece ='P1' OR Initial_Piece ='P2' OR Initial_Piece ='P3' OR Initial_Piece ='P4' OR Initial_Piece ='P6' OR Initial_Piece ='P7' OR Initial_Piece ='P8' OR Initial_Piece = 'P9'), " \
 		"Final_Piece CHAR(3) NOT NULL CHECK(Final_Piece ='P1' OR Final_Piece ='P2' OR Final_Piece ='P3' OR Final_Piece ='P4' OR Final_Piece ='P5' OR Final_Piece ='P6' OR Final_Piece ='P7' OR Final_Piece ='P8' OR Final_Piece ='P9'), " \
 		"Total_Number_Pieces INT NOT NULL, " \
 		"Deadline TEXT, " \
