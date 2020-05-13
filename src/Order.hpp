@@ -63,12 +63,15 @@ public:
     uint8_t GetInitialPiece();
     uint8_t GetFinalPiece();
     std::list<Piece> GetPieces();
+    Piece *GetLastPiece();
+    void AddPiece(Piece piece_to_add);
 
     void print();
 
 
-    bool operator == (Order::BaseOrder &ordr) const {return order_id == ordr.GetID();}
-    bool operator != (Order::BaseOrder &ordr) const {return !operator == (ordr);}
+
+    bool operator == (BaseOrder &ordr) const {return order_id == ordr.GetID();}
+    bool operator != (BaseOrder &ordr) const {return !operator == (ordr);}
 };
 
 
