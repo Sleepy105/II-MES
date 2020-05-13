@@ -6,10 +6,10 @@
 #include "OPC-UA.hpp"
 
 OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index, OrderQueue *order_queue_reference, Warehouse *warehouse_reference) {
-    client_ = ServerConnect(URL);
+    strcpy(URL_, URL);
+    client_ = ServerConnect(URL_);
     nodeIndex_ = index;
     BaseNodeID_ = BaseID;
-    strcpy(URL_, URL);
     if (!client_) {
         connected_ = false;
     }
@@ -18,6 +18,10 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index,
     }
 
 
+}
+
+void OPCUA_Manager::Reconnect(){
+    client_ = ServerConnect(URL_);
 }
 
 

@@ -53,6 +53,8 @@ public:
     OPCUA_Manager(const char* URL, const char* BaseID, int16_t index, OrderQueue *order_queue_reference, Warehouse *warehouse_reference);
 
     bool Is_Connected();
+    
+    void Reconnect();
 
     bool SendPieceOPC_UA (Order::BaseOrder *order);
 

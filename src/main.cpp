@@ -44,11 +44,11 @@ int main (int argc, char const *argv[]) {
 
 
     // Inserir algumas orders na queue. Assim que se queira testar as orders a chegar por UDP apaga-se isto
-    order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 2, 2, 6, 300));
-    order_queue->AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 1, 1, 9, 200));
-    order_queue->AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 1, 1, 1, "doesn't matter"));
+    // order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 2, 2, 6, 300));
+    // order_queue->AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 1, 1, 9, 200));
+    // order_queue->AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 1, 1, 1, "doesn't matter"));
 
-    order_queue->print();
+    // order_queue->print();
     // ideia: usar o final_piece da order como tapete de destino no caso de ser do tipo unload (visto que final piece nao e usado nesse caso)
     
 
@@ -56,13 +56,16 @@ int main (int argc, char const *argv[]) {
     Order::BaseOrder *next_order;
     bool order_buffered = false;
 
-    //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
-    while (1){
-        if (!opc_ua.Is_Connected()){
-            meslog(ERROR) << "Couldn't Connect to OPC-UA Master" << std::endl;
-            break;
+    if (!opc_ua.Is_Connected()){
+        meslog(ERROR) << "Couldn't connect to OPC-UA Master, waitting for connection..." << std::endl;
+        while (!opc_ua.Is_Connected()){
+            opc_ua.Reconnect();
         }
+        meslog(INFO) << "Connection established." << std::endl;
+    }
 
+    //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
+    while (opc_ua.Is_Connected()){
 
         //envia peca das orders de load e transformation
         try{
@@ -92,7 +95,7 @@ int main (int argc, char const *argv[]) {
         }
 
         std::this_thread::sleep_for(std::chrono::nanoseconds(200*1000000)); // 0,2 s
-    }
+    } meslog(ERROR) << "Disconnected from OPC-UA Master" << std::endl;
 
 
     // Wait for threads to close
