@@ -54,7 +54,7 @@ public:
 
     bool Is_Connected();
 
-    bool SendPieceOPC_UA (Order::BaseOrder order);
+    bool SendPieceOPC_UA (Order::BaseOrder *order);
 
     bool CheckPiecesFinished();
 

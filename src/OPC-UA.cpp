@@ -87,7 +87,7 @@ bool OPCUA_Manager::warehouseOutCarpetIsFree() {
 // Quase completo: falta substituir dummy value de transformation.
 // Envia ultima peca que esteja na lista de pecas da order. 
 // Nesta altura a peca ja deve estar na base de dados e ter um id atribuido
-bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
+bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
 
     // Create base string for node access
     char NodeID[128];
@@ -95,21 +95,24 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
     char aux[20];
     strcpy(NodeID_backup, BaseNodeID_);
     strcat(NodeID_backup, "GVL.OBJECT[1]."); // we'll use this multiple times
+    printf("Sending piece from %d which has %zu pieces.\n", order->GetID(), order->GetPieces().size());
 
     // Check if we can insert the piece (Entry carpet is free)
     if (!warehouseOutCarpetIsFree()){
+        printf("Can't send piece! Warehouse carpet is occupied\n");
         return false; // warehouse carpet is not free, can't send piece
     }
 
     uint16_t pathIDcounter = 1;
 
     uint16_t object_index = 1;
-    uint16_t transformation = 1;
-    uint16_t type_piece = order.GetInitialPiece();
 
-    // Get last piece from order list
-    uint16_t id_piece = (uint16_t)order.GetPieces().back().GetID();
-    uint8_t *path = order.GetPieces().back().GetPath();
+    // Get data to send from order
+    uint16_t type_piece = order->GetInitialPiece();
+    uint16_t id_piece = (uint16_t)order->GetLastPiece()->GetID();
+    uint8_t *path = order->GetLastPiece()->GetPath();
+    uint8_t *transformation = order->GetLastPiece()->GetTransformations();
+    uint8_t *machines = order->GetLastPiece()->GetMachines();
 
     // Criar vetor em formato compatível com OPC-UA
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
@@ -117,32 +120,38 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
     for (i = 0; i < 59; i++) {
         path_UA[i] = (uint16_t) path[i];
     }
-
-    meslog(INFO) << ">>>Sending Piece with following info:" << std::endl << "transformation: " << transformation << std::endl << "type_piece: " << type_piece << std::endl << "pathIDcounter: " << pathIDcounter << std::endl << "id_piece: " << id_piece << std::endl;
-    meslog(INFO) << "This piece has path: " << std::endl;
-    for (i = 0; i < 59; i++) {
-        meslog(INFO) << path_UA[i] << std::endl;
+    UA_Int16* transformation_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
+    uint16_t i;
+    for (i = 0; i < 12; i++) {
+        transformation_UA[i] = (uint16_t) transformation[i];
+    }
+    UA_Int16* machines_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
+    uint16_t i;
+    for (i = 0; i < 9; i++) {
+        machines_UA[i] = (uint16_t) machines[i];
     }
 
     // TESTING PENDING!!! Found out how to write in multiple places in a single write request, 
     // but this was found out by me (didn't see anyone else doing this), and might have unforeseen problems
     UA_WriteResponse wResp;
     UA_WriteRequest wReq;
-    UA_WriteValue my_nodes[5];
+    UA_WriteValue my_nodes[6];
     UA_WriteValue_init(&my_nodes[0]);
     UA_WriteValue_init(&my_nodes[1]);
     UA_WriteValue_init(&my_nodes[2]);
     UA_WriteValue_init(&my_nodes[3]);
     UA_WriteValue_init(&my_nodes[4]);
+    UA_WriteValue_init(&my_nodes[5]);
     // transformation node write
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "transformation");
     my_nodes[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     my_nodes[0].attributeId = UA_ATTRIBUTEID_VALUE;
     my_nodes[0].value.hasValue = true;
+    my_nodes[0].value.value.arrayLength = 12;
     my_nodes[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
     my_nodes[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[0].value.value.data = &transformation;
+    my_nodes[0].value.value.data = transformation_UA;
 
     // piece type node write
     strcpy(NodeID, NodeID_backup);
@@ -187,10 +196,22 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder order) {
     my_nodes[4].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
     my_nodes[4].value.value.storageType = UA_VARIANT_DATA_NODELETE;
     my_nodes[4].value.value.data = path_UA;
+
+    
+    strcpy(NodeID, NodeID_backup);
+    strcat(NodeID, "machine_transformations");
+
+    my_nodes[5].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    my_nodes[5].attributeId = UA_ATTRIBUTEID_VALUE;
+    my_nodes[5].value.hasValue = true;
+    my_nodes[5].value.value.arrayLength = 9;
+    my_nodes[5].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    my_nodes[5].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    my_nodes[5].value.value.data = machines_UA;
     // Send all node writes at once
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = my_nodes;
-    wReq.nodesToWriteSize = 5;
+    wReq.nodesToWriteSize = 6;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
         return false;
@@ -468,6 +489,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     strcpy (NodeID,BaseNodeID_);
     strcat (NodeID,"POU.C7T7b.piece_p");
 
+    val = UA_Variant_new();
     retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
     if(retval == UA_STATUSCODE_GOOD) {
         piece_present = *(UA_Boolean*)val->data;
