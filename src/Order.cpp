@@ -103,11 +103,27 @@ Piece *BaseOrder::GetLastPiece(){
 }
 
 void BaseOrder::print(){
+    std::string type;
+    switch (order_type)
+    {
+    case ORDER_TYPE_LOAD:
+        type = "Load";
+        break;
+    case ORDER_TYPE_TRANSFORMATION:
+        type = "Transformation";
+        break;
+    case ORDER_TYPE_UNLOAD:
+        type = "Unload";
+        break;
+    default:
+        type = "Undefined";
+        break;
+    }
     if (pieces.size() == 0){
-        std::cout << "\tOrder " << order_id << " has no pieces in factory floor." << std::endl;
+        std::cout << "\t" << type << "Order " << order_id << " has no pieces in factory floor." << std::endl;
         return;
     }
-    std::cout << "\tOrder " << order_id << " has " << pieces.size() << " piece(s) in factory floor:" << std::endl;
+    std::cout << "\t" << type << "Order " << order_id << " has " << pieces.size() << " piece(s) in factory floor:" << std::endl;
     std::list<Piece>::iterator iter;
     for (iter = pieces.begin(); iter != pieces.end(); iter++){
         iter->print();

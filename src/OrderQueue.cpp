@@ -66,6 +66,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	// orders de todo, a nova order e adicionada na lista. Os ciclos apenas determinam o destination aonde inserir a order
 	orders_.insert(destination, order_to_add);
 	meslog(INFO) << "Order added!" << std::endl;
+	print();
 
 	// Adicionar na base de dados
 
