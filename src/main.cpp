@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <thread>
 
 #include "UDPManager.hpp"
 #include "XMLParser.hpp"
@@ -43,52 +44,55 @@ int main (int argc, char const *argv[]) {
 
 
     // Inserir algumas orders na queue. Assim que se queira testar as orders a chegar por UDP apaga-se isto
-    // order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 2, 200));
-    // order_queue->AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 3, 400));
-    // order_queue->AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 10, 1, 1, "doesn't matter"));
+    order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 2, 2, 6, 300));
+    order_queue->AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 1, 1, 9, 200));
+    order_queue->AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 1, 1, 1, "doesn't matter"));
+
+    order_queue->print();
     // ideia: usar o final_piece da order como tapete de destino no caso de ser do tipo unload (visto que final piece nao e usado nesse caso)
     
 
     // Setup de variaveis para o ciclo de controlo principal
     Order::BaseOrder *next_order;
+    bool order_buffered = false;
 
-    // Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
-    // while (1){
-    //     if (!opc_ua.Is_Connected()){
-    //         meslog(ERROR) << "Couldn't Connect to OPC-UA Master" << std::endl;
-    //         break;
-    //     }
+    //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
+    while (1){
+        if (!opc_ua.Is_Connected()){
+            meslog(ERROR) << "Couldn't Connect to OPC-UA Master" << std::endl;
+            break;
+        }
 
 
-    //     // envia peca das orders de load e transformation
-    //     try{
-    //         if (opc_ua.warehouseOutCarpetIsFree()){
-    //             next_order = order_queue->GetNextOrder();
-    //             if (!(opc_ua.SendPieceOPC_UA(*next_order))){
-    //                 next_order->DecreaseCount();
-    //             }
-    //         }
-    //     }
-    //     catch(const char *msg){
-    //         meslog(INFO) << "No orders to execute/all orders are unexecutable" << std::endl;
-    //     }
-    //     // verifica se recebeu pecas
-    //     if (opc_ua.CheckIncomingPieces()){
-    //         meslog(INFO) << "Incoming piece in factory floor" << std::endl;
-    //     }
-    //     // verifica se chegaram pecas a warehouse
-    //     if (opc_ua.CheckPiecesFinished()){
-    //         meslog(INFO) << "Piece(s) finished in factory floor" << std::endl;
-    //     }
-    // }
+        //envia peca das orders de load e transformation
+        try{
+            if (opc_ua.warehouseOutCarpetIsFree()){
+                if (!order_buffered){
+                next_order = order_queue->GetNextOrder();
+                order_buffered = true;
+                }
+                if (opc_ua.SendPieceOPC_UA(next_order)){
+                    next_order->DecreaseCount();
+                    order_buffered = false;
+                }else{
+                    
+                }
+            }
+        }
+        catch(const char *msg){
+            
+        }
+        //verifica se recebeu pecas
+        if (opc_ua.CheckIncomingPieces()){
+            meslog(INFO) << "Incoming piece in factory floor" << std::endl;
+        }
+        // verifica se chegaram pecas a warehouse
+        if (opc_ua.CheckPiecesFinished()){
+            meslog(INFO) << "Piece(s) finished in factory floor" << std::endl;
+        }
 
-    if (opc_ua.warehouseOutCarpetIsFree()){
-        meslog(ERROR) << "Carpet is free" << std::endl;
-    }else{
-        
-        meslog(ERROR) << "Carpet is not free" << std::endl;
+        std::this_thread::sleep_for(std::chrono::nanoseconds(200*1000000)); // 0,2 s
     }
-    
 
 
     // Wait for threads to close

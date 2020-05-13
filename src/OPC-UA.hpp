@@ -54,13 +54,15 @@ public:
 
     bool Is_Connected();
 
-    bool SendPieceOPC_UA (Order::BaseOrder order);
+    bool SendPieceOPC_UA (Order::BaseOrder *order);
 
     bool CheckPiecesFinished();
 
     bool CheckIncomingPieces();
 
     bool warehouseOutCarpetIsFree();
+
+    void test();
 };
 
 #endif

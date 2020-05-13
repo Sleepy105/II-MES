@@ -27,6 +27,8 @@ class OrderQueue{
         Order::BaseOrder *GetNextOrder();
         time_t GetDataTime(std::string datatime);
         bool update();
+        
+        void print();
 };
 
 #endif
