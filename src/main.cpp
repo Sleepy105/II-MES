@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <thread>
 
 #include "UDPManager.hpp"
 #include "XMLParser.hpp"
@@ -43,9 +44,9 @@ int main (int argc, char const *argv[]) {
 
 
     // Inserir algumas orders na queue. Assim que se queira testar as orders a chegar por UDP apaga-se isto
-    order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 2, 200));
-    order_queue->AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 3, 400));
+    order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 6, 200));
     order_queue->AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 10, 1, 1, "doesn't matter"));
+
     order_queue->print();
     // ideia: usar o final_piece da order como tapete de destino no caso de ser do tipo unload (visto que final piece nao e usado nesse caso)
     
@@ -54,44 +55,38 @@ int main (int argc, char const *argv[]) {
     Order::BaseOrder *next_order;
 
     //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
-    // while (1){
+    while (1){
         if (!opc_ua.Is_Connected()){
             meslog(ERROR) << "Couldn't Connect to OPC-UA Master" << std::endl;
-            // break;
+            break;
         }
 
 
-    //     // envia peca das orders de load e transformation
-    //     try{
-    //         if (opc_ua.warehouseOutCarpetIsFree()){
-    //             next_order = order_queue->GetNextOrder();
-    //             if (!(opc_ua.SendPieceOPC_UA(*next_order))){
-    //                 next_order->DecreaseCount();
-    //             }
-    //         }
-    //     }
-    //     catch(const char *msg){
-    //         meslog(INFO) << "No orders to execute/all orders are unexecutable" << std::endl;
-    //     }
-    //     // verifica se recebeu pecas
-    //     if (opc_ua.CheckIncomingPieces()){
-    //         meslog(INFO) << "Incoming piece in factory floor" << std::endl;
-    //     }
-    //     // verifica se chegaram pecas a warehouse
-    //     if (opc_ua.CheckPiecesFinished()){
-    //         meslog(INFO) << "Piece(s) finished in factory floor" << std::endl;
-    //     }
-    // }
+        //envia peca das orders de load e transformation
+        try{
+            if (opc_ua.warehouseOutCarpetIsFree()){
+                next_order = order_queue->GetNextOrder();
+                if (opc_ua.SendPieceOPC_UA(next_order)){
+                    next_order->DecreaseCount();
+                }else{
+                    meslog(ERROR) << "Can't send piece, warehouse carpet is occupied. Piece has been wrongly added to piece list!" << std::endl;
+                }
+            }
+        }
+        catch(const char *msg){
+            meslog(INFO) << "No orders in queue/all orders are unexecutable" << std::endl;
+        }
+        //verifica se recebeu pecas
+        if (opc_ua.CheckIncomingPieces()){
+            meslog(INFO) << "Incoming piece in factory floor" << std::endl;
+        }
+        // verifica se chegaram pecas a warehouse
+        if (opc_ua.CheckPiecesFinished()){
+            meslog(INFO) << "Piece(s) finished in factory floor" << std::endl;
+        }
 
-    // next_order = new Order::BaseOrder(55, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 2, 200);
-    // Order::Piece *new_piece = new Order::Piece(666);
-    // uint8_t my_path[59] = {1, 1, 2, 2, 1, 3, 2, 2, 2, 2, 3, 3, 0};
-    // new_piece->SetPath(my_path);
-    // new_piece->print();
-    // next_order->GetPieces().push_back(new_piece);
-    // Order::Piece *yet_another_piece = next_order->GetPieces().front();
-    // yet_another_piece->print();
-    // opc_ua.SendPieceOPC_UA(*next_order);
+        std::this_thread::sleep_for(std::chrono::nanoseconds(200*1000000)); // 0,2 s
+    }
 
 
     // Wait for threads to close
