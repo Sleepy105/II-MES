@@ -160,13 +160,13 @@ int updateOrder(const char* s, std::string State, int Order_ID) {
 int deleteData(const char* s) {
 	sqlite3* DB;
 	int exit = sqlite3_open(s, &DB);
-	std::string sql1 = "DELETE * FROM Piece;";
+	std::string sql1 = "DELETE FROM Piece;";
 	sqlite3_exec(DB, sql1.c_str(), callback, NULL, NULL);
-	std::string sql = "DELETE * FROM ORDERS;";
+	std::string sql = "DELETE FROM ORDERS;";
 	sqlite3_exec(DB, sql.c_str(), callback, NULL, NULL);
-	std::string sql2 = "DELETE * FROM Warehouse;";
+	std::string sql2 = "DELETE FROM Warehouse;";
 	sqlite3_exec(DB, sql2.c_str(), callback, NULL, NULL);
-	std::string sql3 = "DELETE * FROM Machine;";
+	std::string sql3 = "DELETE FROM Machine;";
 	sqlite3_exec(DB, sql3.c_str(), callback, NULL, NULL);
 	sqlite3_close(DB);
 	return 0;
@@ -274,7 +274,12 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 	int exit = sqlite3_open(s, &DB);
 	std::string sql;
 	if (Type == "Incoming")
-	{
+	{		
+        meslog(INFO) << ">>>Load Order..." << std::endl;
+        meslog(INFO) << "Type: " << Type << std::endl;
+        meslog(INFO) << "Initial_Piece: " << Initial_Piece << std::endl;
+        meslog(INFO) << "Final_Piece: " << Final_Piece << std::endl;
+        meslog(INFO) << "Total_Pieces: " << Total_Pieces << std::endl;
 		sql = ("INSERT INTO ORDERS (Type, State, Initial_Piece, Final_Piece, Total_Number_Pieces, Entry_Time, Execution_Start)" \
 			" VALUES( '" \
 			+ Type + "'" + " ," \
@@ -288,6 +293,14 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 	}
 	else if (Type == "Transformation")
 	{
+        meslog(INFO) << ">>>Transformation Order..." << std::endl;
+        meslog(INFO) << "Order Number: " << Order_Number << std::endl;
+        meslog(INFO) << "State: " << State << std::endl;
+        meslog(INFO) << "Type: " << Type << std::endl;
+        meslog(INFO) << "Initial_Piece: " << Initial_Piece << std::endl;
+        meslog(INFO) << "Final_Piece: " << Final_Piece << std::endl;
+        meslog(INFO) << "Total_Pieces: " << Total_Pieces << std::endl;
+        meslog(INFO) << "Deadline: " << Deadline << std::endl;
 		sql = ("INSERT INTO ORDERS (Order_Number, Type, State, Initial_Piece, Final_Piece, Total_Number_Pieces, Deadline, Entry_Time)" \
 			" VALUES(" \
 			+ std::to_string(Order_Number) + " ," \
@@ -302,6 +315,13 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 	}
 	else
 	{
+        meslog(INFO) << ">>>Unload Order..." << std::endl;
+        meslog(INFO) << "Order Number: " << Order_Number << std::endl;
+        meslog(INFO) << "State: " << State << std::endl;
+        meslog(INFO) << "Type: " << Type << std::endl;
+        meslog(INFO) << "Initial_Piece: " << Initial_Piece << std::endl;
+        meslog(INFO) << "Final_Piece: " << Final_Piece << std::endl;
+        meslog(INFO) << "Total_Pieces: " << Total_Pieces << std::endl;
 		sql = ("INSERT INTO ORDERS (Order_Number, Type, State, Initial_Piece, Final_Piece, Total_Number_Pieces, Entry_Time)" \
 			" VALUES(" \
 			+ std::to_string(Order_Number) + " ," \
@@ -496,7 +516,6 @@ std::string DateTime(const char* s, std::string Deadline)
 }
 int callback_hour(void* DateTim, int argc, char** argv, char** azColName)
 {
-	meslog(INFO) << argv[0] << std::endl;
 	strcpy((char*)(DateTim), argv[0]);
 	return 0;
 }

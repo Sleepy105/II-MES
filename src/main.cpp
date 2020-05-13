@@ -44,21 +44,22 @@ int main (int argc, char const *argv[]) {
 
 
     // Inserir algumas orders na queue. Assim que se queira testar as orders a chegar por UDP apaga-se isto
-    // order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 2, 200));
-    // order_queue->AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 3, 400));
-    // order_queue->AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 10, 1, 1, "doesn't matter"));
+    order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 2, 200));
+    order_queue->AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 3, 400));
+    order_queue->AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 10, 1, 1, "doesn't matter"));
+    order_queue->print();
     // ideia: usar o final_piece da order como tapete de destino no caso de ser do tipo unload (visto que final piece nao e usado nesse caso)
     
 
     // Setup de variaveis para o ciclo de controlo principal
     Order::BaseOrder *next_order;
 
-    // Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
+    //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
     // while (1){
-    //     if (!opc_ua.Is_Connected()){
-    //         meslog(ERROR) << "Couldn't Connect to OPC-UA Master" << std::endl;
-    //         break;
-    //     }
+        if (!opc_ua.Is_Connected()){
+            meslog(ERROR) << "Couldn't Connect to OPC-UA Master" << std::endl;
+            // break;
+        }
 
 
     //     // envia peca das orders de load e transformation
@@ -83,13 +84,15 @@ int main (int argc, char const *argv[]) {
     //     }
     // }
 
-    if (opc_ua.warehouseOutCarpetIsFree()){
-        meslog(ERROR) << "Carpet is free" << std::endl;
-    }else{
-        
-        meslog(ERROR) << "Carpet is not free" << std::endl;
-    }
-    
+    // next_order = new Order::BaseOrder(55, Order::ORDER_TYPE_TRANSFORMATION, 10, 1, 2, 200);
+    // Order::Piece *new_piece = new Order::Piece(666);
+    // uint8_t my_path[59] = {1, 1, 2, 2, 1, 3, 2, 2, 2, 2, 3, 3, 0};
+    // new_piece->SetPath(my_path);
+    // new_piece->print();
+    // next_order->GetPieces().push_back(new_piece);
+    // Order::Piece *yet_another_piece = next_order->GetPieces().front();
+    // yet_another_piece->print();
+    // opc_ua.SendPieceOPC_UA(*next_order);
 
 
     // Wait for threads to close

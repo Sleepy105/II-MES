@@ -61,6 +61,8 @@ public:
     bool CheckIncomingPieces();
 
     bool warehouseOutCarpetIsFree();
+
+    void test();
 };
 
 #endif

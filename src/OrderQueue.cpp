@@ -16,6 +16,7 @@ OrderQueue::~OrderQueue(){
 int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 {
 	if (!order_to_add.is_valid()){
+		meslog(ERROR) << "Order is invalid (doesn't belong in queue)" << std::endl;
 		return -1; // Request stores não precisam de ser guardadas na DB, nem na order queue
 	}
 
@@ -41,11 +42,12 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 		{
 			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATION)
 			{
-				orders_.insert(destination, order_to_add);
 				break;
 			}
 		}
 	}
+	
+
 	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline das orders do tipo transformation
 	else{
 		enddeadline = GetDataTime(order_to_add.GetDeadline());
@@ -55,13 +57,15 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 
 				tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
 				if (difftime(enddeadline, tempdeadline) < 0){
-
-					orders_.insert(destination, order_to_add);
 					break;
 				}
 			}
 		}
 	}
+	// colocar o insert apos o ciclo for, em vez de dentro, garante que, mesmo que nao hajam orders de transformacao ou 
+	// orders de todo, a nova order e adicionada na lista. Os ciclos apenas determinam o destination aonde inserir a order
+	orders_.insert(destination, order_to_add);
+	meslog(INFO) << "Order added!" << std::endl;
 
 	// Adicionar na base de dados
 
@@ -78,7 +82,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 		break;
 	case Order::ORDER_TYPE_UNLOAD:
 		type_string = "Dispatch";
-		type_string = "Waiting";
+		state_string = "Waiting";
 		break;
 	}
 	// adiciona order à base de dados
@@ -182,7 +186,6 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 
 time_t OrderQueue::GetDataTime(std::string datatime)
 {
-	meslog(ERROR) << datatime << std::endl;
 	time_t rawtime1;
 	struct tm  timeinfo1;
 	size_t pos = 0;
@@ -265,4 +268,16 @@ bool OrderQueue::update()
 	}*/
 	
 	return true;
+}
+
+void OrderQueue::print(){
+	if (orders_.size() == 0){
+		std::cout << "Order Queue has no orders." << std::endl;
+		return;
+	}
+	std::cout << "Order Queue has " << orders_.size() << " orders:" << std::endl;
+	std::list<Order::BaseOrder>::iterator iter;
+	for (iter = orders_.begin(); iter != orders_.end(); iter++){
+		iter->print();
+	}
 }

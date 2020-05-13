@@ -95,6 +95,17 @@ uint8_t BaseOrder::GetFinalPiece(){
 std::list<Piece> BaseOrder::GetPieces(){
     return pieces;
 }
+void BaseOrder::print(){
+    if (pieces.size() == 0){
+        std::cout << "\tOrder " << order_id << " has no pieces in factory floor." << std::endl;
+        return;
+    }
+    std::cout << "\tOrder " << order_id << "has " << pieces.size() << " pieces in factory floor:" << std::endl;
+    std::list<Piece>::iterator iter;
+    for (iter = pieces.begin(); iter != pieces.end(); iter++){
+        iter->print();
+    }
+}
 
 Piece::Piece(uint32_t id){
     PieceID = id;
@@ -115,18 +126,31 @@ uint8_t *Piece::GetMachines(){
 void Piece::SetPath(uint8_t path_to_copy[]){
     int i;
     for (i = 0; i<59; i++){
+        if (path_to_copy[i] == 0){
+            return;
+        }
         Path[i] = path_to_copy[i];
     }
 }
 void Piece::SetTransformations(uint8_t path_to_copy[]){
     int i;
     for (i = 0; i<12; i++){
-        Path[i] = path_to_copy[i];
+        if (path_to_copy[i] == 0){
+            return;
+        }
+        Transformations[i] = path_to_copy[i];
     }
 }
 void Piece::SetMachines(uint8_t path_to_copy[]){
     int i;
     for (i = 0; i<9; i++){
-        Path[i] = path_to_copy[i];
+        if (path_to_copy[i] == 0){
+            return;
+        }
+        Machines[i] = path_to_copy[i];
     }
+}
+
+void Piece::print(){
+    std::cout << "\t\tPiece " << PieceID << " has path: {" << Path[0] << ", " << Path[1] << ", " << Path[2] << ", " << Path[3] << "...}" << std::endl;
 }

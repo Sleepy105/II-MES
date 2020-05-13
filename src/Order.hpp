@@ -29,6 +29,10 @@ namespace Order {
     const uint8_t ORDER_TYPE_LOAD = 3;
 };
 
+
+
+
+
 class Order::BaseOrder {
 private:
     uint32_t order_id = 0;
@@ -60,17 +64,23 @@ public:
     uint8_t GetFinalPiece();
     std::list<Piece> GetPieces();
 
+    void print();
+
 
     bool operator == (Order::BaseOrder &ordr) const {return order_id == ordr.GetID();}
     bool operator != (Order::BaseOrder &ordr) const {return !operator == (ordr);}
 };
 
+
+
+
+
 class Order::Piece {
 private:
     uint32_t PieceID;
     uint8_t Path[59] = {0};
-    uint8_t Transformations[12];
-    uint8_t Machines[9];
+    uint8_t Transformations[12] = {0};
+    uint8_t Machines[9] = {0};
 
 
 public:
@@ -82,8 +92,8 @@ public:
     void SetPath(uint8_t[]);
     void SetTransformations(uint8_t[]);
     void SetMachines(uint8_t[]);
-    bool isOnHold();
-    void setPieceAsNotOnHold();
+
+    void print();
 
 };
 
