@@ -169,13 +169,14 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 
 	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
 		
-		// if it's an unload/transformation order, count is bigger than 0 and there are pieces of desired type in warehouse
+		// if it's an unload/transformation order, count is bigger than 0 and there are still pieces of desired type in warehouse
 		if  ((((*orders_iter_).GetType() == Order::ORDER_TYPE_UNLOAD) || ((*orders_iter_).GetType() == Order::ORDER_TYPE_TRANSFORMATION)) &&
 			(((*orders_iter_).GetCount()) > 0) && 
 			(warehouse->GetPieceCount((*orders_iter_).GetInitialPiece()) > 0)){
 				// order encontrada: inserir-lhe uma peca (e na base de dados tambem) e devolver a order
 				new_piece_id = insertDataPiece("factory.db",(*orders_iter_).GetPK());
-				(*orders_iter_).GetPieces().push_back(Order::Piece(new_piece_id));
+				orders_iter_->AddPiece(Order::Piece(new_piece_id));
+				pathfinder.FindPath(&(*orders_iter_)); // vai escrever para a ultima peca adicionada na order
 				return &(*orders_iter_);
 		}
 	}
