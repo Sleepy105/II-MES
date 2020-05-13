@@ -6,7 +6,7 @@
 
 class PathFinder{
 public:
-    void FindPath (Order::BaseOrder order_path);
+    void FindPath (Order::BaseOrder *order_path);
 };
 
 #endif
