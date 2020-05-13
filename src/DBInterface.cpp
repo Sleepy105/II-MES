@@ -274,12 +274,7 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 	int exit = sqlite3_open(s, &DB);
 	std::string sql;
 	if (Type == "Incoming")
-	{		
-        meslog(INFO) << ">>>Load Order..." << std::endl;
-        meslog(INFO) << "Type: " << Type << std::endl;
-        meslog(INFO) << "Initial_Piece: " << Initial_Piece << std::endl;
-        meslog(INFO) << "Final_Piece: " << Final_Piece << std::endl;
-        meslog(INFO) << "Total_Pieces: " << Total_Pieces << std::endl;
+	{
 		sql = ("INSERT INTO ORDERS (Type, State, Initial_Piece, Final_Piece, Total_Number_Pieces, Entry_Time, Execution_Start)" \
 			" VALUES( '" \
 			+ Type + "'" + " ," \
@@ -293,14 +288,6 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 	}
 	else if (Type == "Transformation")
 	{
-        meslog(INFO) << ">>>Transformation Order..." << std::endl;
-        meslog(INFO) << "Order Number: " << Order_Number << std::endl;
-        meslog(INFO) << "State: " << State << std::endl;
-        meslog(INFO) << "Type: " << Type << std::endl;
-        meslog(INFO) << "Initial_Piece: " << Initial_Piece << std::endl;
-        meslog(INFO) << "Final_Piece: " << Final_Piece << std::endl;
-        meslog(INFO) << "Total_Pieces: " << Total_Pieces << std::endl;
-        meslog(INFO) << "Deadline: " << Deadline << std::endl;
 		sql = ("INSERT INTO ORDERS (Order_Number, Type, State, Initial_Piece, Final_Piece, Total_Number_Pieces, Deadline, Entry_Time)" \
 			" VALUES(" \
 			+ std::to_string(Order_Number) + " ," \
@@ -315,13 +302,6 @@ int insertDataOrder(const char* s, int Order_Number, std::string Type, std::stri
 	}
 	else
 	{
-        meslog(INFO) << ">>>Unload Order..." << std::endl;
-        meslog(INFO) << "Order Number: " << Order_Number << std::endl;
-        meslog(INFO) << "State: " << State << std::endl;
-        meslog(INFO) << "Type: " << Type << std::endl;
-        meslog(INFO) << "Initial_Piece: " << Initial_Piece << std::endl;
-        meslog(INFO) << "Final_Piece: " << Final_Piece << std::endl;
-        meslog(INFO) << "Total_Pieces: " << Total_Pieces << std::endl;
 		sql = ("INSERT INTO ORDERS (Order_Number, Type, State, Initial_Piece, Final_Piece, Total_Number_Pieces, Entry_Time)" \
 			" VALUES(" \
 			+ std::to_string(Order_Number) + " ," \
