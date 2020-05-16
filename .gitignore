@@ -6,8 +6,10 @@ src/sqlite3.c
 *.db
 opc-ua-id.txt
 Ubuntu cd command.txt
+ExecuteJar.bat
 II_comands_competitionA_v1/**
 sfs-1.1.4_plant-2020_1.5/**
+SQLiteStudio/**
 
 # Prerequisites
 *.d

@@ -32,6 +32,43 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	int return_value;
 	bool load_order = false;
 
+	// Adicionar na base de dados
+
+	switch (order_type)
+	{
+	case Order::ORDER_TYPE_TRANSFORMATION:
+		type_string = "Transformation";
+		state_string = "Waiting";
+		break;
+	case Order::ORDER_TYPE_LOAD:
+		type_string = "Incoming";
+		state_string = "Executing"; //As operações de carga nunca estao "Waiting", começam logo a executar
+		load_order = true;
+		break;
+	case Order::ORDER_TYPE_UNLOAD:
+		type_string = "Dispatch";
+		state_string = "Waiting";
+		break;
+	}
+	// adiciona order à base de dados
+	
+	return_value = insertDataOrder("factory.db", 
+						(int) order_to_add.GetID(), 
+						type_string, 
+						state_string, 
+						initPiece_string, 
+						finalPiece_string, 
+						total_pieces, 
+						deadline_string);
+
+	order_to_add.SetPK(return_value);
+
+	// se for uma order de carga, adiciona piece também
+	if (load_order){
+		return_value = insertDataPiece("factory.db", return_value);
+	}
+
+
 	// Adicionar na list do MES
 	
 	std::list<Order::BaseOrder>::iterator destination;
@@ -67,40 +104,6 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	orders_.insert(destination, order_to_add);
 	meslog(INFO) << "Order added!" << std::endl;
 	print();
-
-	// Adicionar na base de dados
-
-	switch (order_type)
-	{
-	case Order::ORDER_TYPE_TRANSFORMATION:
-		type_string = "Transformation";
-		state_string = "Waiting";
-		break;
-	case Order::ORDER_TYPE_LOAD:
-		type_string = "Incoming";
-		state_string = "Executing"; //As operações de carga nunca estao "Waiting", começam logo a executar
-		load_order = true;
-		break;
-	case Order::ORDER_TYPE_UNLOAD:
-		type_string = "Dispatch";
-		state_string = "Waiting";
-		break;
-	}
-	// adiciona order à base de dados
-	
-	return_value = insertDataOrder("factory.db", 
-						(int) order_to_add.GetID(), 
-						type_string, 
-						state_string, 
-						initPiece_string, 
-						finalPiece_string, 
-						total_pieces, 
-						deadline_string);
-
-	// se for uma order de carga, adiciona piece também
-	if (load_order){
-		return_value = insertDataPiece("factory.db", return_value);
-	}
 	
 
 	return return_value;
@@ -131,23 +134,27 @@ bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 	Se conseguir encontrar e remover a peca retorna true, senao retorna false.
 */
 bool OrderQueue::RemovePiece(uint32_t target_id){
+	meslog(INFO) << "Erasing piece " << target_id << std::endl;
 
 	std::list<Order::BaseOrder>::iterator orders_iter_;
 	std::list<Order::Piece>::iterator pieces_iter_;
-	std::list<Order::Piece> piece_list;
+	std::list<Order::Piece> *piece_list;
 
 	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
 	// for each order
-		piece_list = (*orders_iter_).GetPieces(); // just to avoid writting (*orders_iter_).GetPieces() over and over
-		for (pieces_iter_ = piece_list.begin(); pieces_iter_ != piece_list.end(); pieces_iter_++){
+		piece_list = orders_iter_->GetPieces(); // just to avoid writting orders_iter_->GetPieces() over and over
+		for (pieces_iter_ = piece_list->begin(); pieces_iter_ != piece_list->end(); pieces_iter_++){
 		// for each piece
-			if ((*pieces_iter_).GetID() == target_id){
+		meslog(INFO) << "Is piece " << pieces_iter_->GetID() << " == to piece " << target_id << "?" << std::endl;
+			if (pieces_iter_->GetID() == target_id){
 				updateDataPiece("factory.db", (int) target_id); // update piece finish time in database
-				piece_list.erase(pieces_iter_);
+				piece_list->erase(pieces_iter_);
 				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
-				if (((*orders_iter_).GetCount() == 0) && (piece_list.size() == 0)){
+				if ((orders_iter_->GetCount() == 0) && (piece_list->size() == 0)){
 					RemoveOrder((*orders_iter_));
 				}
+				meslog(INFO) << "Piece " << target_id << " erased!" << std::endl;
+				print();
 				return true; // a piece was found and deleted, return true
 			}
 		}
@@ -171,11 +178,11 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
 		
 		// if it's an unload/transformation order, count is bigger than 0 and there are still pieces of desired type in warehouse
-		if  ((((*orders_iter_).GetType() == Order::ORDER_TYPE_UNLOAD) || ((*orders_iter_).GetType() == Order::ORDER_TYPE_TRANSFORMATION)) &&
+		if  (((orders_iter_->GetType() == Order::ORDER_TYPE_UNLOAD) || (orders_iter_->GetType() == Order::ORDER_TYPE_TRANSFORMATION)) &&
 			(((*orders_iter_).GetCount()) > 0) && 
-			(warehouse->GetPieceCount((*orders_iter_).GetInitialPiece()) > 0)){
+			(warehouse->GetPieceCount(orders_iter_->GetInitialPiece()) > 0)){
 				// order encontrada: inserir-lhe uma peca (e na base de dados tambem) e devolver a order
-				new_piece_id = insertDataPiece("factory.db",(*orders_iter_).GetPK());
+				new_piece_id = insertDataPiece("factory.db",orders_iter_->GetPK());
 				orders_iter_->AddPiece(Order::Piece(new_piece_id));
 				pathfinder.FindPath(&(*orders_iter_)); // vai escrever para a ultima peca adicionada na order
 				return &(*orders_iter_);
@@ -274,10 +281,10 @@ bool OrderQueue::update()
 
 void OrderQueue::print(){
 	if (orders_.size() == 0){
-		std::cout << "Order Queue has no orders." << std::endl;
+		meslog(INFO) << "Order Queue has no orders." << std::endl;
 		return;
 	}
-	std::cout << "Order Queue has " << orders_.size() << " orders:" << std::endl;
+	meslog(INFO) << "Order Queue has " << orders_.size() << " orders:" << std::endl;
 	std::list<Order::BaseOrder>::iterator iter;
 	for (iter = orders_.begin(); iter != orders_.end(); iter++){
 		iter->print();

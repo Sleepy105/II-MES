@@ -62,8 +62,9 @@ public:
     std::string GetDeadline();
     uint8_t GetInitialPiece();
     uint8_t GetFinalPiece();
-    std::list<Piece> GetPieces();
+    std::list<Piece> *GetPieces();
     Piece *GetLastPiece();
+    void SetPK(int pk);
     void AddPiece(Piece piece_to_add);
 
     void print();

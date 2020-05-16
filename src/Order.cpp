@@ -63,6 +63,9 @@ uint32_t BaseOrder::GetID(){
 int BaseOrder::GetPK(){
     return order_pk;
 }
+void BaseOrder::SetPK(int pk){
+    order_pk = pk;
+}
 uint8_t BaseOrder::GetType(){
     return order_type;
 }
@@ -92,8 +95,8 @@ uint8_t BaseOrder::GetInitialPiece(){
 uint8_t BaseOrder::GetFinalPiece(){
     return finalPiece;
 }
-std::list<Piece> BaseOrder::GetPieces(){
-    return pieces;
+std::list<Piece> *BaseOrder::GetPieces(){
+    return &pieces;
 }
 void BaseOrder::AddPiece(Piece piece_to_add){
     pieces.push_back(piece_to_add);

@@ -11,13 +11,15 @@
 
 #include "helpers.h"
 
+#define CYCLE_DELAY_IN_MILLISECONDS 200
+
 int main (int argc, char const *argv[]) {
 
-    OrderQueue *order_queue = new OrderQueue();
-    Warehouse *warehouse = new Warehouse();
+    OrderQueue order_queue;
+    Warehouse warehouse;
 
     UDPManager UDPManager(54321);
-    XMLParser XMLParser(order_queue, &UDPManager);
+    XMLParser XMLParser(&order_queue, &UDPManager);
     // Iniciar thread para UDP
     std::thread udp_worker = UDPManager.spawn_worker(&XMLParser);
 
@@ -40,15 +42,15 @@ int main (int argc, char const *argv[]) {
         int result = fread (OpcUa_id,1,100,f);
     }
 
-    OPCUA_Manager opc_ua("opc.tcp://127.0.0.1:4840", OpcUa_id, 4, order_queue, warehouse);
+    OPCUA_Manager opc_ua("opc.tcp://127.0.0.1:4840", OpcUa_id, 4, &order_queue, &warehouse);
 
 
     // Inserir algumas orders na queue. Assim que se queira testar as orders a chegar por UDP apaga-se isto
-    // order_queue->AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 2, 2, 6, 300));
-    // order_queue->AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 1, 1, 9, 200));
-    // order_queue->AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 1, 1, 1, "doesn't matter"));
+    order_queue.AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 1, 2, 6, 300));
+    order_queue.AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 2, 1, 9, 200));
+    order_queue.AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 2, 1, 1, "doesn't matter"));
 
-    // order_queue->print();
+    // order_queue.print();
     // ideia: usar o final_piece da order como tapete de destino no caso de ser do tipo unload (visto que final piece nao e usado nesse caso)
     
 
@@ -63,26 +65,19 @@ int main (int argc, char const *argv[]) {
         }
         meslog(INFO) << "Connection established." << std::endl;
     }
-
     //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
     while (opc_ua.Is_Connected()){
 
         //envia peca das orders de load e transformation
         try{
             if (opc_ua.warehouseOutCarpetIsFree()){
-                if (!order_buffered){
-                next_order = order_queue->GetNextOrder();
-                order_buffered = true;
-                }
-                if (opc_ua.SendPieceOPC_UA(next_order)){
-                    next_order->DecreaseCount();
-                    order_buffered = false;
-                }else{
-                    
-                }
+                next_order = order_queue.GetNextOrder();
+                opc_ua.SendPieceOPC_UA(next_order);
+                next_order->DecreaseCount();
+                meslog(INFO) << "Current count for order " << next_order->GetID() << ": "<< next_order->GetCount() << std::endl;
+                order_queue.print();
             }
-        }
-        catch(const char *msg){
+        }catch(const char *msg){
             
         }
         //verifica se recebeu pecas
@@ -94,7 +89,7 @@ int main (int argc, char const *argv[]) {
             meslog(INFO) << "Piece(s) finished in factory floor" << std::endl;
         }
 
-        std::this_thread::sleep_for(std::chrono::nanoseconds(200*1000000)); // 0,2 s
+        std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS*1000000)); // 0,2 s
     } meslog(ERROR) << "Disconnected from OPC-UA Master" << std::endl;
 
 

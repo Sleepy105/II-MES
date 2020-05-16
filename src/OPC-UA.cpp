@@ -16,6 +16,8 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index,
     else {
         connected_ = true;
     }
+    order_queue = order_queue_reference;
+    warehouse = warehouse_reference;
 
 
 }
@@ -92,7 +94,6 @@ bool OPCUA_Manager::warehouseOutCarpetIsFree() {
 // Envia ultima peca que esteja na lista de pecas da order. 
 // Nesta altura a peca ja deve estar na base de dados e ter um id atribuido
 bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
-
     // Create base string for node access
     char NodeID[128];
     char NodeID_backup[128];
@@ -276,7 +277,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     bool all_up_to_date = true;
 
     strcpy (NodeID_backup, BaseNodeID_);
-    strcat (NodeID_backup, "POU.AT2.piece_queue[");
+    strcat (NodeID_backup, "PLC_PRG.AT2.piece_queue[");
     
 
     // Check if there are true booleans in warehouse entry carpet (pieces that the warehouse 
@@ -312,7 +313,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
 
     
     strcpy (NodeID_backup, BaseNodeID_);
-    strcat (NodeID_backup, "POU.AT2.piece_id_array[");
+    strcat (NodeID_backup, "PLC_PRG.AT2.piece_id_array[");
 
     // check if the queue has any unprocessed pieces and count how many nodes we need to read
     // start initializing nodes_to_read as we go (save us from another loop)
@@ -338,6 +339,8 @@ bool OPCUA_Manager::CheckPiecesFinished(){
         return false; // nothing to do, return "false" meaning no pieces were finished
     }
 
+    meslog(INFO) << "There are " << number_of_ids_to_read << " unprocessed pieces." << std::endl;
+
     // Not all_up_to_date. Start reading id's
     request.nodesToRead = nodes_to_read;
     request.nodesToReadSize = number_of_ids_to_read;
@@ -346,7 +349,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     if (response.results[0].value.type == &UA_TYPES[UA_TYPES_UINT16]) {
         for (i = 0; i < number_of_ids_to_read; i++) {
             piece_ids[i] = *(UA_UInt16*)response.results[i].value.data;
-            order_queue->RemovePiece((uint32_t)piece_ids[i]);
+            order_queue->RemovePiece((uint32_t)piece_ids[i]); // remove pieces from orderqueue as we go
         }
     }
 
@@ -361,7 +364,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     bool write_false = false;
 
     strcpy (NodeID_backup, BaseNodeID_);
-    strcat (NodeID_backup, "POU.AT2.piece_queue[");
+    strcat (NodeID_backup, "PLC_PRG.AT2.piece_queue[");
 
     // fill in which nodes to write to
     // we could simply write to all nodes in the queue, but we risk that the PLC writes to a node while this function
@@ -378,7 +381,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
             nodes_to_write[node_index].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
             nodes_to_write[node_index].attributeId = UA_ATTRIBUTEID_VALUE;
             nodes_to_write[node_index].value.hasValue = true;
-            nodes_to_write[node_index].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+            nodes_to_write[node_index].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
             nodes_to_write[node_index].value.value.storageType = UA_VARIANT_DATA_NODELETE;
             nodes_to_write[node_index].value.value.data = &write_false;
             node_index++;
@@ -394,9 +397,6 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     wReq.nodesToWriteSize = 0;
     UA_WriteResponse_clear(&wResp);
     UA_WriteRequest_clear(&wReq);
-
-    // We now have an array, in piece_ids with all ids of pieces that have finished. But we haven't processed them yet
-    // TO BE IMPLEMENTED: UPDATE ORDERS BASED ON RETRIEVED IDS
 
     return true;
 }
@@ -425,7 +425,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     
     // Check if MES ok variable in PLC is not set (we haven't processed this piece yet)
     strcpy (NodeID,BaseNodeID_);
-    strcat (NodeID,"POU.C7T1b.piece_p");
+    strcat (NodeID,"PLC_PRG.C7T1b.piece_p");
 
     UA_Variant *val = UA_Variant_new();
     UA_StatusCode retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
@@ -436,7 +436,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
 
     if (piece_present){
         strcpy (NodeID,BaseNodeID_);
-        strcat (NodeID,"POU.C7T1b.MES_ok");
+        strcat (NodeID,"PLC_PRG.C7T1b.MES_ok");
 
         val = UA_Variant_new();
         retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
@@ -463,7 +463,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
         nodes_to_write[0].value.value.data = &PieceID;
         
         strcpy(NodeID, BaseNodeID_);
-        strcat(NodeID, "POU.C7T1b.MES_ok");
+        strcat(NodeID, "PLC_PRG.C7T1b.MES_ok");
         nodes_to_write[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
         nodes_to_write[1].attributeId = UA_ATTRIBUTEID_VALUE;
         nodes_to_write[1].value.hasValue = true;
@@ -488,7 +488,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     ////////////////////////////////////////////////////////////// CARPET C7T7B
     // Check if MES ok variable in PLC is not set (we haven't processed this piece yet)
     strcpy (NodeID,BaseNodeID_);
-    strcat (NodeID,"POU.C7T7b.piece_p");
+    strcat (NodeID,"PLC_PRG.C7T7b.piece_p");
 
     val = UA_Variant_new();
     retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
@@ -499,7 +499,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
 
     if (piece_present){
         strcpy (NodeID,BaseNodeID_);
-        strcat (NodeID,"POU.C7T7b.MES_ok");
+        strcat (NodeID,"PLC_PRG.C7T7b.MES_ok");
 
         val = UA_Variant_new();
         retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
@@ -529,7 +529,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
         nodes_to_write[0].value.value.data = &PieceID;
         
         strcpy(NodeID, BaseNodeID_);
-        strcat(NodeID, "POU.C7T7b.MES_ok");
+        strcat(NodeID, "PLC_PRG.C7T7b.MES_ok");
         nodes_to_write[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
         nodes_to_write[1].attributeId = UA_ATTRIBUTEID_VALUE;
         nodes_to_write[1].value.hasValue = true;
@@ -564,7 +564,7 @@ void OPCUA_Manager::test() {
     bool bool_to_write = true;
     bool results[10] = { 0 };
     strcpy(NodeID_backup, BaseNodeID_);
-    strcat(NodeID_backup, "POU.AT2.piece_queue["); // this is where I want to write, I need only to append the array index in which to write
+    strcat(NodeID_backup, "PLC_PRG.AT2.piece_queue["); // this is where I want to write, I need only to append the array index in which to write
 
 
     UA_WriteRequest wReq;
@@ -573,21 +573,21 @@ void OPCUA_Manager::test() {
     UA_WriteValue_init(&my_nodes[1]);
     UA_WriteValue_init(&my_nodes[2]);
 
-    my_nodes[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.POU.AT2.piece_queue[3]");
+    my_nodes[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[3]");
     my_nodes[0].attributeId = UA_ATTRIBUTEID_VALUE;
     my_nodes[0].value.hasValue = true;
     my_nodes[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
     my_nodes[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
     my_nodes[0].value.value.data = &bool_to_write;
 
-    my_nodes[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.POU.AT2.piece_queue[4]");
+    my_nodes[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[4]");
     my_nodes[1].attributeId = UA_ATTRIBUTEID_VALUE;
     my_nodes[1].value.hasValue = true;
     my_nodes[1].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
     my_nodes[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
     my_nodes[1].value.value.data = &bool_to_write;
 
-    my_nodes[2].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.POU.AT2.piece_queue[5]");
+    my_nodes[2].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[5]");
     my_nodes[2].attributeId = UA_ATTRIBUTEID_VALUE;
     my_nodes[2].value.hasValue = true;
     my_nodes[2].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
@@ -610,21 +610,21 @@ void OPCUA_Manager::test() {
     UA_WriteValue_init(&my_nodes[1]);
     UA_WriteValue_init(&my_nodes[2]);
 
-    my_nodes[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.POU.AT2.piece_queue[3]");
+    my_nodes[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[3]");
     my_nodes[0].attributeId = UA_ATTRIBUTEID_VALUE;
     my_nodes[0].value.hasValue = true;
     my_nodes[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
     my_nodes[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
     my_nodes[0].value.value.data = &bool_to_write;
 
-    my_nodes[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.POU.AT2.piece_queue[4]");
+    my_nodes[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[4]");
     my_nodes[1].attributeId = UA_ATTRIBUTEID_VALUE;
     my_nodes[1].value.hasValue = true;
     my_nodes[1].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
     my_nodes[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
     my_nodes[1].value.value.data = &bool_to_write;
 
-    my_nodes[2].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.POU.AT2.piece_queue[5]");
+    my_nodes[2].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[5]");
     my_nodes[2].attributeId = UA_ATTRIBUTEID_VALUE;
     my_nodes[2].value.hasValue = true;
     my_nodes[2].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
