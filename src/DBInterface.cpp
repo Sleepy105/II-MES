@@ -500,3 +500,166 @@ int callback_hour(void* DateTim, int argc, char** argv, char** azColName)
 	strcpy((char*)(DateTim), argv[0]);
 	return 0;
 }
+
+//// Funcoes da DB para restore da informacao toda das orderns para o mesh ////
+//// Para dar restore a informacao do warehouse é usar a funcao getWarehouseInformation ////
+Load_Unload RestoreOrders;
+
+Load_Unload RestoreMeshOrders(const char* s) {
+	int count_disp[56] = { 0 }; //auxiliar para ir buscar quantas pecas ainda faltam executar em cada ordem
+	int count_transf[56] = { 0 };
+	int pos = 0;
+	//vai buscar as orders
+	RestoreIncomingDispatch(s);
+	RestoreTransformation(s);
+
+	//atualiza quantas pecas ainda faltavam ser mandadas para a fábrica
+	RestorecountDispatch(s, count_disp);
+	for (int i = 0; i < RestoreOrders.vectorPositionDispatchIncoming; i++) {
+		if (RestoreOrders.RestoreDispatch_Incoming[i].Type == "Dispatch") {
+			RestoreOrders.RestoreDispatch_Incoming[i].count = count_disp[pos];
+			pos++;
+		}
+	}
+	RestorecountTransformation(s, count_transf);
+	for (int i = 0; i < RestoreOrders.vectorPositionTransformation; i++) {
+		RestoreOrders.RestoreTransformation[i].count = count_transf[i];
+	}
+
+	//atualiza a estrutura de pecas inerente a cada order
+	for (int i = 0; i < RestoreOrders.vectorPositionDispatchIncoming; i++) {
+		if (RestoreOrders.RestoreDispatch_Incoming[i].State == "Executing") {
+			getPieceInformation(s, i, RestoreOrders.RestoreDispatch_Incoming);
+		}
+	}
+	for (int i = 0; i < RestoreOrders.vectorPositionTransformation; i++) {
+		if (RestoreOrders.RestoreTransformation[i].State == "Executing") {
+			getPieceInformationTrans(s, i, RestoreOrders.RestoreTransformation);
+		}
+	}
+	return RestoreOrders;
+}
+int global_position = 0; //usado para saber a posicao atual dos vetores InofmrationDiscInc e Transformation
+
+void getPieceInformationTrans(const char* s, int position, Transformation* Transform)
+{
+	global_position = position;
+	sqlite3* DB;
+	sqlite3_open(s, &DB);
+	std::string sql = ("SELECT ID, ID_ORDER FROM Piece Where Execution_End IS NULL AND ID_ORDER = "\
+		+ std::to_string(Transform[position].order_pk) + " ORDER BY Execution_Start ASC");
+	int exit = sqlite3_exec(DB, sql.c_str(), callbackPieceTransform, Transform, NULL);
+}
+int callbackPieceTransform(void* NotUsed, int argc, char** argv, char** azColName)
+{
+	RestoreOrders.RestoreTransformation[global_position].pieces[RestoreOrders.RestoreTransformation[global_position].vectorPiecePosition].id_piece = atoi(argv[0]);
+	RestoreOrders.RestoreTransformation[global_position].pieces[RestoreOrders.RestoreTransformation[global_position].vectorPiecePosition].fk_order_id = atoi(argv[1]);
+	RestoreOrders.RestoreTransformation[global_position].vectorPiecePosition++;
+	return 0;
+}
+void getPieceInformation(const char* s, int position, InformationDisInc *DispInc){
+	global_position = position;
+	sqlite3* DB;
+	sqlite3_open(s, &DB);
+	std::string sql = ("SELECT ID, ID_ORDER FROM Piece Where Execution_End IS NULL AND ID_ORDER = "\
+		+ std::to_string(DispInc[position].order_pk) + " ORDER BY Execution_Start ASC");
+	int exit = sqlite3_exec(DB, sql.c_str(), callbackPieceIncomingDispatch, NULL, NULL);
+}
+int callbackPieceIncomingDispatch(void* NotUsed, int argc, char** argv, char** azColName)
+{
+	RestoreOrders.RestoreDispatch_Incoming[global_position].pieces[RestoreOrders.RestoreDispatch_Incoming[global_position].vectorPiecePosition].id_piece = atoi(argv[0]);
+	RestoreOrders.RestoreDispatch_Incoming[global_position].pieces[RestoreOrders.RestoreDispatch_Incoming[global_position].vectorPiecePosition].fk_order_id = atoi(argv[1]);
+	RestoreOrders.RestoreDispatch_Incoming[global_position].vectorPiecePosition++;
+	return 0;
+}
+void RestoreIncomingDispatch(const char* s)
+{
+	sqlite3* DB;
+	sqlite3_open(s, &DB);
+	std::string sql = "SELECT ID, Type, State, Initial_Piece, Final_Piece, Execution_Start FROM ORDERS WHERE END_TIME IS NULL AND (Type = 'Dispatch' OR Type = 'Incoming') ORDER BY Execution_Start ASC";
+	sqlite3_exec(DB, sql.c_str(), callbackRestoreIncomingDispatch, NULL, NULL);
+	sqlite3_close(DB);
+}
+int callbackRestoreIncomingDispatch(void* NotUsed, int argc, char** argv, char** azColName) {
+	for (int i = 0; i < argc; i++) {
+		//column name and value
+		if (i == 0)
+			RestoreOrders.RestoreDispatch_Incoming[RestoreOrders.vectorPositionDispatchIncoming].order_pk = atoi(argv[i]);
+		else if (i == 1)
+			RestoreOrders.RestoreDispatch_Incoming[RestoreOrders.vectorPositionDispatchIncoming].Type = argv[i];
+		else if (i == 2)
+			RestoreOrders.RestoreDispatch_Incoming[RestoreOrders.vectorPositionDispatchIncoming].State = argv[i];
+		else if (i == 3)
+			RestoreOrders.RestoreDispatch_Incoming[RestoreOrders.vectorPositionDispatchIncoming].initialPiece = argv[i][1] - '0';
+		else if (i == 4)
+			RestoreOrders.RestoreDispatch_Incoming[RestoreOrders.vectorPositionDispatchIncoming].finalPiece = argv[i][1] - '0';
+		else
+			RestoreOrders.RestoreDispatch_Incoming[RestoreOrders.vectorPositionDispatchIncoming].CreationTime = argv[i];
+	}
+	RestoreOrders.vectorPositionDispatchIncoming++;
+	return 0;
+}
+void RestoreTransformation(const char* s)
+{
+	sqlite3* DB;
+	sqlite3_open(s, &DB);
+	std::string sql = "SELECT ID, Type, State, Initial_Piece, Final_Piece, Deadline FROM ORDERS WHERE END_TIME IS NULL AND (Type = 'Transformation') ORDER BY Deadline ASC";
+	sqlite3_exec(DB, sql.c_str(), callbackRestoreTransformation, NULL, NULL);
+	sqlite3_close(DB);
+}
+int callbackRestoreTransformation(void* NotUsed, int argc, char** argv, char** azColName) {
+	for (int i = 0; i < argc; i++) {
+		//column name and value
+		if (i == 0)
+			RestoreOrders.RestoreTransformation[RestoreOrders.vectorPositionTransformation].order_pk = atoi(argv[i]);
+		else if (i == 1)
+			RestoreOrders.RestoreTransformation[RestoreOrders.vectorPositionTransformation].Type = argv[i];
+		else if (i == 2)
+			RestoreOrders.RestoreTransformation[RestoreOrders.vectorPositionTransformation].State = argv[i];
+		else if (i == 3)
+			RestoreOrders.RestoreTransformation[RestoreOrders.vectorPositionTransformation].initialPiece = argv[i][1] - '0';
+		else if (i == 4)
+			RestoreOrders.RestoreTransformation[RestoreOrders.vectorPositionTransformation].finalPiece = argv[i][1] - '0';
+		else
+			RestoreOrders.RestoreTransformation[RestoreOrders.vectorPositionTransformation].Deadline = argv[i];
+	}
+	RestoreOrders.vectorPositionTransformation++;
+	return 0;
+}
+int callbackCount(void* v, int argc, char** argv, char** azColName)
+{
+	struct_values* temp = (struct_values*)(v);
+	temp->values[temp->count] = atoi(argv[0]);
+	temp->count++;
+	return 0;
+}
+void RestorecountDispatch(const char *s, int *temp) {
+	struct_values v;
+	v.count = 0;
+	v.values = temp;
+	sqlite3* DB;
+	sqlite3_open(s, &DB);
+	std::string sql = ("SELECT (Total_Number_Pieces - (Case When t1.cont IS NULL Then 0 ELSE t1.cont END) - (Case When t2.cont IS NULL Then 0 ELSE t2.cont END)) AS Waiting "\
+		"FROM ORDERS t "\
+		"LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece "\
+		"Where Execution_End is NULL Group By Id_Order) t1 ON t1.ID_Order = t.ID "\
+		"LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece Where Execution_End is NOT NULL Group By Id_Order) t2 ON t2.ID_Order = t.ID "\
+		"Where(State = 'Waiting' OR State = 'Executing') AND(Type = 'Dispatch') ORDER BY Entry_Time ASC; ");
+	int exit = sqlite3_exec(DB, sql.c_str(), callbackCount, &v, NULL);
+	sqlite3_close(DB);
+}
+void RestorecountTransformation(const char* s, int *temp) {
+	struct_values v;
+	v.count = 0;
+	v.values = temp;
+	sqlite3* DB;
+	sqlite3_open(s, &DB);
+	std::string sql = ("SELECT (Total_Number_Pieces - (Case When t1.cont IS NULL Then 0 ELSE t1.cont END) - (Case When t2.cont IS NULL Then 0 ELSE t2.cont END)) AS Waiting "\
+		"FROM ORDERS t "\
+		"LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece "\
+		"Where Execution_End is NULL Group By Id_Order) t1 ON t1.ID_Order = t.ID "\
+		"LEFT JOIN(SELECT COUNT(Distinct ID) as cont, ID_Order, Execution_END FROM Piece Where Execution_End is NOT NULL Group By Id_Order) t2 ON t2.ID_Order = t.ID "\
+		"Where(State = 'Waiting' OR State = 'Executing') AND(Type = 'Transformation') ORDER BY Deadline ASC;); ");
+	int exit = sqlite3_exec(DB, sql.c_str(), callbackCount, &v, NULL);
+	sqlite3_close(DB);
+}

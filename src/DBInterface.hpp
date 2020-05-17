@@ -79,4 +79,56 @@ int updateMachine(const char* s, std::string Machine, std::string PieceType, int
 // Aumenta o tempo de producao em ProductionTime e o numero de pecas para valor antigo + Quantity
 std::string DateTime(const char* s, std::string Deadline); //retorna a data atual mais um deadline em segundos. Se for zero e so a data atual
 int callback_hour(void* DateTim, int argc, char** argv, char** azColName);
+
+// Funcoes e estruturas necessarias para dar restore ao mesh
+typedef struct {
+    int id_piece;
+    int fk_order_id;
+} Pieces;
+
+typedef struct {
+    int order_pk = 0;
+    int vectorPiecePosition = 0;
+    std::string Type;
+    std::string State;
+    uint32_t count = 0;
+    uint8_t initialPiece;
+    uint8_t finalPiece;
+    std::string Deadline;
+    Pieces pieces[56] = { 0 };
+} Transformation;
+
+typedef struct {
+    int order_pk = 0;
+    int vectorPiecePosition = 0;
+    std::string Type;
+    std::string State;
+    uint32_t count = 0; //Quantas ainda faltam ser enviadas para a fabrica
+    uint8_t initialPiece;
+    uint8_t finalPiece;
+    std::string CreationTime;
+    Pieces pieces[56] = { 0 };
+}InformationDisInc; //Informacao para as pecas de load e unload
+typedef struct {
+    InformationDisInc RestoreDispatch_Incoming[56];
+    Transformation RestoreTransformation[56];
+    int vectorPositionDispatchIncoming = 0;
+    int vectorPositionTransformation = 0;
+} Load_Unload; // Informacao ordenada de todas as ordens com respetiva informacao de cada peca presente na fabrica
+
+// Unica funcao a ser chamada
+Load_Unload RestoreMeshOrders(const char* s);
+
+//Funcoes internas ao codigo
+void RestorecountTransformation(const char* s, int* temp);
+int callbackRestoreIncomingDispatch(void* NotUsed, int argc, char** argv, char** azColName);
+void RestoreIncomingDispatch(const char* s);
+void RestoreTransformation(const char* s);
+int callbackRestoreTransformation(void* NotUsed, int argc, char** argv, char** azColName);
+void RestorecountDispatch(const char* s, int* temp);
+int callbackCount(void* v, int argc, char** argv, char** azColName);
+void getPieceInformation(const char* s, int position, InformationDisInc* DispInc);
+int callbackPieceIncomingDispatch(void* NotUsed, int argc, char** argv, char** azColName);
+int callbackPieceTransform(void* NotUsed, int argc, char** argv, char** azColName);
+void getPieceInformationTrans(const char* s, int position, Transformation* Transform);
 #endif
