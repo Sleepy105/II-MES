@@ -4,3 +4,6 @@
 [submodule "lib/open62541"]
 	path = lib/open62541
 	url = https://github.com/open62541/open62541
+[submodule "lib/Cpp-Graph"]
+	path = lib/Cpp-Graph
+	url = https://github.com/minyc510/Cpp-Graph-Library.git
