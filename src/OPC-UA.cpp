@@ -72,7 +72,7 @@ void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
 bool OPCUA_Manager::warehouseOutCarpetIsFree() {
     char NodeID[128];
     strcpy(NodeID, BaseNodeID_);
-    strcat(NodeID, "GVL.AT1_tp"); // this variable will go to 0 after a piece has exited the warehouse carpet
+    strcat(NodeID, "PLC_PRG.AT1.MES_piece_tp"); // this variable will go to 0 after a piece has exited the warehouse carpet
 
     UA_ReadRequest request;
     UA_ReadRequest_init(&request);
@@ -241,7 +241,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
     strcpy(NodeID, BaseNodeID_);
-    strcat(NodeID, "GVL.AT1_tp");
+    strcat(NodeID, "PLC_PRG.AT1.MES_piece_tp");
     wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
     wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
     wReq.nodesToWrite[0].value.hasValue = true;

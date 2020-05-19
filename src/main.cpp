@@ -46,9 +46,9 @@ int main (int argc, char const *argv[]) {
 
 
     // Inserir algumas orders na queue. Assim que se queira testar as orders a chegar por UDP apaga-se isto
-    order_queue.AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 1, 2, 6, 300));
-    order_queue.AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 2, 1, 9, 200));
-    order_queue.AddOrder(Order::BaseOrder(3, Order::ORDER_TYPE_UNLOAD, 2, 1, 1, "doesn't matter"));
+    // order_queue.AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 4, 2, 6, 300));
+    // order_queue.AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 2, 1, 9, 200));
+    // order_queue.AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_UNLOAD, 4, 8, 2, "doesn't matter"));
 
     // order_queue.print();
     // ideia: usar o final_piece da order como tapete de destino no caso de ser do tipo unload (visto que final piece nao e usado nesse caso)
