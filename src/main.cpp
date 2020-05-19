@@ -19,7 +19,7 @@ int main (int argc, char const *argv[]) {
     Warehouse warehouse;
 
     UDPManager UDPManager(54321);
-    XMLParser XMLParser(&order_queue, &UDPManager);
+    XMLParser XMLParser(&order_queue, &UDPManager, &warehouse);
     // Iniciar thread para UDP
     std::thread udp_worker = UDPManager.spawn_worker(&XMLParser);
 
@@ -41,7 +41,7 @@ int main (int argc, char const *argv[]) {
     }else {
         int result = fread (OpcUa_id,1,100,f);
     }
-
+    
     OPCUA_Manager opc_ua("opc.tcp://127.0.0.1:4840", OpcUa_id, 4, &order_queue, &warehouse);
 
 

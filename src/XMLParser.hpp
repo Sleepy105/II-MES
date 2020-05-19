@@ -23,16 +23,17 @@ class XMLParser {
 private:
     OrderQueue* queue = NULL;
     void* udp = NULL;
+    void* warehouse = NULL;
 
     static int xml_to_int(const char* xml);
     static uint32_t xml_to_uint32(const char* xml);
 
     bool parse_Transformation(uint8_t order_id, tinyxml2::XMLElement* transform);
     bool parse_Unload(uint8_t order_id, tinyxml2::XMLElement* unload);
-    bool parse_RequestStores(uint8_t order_id, tinyxml2::XMLElement* request_stores);
+    bool parse_RequestStores();
     void handleParsingError();
 public:
-    XMLParser(OrderQueue* obj, void* udp);
+    XMLParser(OrderQueue* obj, void* udp, void* warehouse);
     ~XMLParser();
 
     void parseString(std::string str);

@@ -72,7 +72,7 @@ public:
      */
     bool isSocketValid();
 
-    bool sendData(char* data, size_t data_size = 0);
+    bool sendData(const char* data, size_t data_size = 0);
 };
 
 #endif

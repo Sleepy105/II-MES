@@ -71,7 +71,7 @@ bool UDPManager::isSocketValid() {
     return true;
 }
 
-bool UDPManager::sendData(char* data, size_t data_size) {
+bool UDPManager::sendData(const char* data, size_t data_size) {
     if (!isSocketValid()) {
         meslog(ERROR) << "Error sending data." << std::endl;
         return false;

@@ -12,7 +12,7 @@
 #include "UDPManager.hpp"
 using namespace tinyxml2;
 
-XMLParser::XMLParser(OrderQueue* obj, void* udp) : queue(obj), udp(udp) {
+XMLParser::XMLParser(OrderQueue* obj, void* udp, void* warehouse) : queue(obj), udp(udp), warehouse(warehouse) {
 }
 
 XMLParser::~XMLParser() {
@@ -40,13 +40,12 @@ void XMLParser::parseString(std::string str) {
             }
             continue;
         }
+    }
 
-        XMLElement* request_stores = order->FirstChildElement("Request_Stores");
-        if (request_stores) {
-            if (!parse_RequestStores(order_id, request_stores)) {
-                handleParsingError();
-            }
-            continue;
+    order = doc.FirstChildElement( "ORDERS" )->FirstChildElement( "Request_Stores" );
+    for (; order != NULL; order = order->NextSiblingElement()) {
+        if (!parse_RequestStores()) {
+            handleParsingError();
         }
     }
 }
@@ -68,8 +67,28 @@ bool XMLParser::parse_Unload(uint8_t order_id, XMLElement* unload) {
     return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_UNLOAD, quantity, type, destination));
 }
 
-bool XMLParser::parse_RequestStores(uint8_t order_id, XMLElement* request_stores) {
-    return queue->AddOrder(Order::BaseOrder(order_id, Order::ORDER_TYPE_REQUESTSTORES));
+bool XMLParser::parse_RequestStores() {
+    /*
+     * <Current_Stores>
+     * <WorkPiece type=”Px” quantity=”XX”/>
+     * <WorkPiece type=”Px” quantity=”XX”/>
+     * ...
+     * </Current_Stores>
+     */
+    XMLDocument doc;
+    XMLElement* request = doc.NewElement("Current_Stores");
+    doc.InsertFirstChild(request);
+    for (uint8_t i = 1; i <= 9; i++) {
+        XMLElement* element = request->InsertNewChildElement("WorkPiece");
+        element->SetAttribute("type", ("P" + std::to_string(i)).c_str());
+        element->SetAttribute("quantity", ((Warehouse*)warehouse)->GetPieceCount(i));
+    }
+
+    XMLPrinter printer;
+    doc.Print( &printer );
+
+    ((UDPManager*)udp)->sendData(printer.CStr());
+    return true;
 }
 
 void XMLParser::handleParsingError() {
@@ -77,7 +96,7 @@ void XMLParser::handleParsingError() {
      *  TODO: Handle parsing errors. Should send a message back through UDP
      *
      */
-    char data[] = "hello\n";
+    const char* data = "Error in MES\n";
     ((UDPManager*)udp)->sendData(data);
     return;
 }
