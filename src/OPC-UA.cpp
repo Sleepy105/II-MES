@@ -137,106 +137,130 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     // but this was found out by me (didn't see anyone else doing this), and might have unforeseen problems
     UA_WriteResponse wResp;
     UA_WriteRequest wReq;
-    UA_WriteValue my_nodes[6];
-    UA_WriteValue_init(&my_nodes[0]);
-    UA_WriteValue_init(&my_nodes[1]);
-    UA_WriteValue_init(&my_nodes[2]);
-    UA_WriteValue_init(&my_nodes[3]);
-    UA_WriteValue_init(&my_nodes[4]);
-    UA_WriteValue_init(&my_nodes[5]);
+    UA_WriteRequest_init(&wReq);
+    wReq.nodesToWrite = UA_WriteValue_new();
+    wReq.nodesToWriteSize = 1;
     // transformation node write
     strcpy(NodeID, NodeID_backup);
     strcat(NodeID, "transformation");
-    my_nodes[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    my_nodes[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[0].value.hasValue = true;
-    my_nodes[0].value.value.arrayLength = 12;
-    my_nodes[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    my_nodes[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[0].value.value.data = transformation_UA;
-
-    // piece type node write
-    strcpy(NodeID, NodeID_backup);
-    strcat(NodeID, "type_piece");
-    my_nodes[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    my_nodes[1].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[1].value.hasValue = true;
-    my_nodes[1].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    my_nodes[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[1].value.value.data = &type_piece;
-
-    // path_id_counter node write
-    strcpy(NodeID, NodeID_backup);
-    strcat(NodeID, "path_id_counter");
-
-    my_nodes[2].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    my_nodes[2].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[2].value.hasValue = true;
-    my_nodes[2].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    my_nodes[2].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[2].value.value.data = &pathIDcounter;
-
-    // piece id node write
-    strcpy(NodeID, NodeID_backup);
-    strcat(NodeID, "id_piece");
-
-    my_nodes[3].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    my_nodes[3].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[3].value.hasValue = true;
-    my_nodes[3].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    my_nodes[3].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[3].value.value.data = &id_piece;
-
-    // path node write
-    strcpy(NodeID, NodeID_backup);
-    strcat(NodeID, "path");
-
-    my_nodes[4].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    my_nodes[4].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[4].value.hasValue = true;
-    my_nodes[4].value.value.arrayLength = 59;
-    my_nodes[4].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    my_nodes[4].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[4].value.value.data = path_UA;
-
-    
-    strcpy(NodeID, NodeID_backup);
-    strcat(NodeID, "machine_transformations");
-
-    my_nodes[5].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    my_nodes[5].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[5].value.hasValue = true;
-    my_nodes[5].value.value.arrayLength = 9;
-    my_nodes[5].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-    my_nodes[5].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[5].value.value.data = machines_UA;
-    // Send all node writes at once
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = my_nodes;
-    wReq.nodesToWriteSize = 6;
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+    wReq.nodesToWrite[0].value.hasValue = true;
+    wReq.nodesToWrite[0].value.value.arrayLength = 12;
+    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    wReq.nodesToWrite[0].value.value.data = transformation_UA;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
         return false;
     }
-    // A parte que tenho duvidas surge agora nestas proximas 4 linhas de codigo:
-    // O problema que surge esta no "WriteRequest_clear()" tentar apagar os my_nodes[].
-    // Ele chama um free interno, mas os my_nodes[] estao declarados na stack (logo o free() falha).
-    // tentei po-los na heap (*my_nodes = malloc(sizeof(UA_WriteValue)*5) em vez de my_nodes[5]), mas
-    // nao funcionou, nao consigo perceber porque.
-    // A solucao que arranjei foi "enganar" o clear em pensar que as variaveis estao vazias (NULL).
-    // Efetivamente isto resulta, mas tenho medo que hajam memory leaks que me estejam a escapar...
-    // Penso que nao hajam, visto que, estando na stack, depois de sair da funcao estas variaveis vao
-    // a vida. Mas nao sei ate que ponto o UA_WriteValue_init() chamado no inicio faz alocacoes sem
-    // eu saber...
-    wReq.nodesToWrite = NULL;
-    wReq.nodesToWriteSize = 0;
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
+
+    // piece type node write
+    UA_WriteRequest_init(&wReq);
+    wReq.nodesToWrite = UA_WriteValue_new();
+    wReq.nodesToWriteSize = 1;
+
+    strcpy(NodeID, NodeID_backup);
+    strcat(NodeID, "type_piece");
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+    wReq.nodesToWrite[0].value.hasValue = true;
+    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    wReq.nodesToWrite[0].value.value.data = &type_piece;
+    wResp = UA_Client_Service_write(client_, wReq);
+    if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        return false;
+    }
+    UA_WriteRequest_clear(&wReq);
+    UA_WriteResponse_clear(&wResp);
+
+    // path_id_counter node write
+    UA_WriteRequest_init(&wReq);
+    wReq.nodesToWrite = UA_WriteValue_new();
+    wReq.nodesToWriteSize = 1;
+    strcpy(NodeID, NodeID_backup);
+    strcat(NodeID, "path_id_counter");
+
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+    wReq.nodesToWrite[0].value.hasValue = true;
+    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    wReq.nodesToWrite[0].value.value.data = &pathIDcounter;
+    wResp = UA_Client_Service_write(client_, wReq);
+    if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        return false;
+    }
+    UA_WriteRequest_clear(&wReq);
+    UA_WriteResponse_clear(&wResp);
+
+    // piece id node write
+    UA_WriteRequest_init(&wReq);
+    wReq.nodesToWrite = UA_WriteValue_new();
+    wReq.nodesToWriteSize = 1;
+    strcpy(NodeID, NodeID_backup);
+    strcat(NodeID, "id_piece");
+
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+    wReq.nodesToWrite[0].value.hasValue = true;
+    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    wReq.nodesToWrite[0].value.value.data = &id_piece;
+    wResp = UA_Client_Service_write(client_, wReq);
+    if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        return false;
+    }
+    UA_WriteRequest_clear(&wReq);
+    UA_WriteResponse_clear(&wResp);
+
+    // path node write
+    UA_WriteRequest_init(&wReq);
+    wReq.nodesToWrite = UA_WriteValue_new();
+    wReq.nodesToWriteSize = 1;
+    strcpy(NodeID, NodeID_backup);
+    strcat(NodeID, "path");
+
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+    wReq.nodesToWrite[0].value.hasValue = true;
+    wReq.nodesToWrite[0].value.value.arrayLength = 59;
+    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    wReq.nodesToWrite[0].value.value.data = path_UA;
+    wResp = UA_Client_Service_write(client_, wReq);
+    if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        return false;
+    }
+    UA_WriteRequest_clear(&wReq);
+    UA_WriteResponse_clear(&wResp);
+
+    // machine transformations
+    UA_WriteRequest_init(&wReq);
+    wReq.nodesToWrite = UA_WriteValue_new();
+    wReq.nodesToWriteSize = 1;
+    strcpy(NodeID, NodeID_backup);
+    strcat(NodeID, "machine_transformations");
+
+    wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+    wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+    wReq.nodesToWrite[0].value.hasValue = true;
+    wReq.nodesToWrite[0].value.value.arrayLength = 9;
+    wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+    wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+    wReq.nodesToWrite[0].value.value.data = machines_UA;
+    wResp = UA_Client_Service_write(client_, wReq);
+    if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        return false;
+    }
+    UA_WriteRequest_clear(&wReq);
+    UA_WriteResponse_clear(&wResp);
+
     // Escrever tipo de peca na variavel da Warehouse para despoletar a saida da peca.
-    //
-    //  Este tem mesmo de ser escrito num pedido a parte, porque tem de ser escrito no fim,
-    // como eu escrevi os outros nao sei se o OPC-UA escreve tudo numa so operacao atomica
-    // ou se vai escrevendo simplesmente por uma ordem aleatoria, sem grande criterio...
+
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
@@ -273,7 +297,6 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     char NodeID_backup[128];
     char aux[3];
     uint16_t number_of_ids_to_read;
-    uint16_t piece_ids[10] = {0};
     bool all_up_to_date = true;
 
     strcpy (NodeID_backup, BaseNodeID_);
@@ -283,9 +306,11 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     // Check if there are true booleans in warehouse entry carpet (pieces that the warehouse 
     // received but haven't yet been processed by MES)
     bool piece_queue[10] = { false };
+    uint16_t piece_ids[10] = {0};
     UA_ReadRequest request;
     UA_ReadRequest_init(&request);
-    UA_ReadValueId nodes_to_read[10];
+    UA_Variant *val;
+    UA_StatusCode retval;
 
     uint16_t i;
 
@@ -295,20 +320,19 @@ bool OPCUA_Manager::CheckPiecesFinished(){
         strcat(NodeID, aux);
         strcat(NodeID, "]");
 
-        UA_ReadValueId_init(&nodes_to_read[i]);
-        nodes_to_read[i].attributeId = UA_ATTRIBUTEID_VALUE;
-        nodes_to_read[i].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    }
-
-    request.nodesToRead = nodes_to_read;
-    request.nodesToReadSize = 10;
-
-    UA_ReadResponse response = UA_Client_Service_read(client_, request);
-    if (response.results[0].value.type == &UA_TYPES[UA_TYPES_BOOLEAN]) {
-        for (i = 0; i < 10; i++) {
-            piece_queue[i] = *(UA_Boolean*)response.results[i].value.data;
+        val = UA_Variant_new();
+        retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+        if (val->type != &UA_TYPES[UA_TYPES_BOOLEAN]){
+            meslog(ERROR) << "Invalid node read! Should be type boolean!" << std::endl;
+            return false;
         }
-    } 
+        if (retval != UA_STATUSCODE_GOOD){
+            meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
+            return false;
+        }
+        piece_queue[i] = *(UA_Boolean*)val->data;
+        UA_Variant_delete(val);
+    }
     // bool results are now in piece_queue[10];
 
     
@@ -327,9 +351,20 @@ bool OPCUA_Manager::CheckPiecesFinished(){
             strcat(NodeID, aux);
             strcat(NodeID, "]");
 
-            UA_ReadValueId_init(&nodes_to_read[number_of_ids_to_read]);
-            nodes_to_read[number_of_ids_to_read].attributeId = UA_ATTRIBUTEID_VALUE;
-            nodes_to_read[number_of_ids_to_read].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+            val = UA_Variant_new();
+            retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+            if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
+                meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                return false;
+            }
+            if (retval != UA_STATUSCODE_GOOD){
+                meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
+                return false;
+            }
+            piece_ids[i] = *(UA_UInt16*)val->data;
+            UA_Variant_delete(val);
+
+            order_queue->RemovePiece((uint32_t) piece_ids[i]);
 
             number_of_ids_to_read++;
         }
@@ -339,29 +374,16 @@ bool OPCUA_Manager::CheckPiecesFinished(){
         return false; // nothing to do, return "false" meaning no pieces were finished
     }
 
-    meslog(INFO) << "There are " << number_of_ids_to_read << " unprocessed pieces." << std::endl;
+    meslog(INFO) << "There were " << number_of_ids_to_read << " unprocessed pieces in the warehouse buffer." << std::endl;
 
-    // Not all_up_to_date. Start reading id's
-    request.nodesToRead = nodes_to_read;
-    request.nodesToReadSize = number_of_ids_to_read;
-
-    response = UA_Client_Service_read(client_, request);
-    if (response.results[0].value.type == &UA_TYPES[UA_TYPES_UINT16]) {
-        for (i = 0; i < number_of_ids_to_read; i++) {
-            piece_ids[i] = *(UA_UInt16*)response.results[i].value.data;
-            order_queue->RemovePiece((uint32_t)piece_ids[i]); // remove pieces from orderqueue as we go
-        }
-    }
-
-    // Now that we have the ids, we can tag the read piece_queue indexes as "false".
+    // With everything done, we can write "false" in the piece queue, meaning we've processed that piece and the PLC can reuse that buffer position.
     // We don't need to overwrite the old ids, they will just be overwritten later on by the PLC upon
     // checking that the piece_queue index that corresponds to it is "false".
 
     uint16_t node_index = 0;
     UA_WriteRequest wReq;
     UA_WriteResponse wResp;
-    UA_WriteValue nodes_to_write[10];
-    bool write_false = false;
+    bool write_false = false; // value to write in the piece_queue: is always false. Just a quirk of how open62541 works
 
     strcpy (NodeID_backup, BaseNodeID_);
     strcat (NodeID_backup, "PLC_PRG.AT2.piece_queue[");
@@ -378,25 +400,24 @@ bool OPCUA_Manager::CheckPiecesFinished(){
             strcat(NodeID, aux);
             strcat(NodeID, "]");
 
-            nodes_to_write[node_index].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-            nodes_to_write[node_index].attributeId = UA_ATTRIBUTEID_VALUE;
-            nodes_to_write[node_index].value.hasValue = true;
-            nodes_to_write[node_index].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-            nodes_to_write[node_index].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-            nodes_to_write[node_index].value.value.data = &write_false;
-            node_index++;
+            UA_WriteRequest_init(&wReq);
+            wReq.nodesToWrite = UA_WriteValue_new();
+            wReq.nodesToWriteSize = 1;
+            wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+            wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+            wReq.nodesToWrite[0].value.hasValue = true;
+            wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
+            wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+            wReq.nodesToWrite[0].value.value.data = &write_false;
+            wResp = UA_Client_Service_write(client_, wReq);
+            if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+                meslog(ERROR) << "Invalid node write! Server responded with ERROR!" << std::endl;
+                return false;
+            }
+            UA_WriteRequest_clear(&wReq);
+            UA_WriteResponse_clear(&wResp);
         }
     }
-
-    // start write request
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = nodes_to_write;
-    wReq.nodesToWriteSize = node_index; // same as total node amount which is the same as "number_of_ids_to_read" obtained previously
-    wResp = UA_Client_Service_write(client_, wReq);
-    wReq.nodesToWrite = NULL;
-    wReq.nodesToWriteSize = 0;
-    UA_WriteResponse_clear(&wResp);
-    UA_WriteRequest_clear(&wReq);
 
     return true;
 }
@@ -449,36 +470,46 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     if (!MES_ok){
         PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 1, 1, 1, "0")); //deadline não interessa, pus "0" just in case
 
-        UA_WriteValue_init(&nodes_to_write[0]);
-        UA_WriteValue_init(&nodes_to_write[1]);
-        UA_WriteRequest_init(&wReq);
-
         strcpy(NodeID, BaseNodeID_);
         strcat(NodeID, "GVL.OBJECT[9].id_piece");
-        nodes_to_write[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-        nodes_to_write[0].attributeId = UA_ATTRIBUTEID_VALUE;
-        nodes_to_write[0].value.hasValue = true;
-        nodes_to_write[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-        nodes_to_write[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        nodes_to_write[0].value.value.data = &PieceID;
+
+        UA_WriteRequest_init(&wReq);
+        wReq.nodesToWrite = UA_WriteValue_new();
+        wReq.nodesToWriteSize = 1;
+        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+        wReq.nodesToWrite[0].value.hasValue = true;
+        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        wReq.nodesToWrite[0].value.value.data = &PieceID;
+        wResp = UA_Client_Service_write(client_, wReq);
+        if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+            meslog(ERROR) << "Invalid node write to OBJECT[9].id_piece! Server responded with ERROR!" << std::endl;
+            return false;
+        }
+        UA_WriteRequest_clear(&wReq);
+        UA_WriteResponse_clear(&wResp);
+
         
         strcpy(NodeID, BaseNodeID_);
         strcat(NodeID, "PLC_PRG.C7T1b.MES_ok");
-        nodes_to_write[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-        nodes_to_write[1].attributeId = UA_ATTRIBUTEID_VALUE;
-        nodes_to_write[1].value.hasValue = true;
-        nodes_to_write[1].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-        nodes_to_write[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        nodes_to_write[1].value.value.data = &Mes_is_ok;
-    
+
         UA_WriteRequest_init(&wReq);
-        wReq.nodesToWrite = nodes_to_write;
-        wReq.nodesToWriteSize = 2;
+        wReq.nodesToWrite = UA_WriteValue_new();
+        wReq.nodesToWriteSize = 1;
+        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+        wReq.nodesToWrite[0].value.hasValue = true;
+        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        wReq.nodesToWrite[0].value.value.data = &PieceID;
         wResp = UA_Client_Service_write(client_, wReq);
-        wReq.nodesToWrite = NULL;
-        wReq.nodesToWriteSize = 0;
-        UA_WriteResponse_clear(&wResp);
+        if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+            meslog(ERROR) << "Invalid node write to MES_ok! Server responded with ERROR!" << std::endl;
+            return false;
+        }
         UA_WriteRequest_clear(&wReq);
+        UA_WriteResponse_clear(&wResp);
 
         meslog(INFO) << "Received piece P1 on carpet C7T1b" << std::endl;
         return_value = true;
@@ -514,37 +545,46 @@ bool OPCUA_Manager::CheckIncomingPieces(){
         // Adicionar Order antes de mandar o MES_ok
         PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 1, 2, 2, "0")); //deadline não interessa, pus "0" just in case
 
-        UA_WriteValue nodes_to_write[2];
-        UA_WriteValue_init(&nodes_to_write[0]);
-        UA_WriteValue_init(&nodes_to_write[1]);
-        UA_WriteRequest_init(&wReq);
-
         strcpy(NodeID, BaseNodeID_);
         strcat(NodeID, "GVL.OBJECT[59].id_piece");
-        nodes_to_write[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-        nodes_to_write[0].attributeId = UA_ATTRIBUTEID_VALUE;
-        nodes_to_write[0].value.hasValue = true;
-        nodes_to_write[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-        nodes_to_write[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        nodes_to_write[0].value.value.data = &PieceID;
+
+        UA_WriteRequest_init(&wReq);
+        wReq.nodesToWrite = UA_WriteValue_new();
+        wReq.nodesToWriteSize = 1;
+        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+        wReq.nodesToWrite[0].value.hasValue = true;
+        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        wReq.nodesToWrite[0].value.value.data = &PieceID;
+        wResp = UA_Client_Service_write(client_, wReq);
+        if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+            meslog(ERROR) << "Invalid node write to OBJECT[59].id_piece! Server responded with ERROR!" << std::endl;
+            return false;
+        }
+        UA_WriteRequest_clear(&wReq);
+        UA_WriteResponse_clear(&wResp);
         
+
         strcpy(NodeID, BaseNodeID_);
         strcat(NodeID, "PLC_PRG.C7T7b.MES_ok");
-        nodes_to_write[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-        nodes_to_write[1].attributeId = UA_ATTRIBUTEID_VALUE;
-        nodes_to_write[1].value.hasValue = true;
-        nodes_to_write[1].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-        nodes_to_write[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        nodes_to_write[1].value.value.data = &Mes_is_ok;
-    
+
         UA_WriteRequest_init(&wReq);
-        wReq.nodesToWrite = nodes_to_write;
-        wReq.nodesToWriteSize = 2;
+        wReq.nodesToWrite = UA_WriteValue_new();
+        wReq.nodesToWriteSize = 1;
+        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+        wReq.nodesToWrite[0].value.hasValue = true;
+        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
+        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        wReq.nodesToWrite[0].value.value.data = &Mes_is_ok;
         wResp = UA_Client_Service_write(client_, wReq);
-        wReq.nodesToWrite = NULL;
-        wReq.nodesToWriteSize = 0;
-        UA_WriteResponse_clear(&wResp);
+        if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+            meslog(ERROR) << "Invalid node write to MES_ok! Server responded with ERROR!" << std::endl;
+            return false;
+        }
         UA_WriteRequest_clear(&wReq);
+        UA_WriteResponse_clear(&wResp);
 
         meslog(INFO) << "Received piece P2 on carpet C7T7b" << std::endl;
         return_value = true;
@@ -552,124 +592,4 @@ bool OPCUA_Manager::CheckIncomingPieces(){
 
 
     return return_value;
-}
-
-
-
-
-void OPCUA_Manager::test() {
-    char NodeID[128];
-    char NodeID_backup[128];
-    char aux[3];
-    bool bool_to_write = true;
-    bool results[10] = { 0 };
-    strcpy(NodeID_backup, BaseNodeID_);
-    strcat(NodeID_backup, "PLC_PRG.AT2.piece_queue["); // this is where I want to write, I need only to append the array index in which to write
-
-
-    UA_WriteRequest wReq;
-    UA_WriteValue my_nodes[3];
-    UA_WriteValue_init(&my_nodes[0]);
-    UA_WriteValue_init(&my_nodes[1]);
-    UA_WriteValue_init(&my_nodes[2]);
-
-    my_nodes[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[3]");
-    my_nodes[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[0].value.hasValue = true;
-    my_nodes[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-    my_nodes[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[0].value.value.data = &bool_to_write;
-
-    my_nodes[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[4]");
-    my_nodes[1].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[1].value.hasValue = true;
-    my_nodes[1].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-    my_nodes[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[1].value.value.data = &bool_to_write;
-
-    my_nodes[2].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[5]");
-    my_nodes[2].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[2].value.hasValue = true;
-    my_nodes[2].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-    my_nodes[2].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[2].value.value.data = &bool_to_write;
-
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = my_nodes;
-    wReq.nodesToWriteSize = 3;
-    UA_WriteResponse wResp = UA_Client_Service_write(client_, wReq);
-    wReq.nodesToWrite = NULL;
-    wReq.nodesToWriteSize = 0;
-    UA_WriteResponse_clear(&wResp);
-    UA_WriteRequest_clear(&wReq);
-
-
-    bool_to_write = true;
-    
-    UA_WriteValue_init(&my_nodes[0]);
-    UA_WriteValue_init(&my_nodes[1]);
-    UA_WriteValue_init(&my_nodes[2]);
-
-    my_nodes[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[3]");
-    my_nodes[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[0].value.hasValue = true;
-    my_nodes[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-    my_nodes[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[0].value.value.data = &bool_to_write;
-
-    my_nodes[1].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[4]");
-    my_nodes[1].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[1].value.hasValue = true;
-    my_nodes[1].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-    my_nodes[1].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[1].value.value.data = &bool_to_write;
-
-    my_nodes[2].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, "|var|CODESYS Control Win V3 x64.Application.PLC_PRG.AT2.piece_queue[5]");
-    my_nodes[2].attributeId = UA_ATTRIBUTEID_VALUE;
-    my_nodes[2].value.hasValue = true;
-    my_nodes[2].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
-    my_nodes[2].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-    my_nodes[2].value.value.data = &bool_to_write;
-
-    UA_WriteRequest_init(&wReq);
-    wReq.nodesToWrite = my_nodes;
-    wReq.nodesToWriteSize = 3;
-    wResp = UA_Client_Service_write(client_, wReq);
-    wReq.nodesToWrite = NULL;
-    wReq.nodesToWriteSize = 0;
-    UA_WriteResponse_clear(&wResp);
-    UA_WriteRequest_clear(&wReq);
-
-
-    UA_ReadRequest request;
-    UA_ReadRequest_init(&request);
-    UA_ReadValueId ids[10];
-
-    uint16_t i;
-
-    for (i = 0; i < 10; i++) {
-        strcpy(NodeID, NodeID_backup);
-        ConvIntToString(aux, i + 1);
-        strcat(NodeID, aux);
-        strcat(NodeID, "]");
-
-        UA_ReadValueId_init(&ids[i]);
-        ids[i].attributeId = UA_ATTRIBUTEID_VALUE;
-        ids[i].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    }
-
-    // set here the nodes you want to read
-    request.nodesToRead = ids;
-    request.nodesToReadSize = 10;
-
-    UA_ReadResponse response = UA_Client_Service_read(client_, request);
-    if (response.results[0].value.type == &UA_TYPES[UA_TYPES_BOOLEAN]) {
-        for (i = 0; i < 10; i++) {
-            results[i] = *(UA_Boolean*)response.results[i].value.data;
-        }
-    }
-
-    for (i = 0; i < 10; i++) {
-        printf("%d\n", results[i]);
-    }
 }

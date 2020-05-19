@@ -69,6 +69,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	// se for uma order de carga, adiciona piece também
 	if (load_order){
 		return_value = insertDataPiece("factory.db", return_value);
+		order_to_add.AddPiece((uint32_t)return_value);
 	}
 
 
@@ -105,8 +106,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	// colocar o insert apos o ciclo for, em vez de dentro, garante que, mesmo que nao hajam orders de transformacao ou 
 	// orders de todo, a nova order e adicionada na lista. Os ciclos apenas determinam o destination aonde inserir a order
 	orders_.insert(destination, order_to_add);
-	meslog(INFO) << "Order added!" << std::endl;
-	print();
+	meslog(INFO) << "Order " << order_to_add.GetID() << " added!" << std::endl;
 	
 	unlock_queue();
 	return return_value;
@@ -148,7 +148,6 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 		piece_list = orders_iter_->GetPieces(); // just to avoid writting orders_iter_->GetPieces() over and over
 		for (pieces_iter_ = piece_list->begin(); pieces_iter_ != piece_list->end(); pieces_iter_++){
 		// for each piece
-		meslog(INFO) << "Is piece " << pieces_iter_->GetID() << " == to piece " << target_id << "?" << std::endl;
 			if (pieces_iter_->GetID() == target_id){
 				updateDataPiece("factory.db", (int) target_id); // update piece finish time in database
 				piece_list->erase(pieces_iter_);
@@ -162,7 +161,7 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 			}
 		}
 	}
-
+	meslog(ERROR) << "Couldn't find Piece " << target_id << " in Order Queue!" << std::endl;
 	return false; // end of function reached only if piece was not found
 }
 
