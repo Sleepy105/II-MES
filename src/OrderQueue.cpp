@@ -69,6 +69,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	// se for uma order de carga, adiciona piece também
 	if (load_order){
 		return_value = insertDataPiece("factory.db", return_value);
+		order_to_add.AddPiece((uint32_t)return_value);
 	}
 
 
