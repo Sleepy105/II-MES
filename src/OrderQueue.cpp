@@ -15,11 +15,11 @@ OrderQueue::~OrderQueue(){
 */
 int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 {
-	lock_queue();
+	mtx.lock();
 
 	if (!order_to_add.is_valid()){
 		meslog(ERROR) << "Order is invalid (doesn't belong in queue)" << std::endl;
-		unlock_queue();
+		mtx.unlock();
 		return -1; // Request stores não precisam de ser guardadas na DB, nem na order queue
 	}
 
@@ -108,7 +108,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	orders_.insert(destination, order_to_add);
 	meslog(INFO) << "Order " << order_to_add.GetID() << " added!" << std::endl;
 	
-	unlock_queue();
+	mtx.unlock();
 	return return_value;
 }
 
@@ -118,6 +118,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 */
 bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 {
+	mtx.lock();
 	std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin();
 
 	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
@@ -127,6 +128,7 @@ bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 			orders_.erase(orders_iter_);
 		}
 	}
+	mtx.unlock();
 	return false; // end of function reached only if order was not found
 }
 
@@ -153,6 +155,7 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 				piece_list->erase(pieces_iter_);
 				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
 				if ((orders_iter_->GetCount() == 0) && (piece_list->size() == 0)){
+					meslog (ERROR) << "REMOVE ORDER!!!!!!" << std::endl;
 					RemoveOrder((*orders_iter_));
 				}
 				meslog(INFO) << "Piece " << target_id << " erased!" << std::endl;
@@ -173,6 +176,7 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 	estao todas a executar, ou nenhuma esta em condicoes de comecar a executar)
 */
 Order::BaseOrder *OrderQueue::GetNextOrder(){
+	mtx.lock();
 
 	std::list<Order::BaseOrder>::iterator orders_iter_;
 	int new_piece_id;
@@ -187,10 +191,12 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 				new_piece_id = insertDataPiece("factory.db",orders_iter_->GetPK());
 				orders_iter_->AddPiece(Order::Piece(new_piece_id));
 				pathfinder.FindPath(&(*orders_iter_)); // vai escrever para a ultima peca adicionada na order
+				mtx.unlock();
 				return &(*orders_iter_);
 		}
 	}
 
+	mtx.unlock();
 	throw "No orders found!";
 }
 
@@ -240,57 +246,6 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	return rawtime1;
 }
 
-// O que fazer aqui? Implementacao de ordenar orders aquando da sua insercao movida para AddOrder()
-bool OrderQueue::update()
-{
-	/*std::string deadline_string;
-	std::list<Order::BaseOrder>::iterator destination;
-
-	// visto que a nova ordem aponta sempre para o fim
-	std::list<Order::BaseOrder>::iterator source = orders_.end();
-	time_t enddeadline = OrderQueue::GetDataTime((*source).GetDeadline());
-
-	time_t tempdeadline;
-	//significa que tem prioridade máxima e tem de ser colocada antes das primeira vez que aparece Transformation
-	if(((*source).GetType() == Order::ORDER_TYPE_LOAD) OR ((*source).GetType() == Order::ORDER_TYPE_UNLOAD)) {
-		for (destination = orders_.begin(); destination != --orders_.end(); ++destination)
-		{
-			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATION)
-			{
-				list.splice(destination, order_, source);
-				break;
-			}
-		}
-	}
-	// ser do tipo transformation entao vou ter de comparar com os diferentes deadline das orders do tipo transformation
-	else{
-		for (destination = orders_.begin(); destination != --orders_.end(); ++destination) {
-
-			if ((*destination).GetType() == Order::ORDER_TYPE_TRANSFORMATION){
-
-				time_t tempdeadline = OrderQueue::GetDataTime((*destination).GetDeadline());
-				if (difftime(source, destination) < 0){
-
-					orders_.insert(destination, order_to_add);
-					break;
-				}
-			}
-		}
-	}*/
-	
-	return true;
-}
-void OrderQueue::lock_queue(){
-	mtx.lock();
-	while (order_queue_in_use);
-	order_queue_in_use = true;
-	mtx.unlock();
-}
-void OrderQueue::unlock_queue(){
-	mtx.lock();
-	order_queue_in_use = false;
-	mtx.unlock();
-}
 
 void OrderQueue::print(){
 	if (orders_.size() == 0){

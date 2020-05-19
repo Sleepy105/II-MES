@@ -17,7 +17,6 @@ class OrderQueue{
         std::list<Order::BaseOrder> orders_;
         Warehouse *warehouse;
         PathFinder pathfinder;
-        bool order_queue_in_use;
         std::mutex mtx;
         
 
@@ -29,9 +28,6 @@ class OrderQueue{
         bool RemovePiece(uint32_t target_id);
         Order::BaseOrder *GetNextOrder();
         time_t GetDataTime(std::string datatime);
-        bool update();
-        void lock_queue();
-        void unlock_queue();
         
         void print();
 };
