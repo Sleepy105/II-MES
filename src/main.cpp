@@ -28,11 +28,13 @@ int main (int argc, char const *argv[]) {
 
     // Iniciar Base de Dados
     const char* dir = "factory.db"; // Definir path da DB
-	checkDB(dir);
-	createDB(dir);
-    deleteData(dir);
-	createTable(dir); // fazer isto na primeira vez para criar a base de dados
-    initvalues(dir);
+	int check = checkDB(dir);
+    if(!check) {
+        createDB(dir);
+        createTable(dir); // fazer isto na primeira vez para criar a base de dados
+        initvalues(dir);
+    }
+    deleteData(dir); // usado so para teste
 
     // Configurar OPC-UA
     std::string OpcUa_id = "|var|CODESYS Control Win V3 x64.Application.",

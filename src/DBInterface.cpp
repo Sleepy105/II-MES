@@ -182,13 +182,13 @@ int checkDB(const char* s) {
 	exit = sqlite3_open_v2(s, &DB, SQLITE_OPEN_READONLY, NULL); 
 	if (exit) {
 		meslog(ERROR) << "Does not exist " << sqlite3_errmsg(DB) << std::endl;
-		return (-1);
+		return 0;
 	}
-	else
+	else {
 		meslog(INFO) << "Database exists!" << std::endl;
+		return 1;
+	}
 	sqlite3_close(DB);
-
-	return 0;
 }
 
 
@@ -333,8 +333,8 @@ int initvalues(const char* s)
 {
 	sqlite3* DB;
 	int exit = sqlite3_open(s, &DB);
-	std::string sql = ("INSERT INTO Warehouse (PieceType)" \
-		"VALUES('P1'), ('P2'),('P3'),('P4'),('P5'),('P6'),('P7'),('P8'),('P9');" \
+	std::string sql = ("INSERT INTO Warehouse (PieceType, Quantity)" \
+		"VALUES('P1', 54), ('P2', 54),('P3', 54),('P4', 54),('P5', 54),('P6', 54),('P7', 54),('P8', 54),('P9', 54);" \
 		"INSERT INTO Machine (MachineType, PieceType) VALUES " \
 		"('A1', 'P1'), ('A1', 'P2'), ('A1', 'P6')," \
 		"('A2', 'P1'), ('A2', 'P2'), ('A2', 'P6')," \
