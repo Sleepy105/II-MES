@@ -71,23 +71,27 @@ void OPCUA_Manager::ConvIntToString(char* string, uint16_t value) {
 // Completo: retorna true se nao houver pecas/transicao de pecas na carpete de saida de armazem
 bool OPCUA_Manager::warehouseOutCarpetIsFree() {
     char NodeID[128];
+    uint16_t mes_piece_tp;
     strcpy(NodeID, BaseNodeID_);
     strcat(NodeID, "PLC_PRG.AT1.MES_piece_tp"); // this variable will go to 0 after a piece has exited the warehouse carpet
+    
+    UA_Variant *val;
+    UA_StatusCode retval;
 
-    UA_ReadRequest request;
-    UA_ReadRequest_init(&request);
-    UA_ReadValueId nodes_to_read[1];
-    UA_ReadValueId_init (&nodes_to_read[0]);
-    nodes_to_read[0].attributeId = UA_ATTRIBUTEID_VALUE;
-    nodes_to_read[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-    request.nodesToRead = nodes_to_read;
-    request.nodesToReadSize = 1;
-
-    UA_ReadResponse response = UA_Client_Service_read(client_, request);
-    if (*(UA_UInt16*) response.results[0].value.data != 0){ // there's already a piece, can't send new one
+    val = UA_Variant_new();
+    retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+    if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
+        meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
         return false;
-    } // else, carpet is free, can send new piece
-    return true;
+    }
+    if (retval != UA_STATUSCODE_GOOD){
+        meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
+        return false;
+    }
+    mes_piece_tp = *(UA_UInt16*)val->data;
+    UA_Variant_delete(val);
+
+    return (mes_piece_tp == 0);
 }
 
 // Quase completo: falta substituir dummy value de transformation.
@@ -307,8 +311,6 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     // received but haven't yet been processed by MES)
     bool piece_queue[10] = { false };
     uint16_t piece_ids[10] = {0};
-    UA_ReadRequest request;
-    UA_ReadRequest_init(&request);
     UA_Variant *val;
     UA_StatusCode retval;
 
