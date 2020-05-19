@@ -106,8 +106,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	// colocar o insert apos o ciclo for, em vez de dentro, garante que, mesmo que nao hajam orders de transformacao ou 
 	// orders de todo, a nova order e adicionada na lista. Os ciclos apenas determinam o destination aonde inserir a order
 	orders_.insert(destination, order_to_add);
-	meslog(INFO) << "Order added!" << std::endl;
-	print();
+	meslog(INFO) << "Order " << order_to_add.GetID() << " added!" << std::endl;
 	
 	unlock_queue();
 	return return_value;
