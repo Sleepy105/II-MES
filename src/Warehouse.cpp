@@ -37,8 +37,8 @@ uint8_t Warehouse::GetPieceCount(uint8_t type){
 }
 
 //POR IMPLEMENTAR
-bool Warehouse::RestoreStatus(){
-    
+bool Warehouse::RestoreStatus(uint8_t type, uint8_t quantity){
+    pieceTypeCount_[type - 1] = quantity;
     return false;
 }
 

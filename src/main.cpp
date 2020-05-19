@@ -34,6 +34,17 @@ int main (int argc, char const *argv[]) {
         createTable(dir); // fazer isto na primeira vez para criar a base de dados
         initvalues(dir);
     }
+    // restore da informacao
+    if(false) {
+        int warehouse_quantity[9];
+        getWarehouseInformation(dir, warehouse_quantity);
+        for(int i = 0 ; i < 9; i++) {
+         warehouse.RestoreStatus(type+1, warehouse_quantity[i]);   
+        }
+        
+        Load_Unload RestoreOrders = RestoreMeshOrders(dir);
+    }
+
     deleteData(dir); // usado so para teste
 
     // Configurar OPC-UA
@@ -104,11 +115,3 @@ int main (int argc, char const *argv[]) {
     udp_worker.join();
     return 0;
 }
-/*
-    Como dar restore ao armazem e as ordens por parte da DB
-    
-    int warehouse_quantity[9];
-    getWarehouseInformation(dir, warehouse_quantity);
-
-    Load_Unload RestoreOrders =	RestoreMeshOrders(dir);
-*/
