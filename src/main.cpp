@@ -10,7 +10,6 @@
 #include "OPC-UA.hpp"
 #include "DBInterface.hpp"
 #include "OrderQueue.hpp"
-
 #include "helpers.h"
 
 #define CYCLE_DELAY_IN_MILLISECONDS 1000
