@@ -39,9 +39,9 @@ int main (int argc, char const *argv[]) {
         int warehouse_quantity[9];
         getWarehouseInformation(dir, warehouse_quantity);
         for(int i = 0 ; i < 9; i++) {
-         warehouse.RestoreStatus(type+1, warehouse_quantity[i]);   
+         warehouse.RestoreStatus(i+1, warehouse_quantity[i]);   
         }
-        
+
         Load_Unload RestoreOrders = RestoreMeshOrders(dir);
     }
 
