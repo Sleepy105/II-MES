@@ -39,8 +39,8 @@ void PathFinder::FindPath(Order::BaseOrder *order_path){
         }else if (initial_piece == 3 && final_piece == 5){
             transformation[5] = 1;
             transformation[9] = 1;
-            machine_transformations[1] = 1;
-            machine_transformations[2] = 1;
+            machine_transformations[3] = 1;
+            machine_transformations[6] = 1;
             path[0] = 1;
             path[1] = 1;
             path[2] = 2;
@@ -58,7 +58,7 @@ void PathFinder::FindPath(Order::BaseOrder *order_path){
             path[14] = 0;
         }else if (initial_piece == 7 && final_piece == 9){
             transformation[7] = 1;
-            machine_transformations[1] = 1;
+            machine_transformations[3] = 1;
             path[0] = 1;
             path[1] = 1;
             path[2] = 2;
@@ -97,8 +97,8 @@ void PathFinder::FindPath(Order::BaseOrder *order_path){
             transformation[8] = 1;
             machine_transformations[8] = 1;
         }else if (initial_piece == 4 && final_piece == 8){
-            transformation[10] = 1;
-            machine_transformations[2] = 1;
+          transformation[10] = 1;
+            machine_transformations[6] = 1;
             path[0] = 1;
             path[1] = 1;
             path[2] = 2;
@@ -114,11 +114,15 @@ void PathFinder::FindPath(Order::BaseOrder *order_path){
             path[12] = 0;
         }else if (initial_piece == 1 && final_piece == 9){
             transformation[8] = 1;
-            machine_transformations[2] = 1;
+            machine_transformations[6] = 1;
+
             transformation[10] = 1;
-            machine_transformations[5] = 1;
+            machine_transformations[7] = 1;
+
             transformation[11] = 1;
             machine_transformations[8] = 1;
+
+
             path[0] = 1;
             path[1] = 1;
             path[2] = 2;
@@ -141,8 +145,8 @@ void PathFinder::FindPath(Order::BaseOrder *order_path){
             path[19] = 3;
             path[20] = 0;
         }else if (initial_piece == 4 && final_piece == 5){
-            transformation[9] = 1;
-            machine_transformations[2] = 1;
+           transformation[9] = 1;
+            machine_transformations[6] = 1;
             path[0] = 1;
             path[1] = 1;
             path[2] = 2;
@@ -155,6 +159,7 @@ void PathFinder::FindPath(Order::BaseOrder *order_path){
             path[9] = 2;
             path[10] = 3;
             path[11] = 3;
+            path[12] = 0;
         }else{
           meslog(ERROR) << "No path found for transformation order provided." << std::endl;
         }
