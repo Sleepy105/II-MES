@@ -54,7 +54,7 @@ setup:
 	sudo apt update
 	sudo apt install libopen62541-1-dev
 	sudo apt install libsqlite3-dev
-	cp opc-ua-id.txt.windows opc-ua-id.txt
+	cp opc-ua-conf.txt.windows opc-ua-conf.txt
 
 
 -include $(DEPS)

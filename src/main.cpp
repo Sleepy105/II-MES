@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include <thread>
 
 #include "UDPManager.hpp"
@@ -33,16 +35,19 @@ int main (int argc, char const *argv[]) {
     initvalues(dir);
 
     // Configurar OPC-UA
-    FILE* f = fopen("opc-ua-id.txt", "r");
-    char OpcUa_id[100] = {0};
-    if (!f) {
-        meslog(ERROR) << "Couldn't open opc-ua-id.txt, using default ID..." << std::endl;
-        strcpy(OpcUa_id, "|var|CODESYS Control Win V3 x64.Application.");
-    }else {
-        int result = fread (OpcUa_id,1,100,f);
+    std::string OpcUa_id = "|var|CODESYS Control Win V3 x64.Application.",
+        OpcUa_conn = "opc.tcp://127.0.0.1:4840";
+    std::ifstream infile("opc-ua-conf.txt");
+    if (infile) {
+        std::getline(infile, OpcUa_id);
+        std::getline(infile, OpcUa_conn);
+    }
+    else {
+        meslog(ERROR) << "Couldn't open opc-ua-conf.txt, using default ID..." << std::endl;
+        meslog(ERROR) << "Couldn't open opc-ua-conf.txt, using default Protocol, IP Address and Port..." << std::endl;
     }
     
-    OPCUA_Manager opc_ua("opc.tcp://127.0.0.1:4840", OpcUa_id, 4, &order_queue, &warehouse);
+    OPCUA_Manager opc_ua(OpcUa_conn.c_str(), OpcUa_id.c_str(), 4, &order_queue, &warehouse);
 
 
     // Inserir algumas orders na queue. Assim que se queira testar as orders a chegar por UDP apaga-se isto

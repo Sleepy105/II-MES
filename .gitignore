@@ -5,6 +5,7 @@ src/packages
 src/sqlite3.c
 *.db
 opc-ua-id.txt
+opc-ua-conf.txt
 Ubuntu cd command.txt
 ExecuteJar.bat
 II_comands_competitionA_v1/**
