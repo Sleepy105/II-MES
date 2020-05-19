@@ -97,3 +97,11 @@ int main (int argc, char const *argv[]) {
     udp_worker.join();
     return 0;
 }
+/*
+    Como dar restore ao armazem e as ordens por parte da DB
+    
+    int warehouse_quantity[9];
+    getWarehouseInformation(dir, warehouse_quantity);
+
+    Load_Unload RestoreOrders =	RestoreMeshOrders(dir);
+*/
