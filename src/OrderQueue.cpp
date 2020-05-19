@@ -15,8 +15,11 @@ OrderQueue::~OrderQueue(){
 */
 int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 {
+	lock_queue();
+
 	if (!order_to_add.is_valid()){
 		meslog(ERROR) << "Order is invalid (doesn't belong in queue)" << std::endl;
+		unlock_queue();
 		return -1; // Request stores não precisam de ser guardadas na DB, nem na order queue
 	}
 
@@ -105,7 +108,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	meslog(INFO) << "Order added!" << std::endl;
 	print();
 	
-
+	unlock_queue();
 	return return_value;
 }
 
@@ -277,6 +280,17 @@ bool OrderQueue::update()
 	}*/
 	
 	return true;
+}
+void OrderQueue::lock_queue(){
+	mtx.lock();
+	while (order_queue_in_use);
+	order_queue_in_use = true;
+	mtx.unlock();
+}
+void OrderQueue::unlock_queue(){
+	mtx.lock();
+	order_queue_in_use = false;
+	mtx.unlock();
 }
 
 void OrderQueue::print(){

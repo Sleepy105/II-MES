@@ -6,6 +6,7 @@
 #include <list>
 #include <iterator>
 #include <string>
+#include <mutex>
 #include "Order.hpp"
 #include "Warehouse.hpp"
 #include "DBInterface.hpp"
@@ -16,6 +17,8 @@ class OrderQueue{
         std::list<Order::BaseOrder> orders_;
         Warehouse *warehouse;
         PathFinder pathfinder;
+        bool order_queue_in_use;
+        std::mutex mtx;
         
 
     public:
@@ -27,6 +30,8 @@ class OrderQueue{
         Order::BaseOrder *GetNextOrder();
         time_t GetDataTime(std::string datatime);
         bool update();
+        void lock_queue();
+        void unlock_queue();
         
         void print();
 };
