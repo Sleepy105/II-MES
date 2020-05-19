@@ -11,7 +11,7 @@
 
 #include "helpers.h"
 
-#define CYCLE_DELAY_IN_MILLISECONDS 200
+#define CYCLE_DELAY_IN_MILLISECONDS 1000
 
 int main (int argc, char const *argv[]) {
 
@@ -67,6 +67,7 @@ int main (int argc, char const *argv[]) {
     }
     //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
     while (opc_ua.Is_Connected()){
+        meslog(INFO) << "Running cycle..." << std::endl;
 
         //envia peca das orders de load e transformation
         try{
@@ -74,8 +75,7 @@ int main (int argc, char const *argv[]) {
                 next_order = order_queue.GetNextOrder();
                 opc_ua.SendPieceOPC_UA(next_order);
                 next_order->DecreaseCount();
-                meslog(INFO) << "Current count for order " << next_order->GetID() << ": "<< next_order->GetCount() << std::endl;
-                order_queue.print();
+                meslog(INFO) << "Piece Sent. Current count for order " << next_order->GetID() << ": "<< next_order->GetCount() << std::endl;
             }
         }catch(const char *msg){
             
