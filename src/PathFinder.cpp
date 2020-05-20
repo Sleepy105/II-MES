@@ -7,15 +7,101 @@
 4 - cima
 */
 
-PathFinder::PathFinder() {
+PathFinder::Transformation T1 = {
+    .from   = 1,
+    .to     = 2,
+    .tool   = 1,
+    .time   = 15,
+};
+
+PathFinder::Transformation T2 = {
+    .from   = 2,
+    .to     = 3,
+    .tool   = 1,
+    .time   = 15,
+};
+
+PathFinder::Transformation T3 = {
+    .from   = 2,
+    .to     = 6,
+    .tool   = 2,
+    .time   = 15,
+};
+
+PathFinder::Transformation T4 = {
+    .from   = 6,
+    .to     = 9,
+    .tool   = 3,
+    .time   = 15,
+};
+
+PathFinder::Transformation T5 = {
+    .from   = 1,
+    .to     = 3,
+    .tool   = 1,
+    .time   = 20,
+};
+
+PathFinder::Transformation T6 = {
+    .from   = 3,
+    .to     = 4,
+    .tool   = 1,
+    .time   = 15,
+};
+
+PathFinder::Transformation T7 = {
+    .from   = 3,
+    .to     = 7,
+    .tool   = 2,
+    .time   = 20,
+};
+
+PathFinder::Transformation T8 = {
+    .from   = 7,
+    .to     = 9,
+    .tool   = 3,
+    .time   = 20,
+};
+
+PathFinder::Transformation T9 = {
+    .from   = 1,
+    .to     = 4,
+    .tool   = 1,
+    .time   = 10,
+};
+
+PathFinder::Transformation T10 = {
+    .from   = 4,
+    .to     = 5,
+    .tool   = 1,
+    .time   = 30,
+};
+
+PathFinder::Transformation T11 = {
+    .from   = 4,
+    .to     = 8,
+    .tool   = 2,
+    .time   = 10,
+};
+
+PathFinder::Transformation T12 = {
+    .from   = 8,
+    .to     = 9,
+    .tool   = 3,
+    .time   = 10,
+};
+
+
+
+PathFinder::PathFinder::PathFinder() {
 
 }
 
-PathFinder::~PathFinder() {
-    
+PathFinder::PathFinder::~PathFinder() {
+
 }
 
-Path *PathFinder::FindPath(Order::BaseOrder &order) {
+Path *PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     Path* path = new Path;
 
     Order::Piece *piece = order.GetLastPiece();
