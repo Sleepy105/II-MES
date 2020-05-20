@@ -15,7 +15,7 @@ public:
     bool AddPiece(uint8_t type);
     bool RemovePiece(uint8_t type);
     uint8_t GetPieceCount(uint8_t type);
-    bool RestoreStatus(uint8_t type, uint8_t quantity);
+    bool RestoreStatus(int *information);
 };
 
 #endif

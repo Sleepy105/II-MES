@@ -26,6 +26,8 @@ class OrderQueue{
         int AddOrder(Order::BaseOrder order_to_add);
         bool RemoveOrder(Order::BaseOrder order_to_remove);
         bool RemovePiece(uint32_t target_id);
+        bool RestoreLoadUnload(InformationDisInc LoadUndload);
+        bool RestoreTrans(Transformation temp);
         Order::BaseOrder *GetNextOrder();
         time_t GetDataTime(std::string datatime);
         

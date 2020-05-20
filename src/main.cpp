@@ -34,15 +34,25 @@ int main (int argc, char const *argv[]) {
         createTable(dir); // fazer isto na primeira vez para criar a base de dados
         initvalues(dir);
     }
-    // restore da informacao
+
     if(false) {
+
+        // Restore da informação presente no armazem
         int warehouse_quantity[9];
         getWarehouseInformation(dir, warehouse_quantity);
-        for(int i = 0 ; i < 9; i++) {
-         warehouse.RestoreStatus(i+1, warehouse_quantity[i]);   
-        }
+
+        warehouse.RestoreStatus(warehouse_quantity);
 
         Load_Unload RestoreOrders = RestoreMeshOrders(dir);
+        // Restore das ordens de Load e Unload
+        for(int i = 0; i < RestoreOrders.vectorPositionDispatchIncoming; i++) {
+            order_queue.RestoreLoadUnload(RestoreOrders.RestoreDispatch_Incoming[i]);
+        }
+
+        // Restore das ordens de Transformacao
+        for(int i = 0; i < RestoreOrders.vectorPositionTransformation; i++) {
+            order_queue.RestoreTrans(RestoreOrders.RestoreTransformation[i]);
+        }
     }
 
     deleteData(dir); // usado so para teste
