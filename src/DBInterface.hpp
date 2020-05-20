@@ -23,6 +23,8 @@ C++ SQLITE
 #include <string>
 #include "helpers.h"
 
+#define DBFILE "factory.db"
+
 typedef struct { //struct usada para obter informacao do armazem
     int* values;
     int count;

@@ -41,7 +41,7 @@ BaseOrder::BaseOrder(uint8_t order_id,
         order_id = -1;
     }
     // deadline (letras minusculas) esta em segundos
-    Deadline = DateTime("factory.db", std::to_string(deadline));
+    Deadline = DateTime(DBFILE, std::to_string(deadline));
 }
 BaseOrder::BaseOrder(uint8_t order_id, uint8_t order_type): order_id(order_id), order_type(order_type){
     meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
@@ -83,7 +83,7 @@ std::string BaseOrder::GetCreationTime(){
     return CreationTime;
 }
 void BaseOrder::SetCreationTime(std::string creationtime){
-    CreationTime = DateTime("factory.db", "0");
+    CreationTime = DateTime(DBFILE, "0");
 }
 
 std::string BaseOrder::GetDeadline(){
