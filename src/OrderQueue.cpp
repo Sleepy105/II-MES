@@ -178,25 +178,48 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 Order::BaseOrder *OrderQueue::GetNextOrder(){
 	mtx.lock();
 
-	std::list<Order::BaseOrder>::iterator orders_iter_;
-	int new_piece_id;
-
-	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+	for (std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+		Order::BaseOrder& order = *orders_iter_;
 		
 		// if it's an unload/transformation order, count is bigger than 0 and there are still pieces of desired type in warehouse
-		if  (((orders_iter_->GetType() == Order::ORDER_TYPE_UNLOAD) || (orders_iter_->GetType() == Order::ORDER_TYPE_TRANSFORMATION)) &&
-			(((*orders_iter_).GetCount()) > 0) && 
-			(warehouse->GetPieceCount(orders_iter_->GetInitialPiece()) > 0)){
-				// order encontrada: inserir-lhe uma peca (e na base de dados tambem) e devolver a order
-				new_piece_id = insertDataPiece(DBFILE,orders_iter_->GetPK());
-				orders_iter_->AddPiece(Order::Piece(new_piece_id));
-				pathfinder.FindPath(&(*orders_iter_)); // vai escrever para a ultima peca adicionada na order
-				mtx.unlock();
-				return &(*orders_iter_);
+		if ((order.GetType() != Order::ORDER_TYPE_UNLOAD) && order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
+			continue;
 		}
+		
+		if (order.GetCount() <= 0) {
+			// Order Invalid: No parts left to insert
+			continue;
+		}
+
+		if (warehouse->GetPieceCount(order.GetInitialPiece()) <= 0) {
+			// Order Invalid: No parts available in the warehouse to insert
+			continue;
+		}
+
+		/*** Valid Order Found ***/
+
+		// Find path for new part
+		Path path = pathfinder.FindPath(order);
+		if (!path) {
+			// Order Invalid: At the moment, a valid path has not been found
+			continue;
+		}
+
+		// Add Part to the Database and receive its ID
+		int part_id = insertDataPiece(DBFILE,order.GetPK());
+		if (part_id < 0) {
+			// Error obtaining a ID for the part
+			//continue;
+			return NULL;
+		}
+		
+		order.AddPiece(Order::Piece(part_id));
+		
+		mtx.unlock(); // Unlock order list mutex
+		return &order;
 	}
 
-	mtx.unlock();
+	mtx.unlock(); // Unlock order list mutex
 	throw "No orders found!";
 }
 
