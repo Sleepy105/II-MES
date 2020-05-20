@@ -8,6 +8,8 @@ SRC_DIRS ?= src
 
 SRCS := $(shell find $(SRC_DIRS) -maxdepth 1 -name *.cpp -or -name *.c ! -name test.c -or -name *.s)
 SRCS += lib/tinyxml2/tinyxml2.cpp
+SRCS += lib/cppGraph/Graph.cpp
+SRCS += lib/cppGraph/Node.cpp
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
