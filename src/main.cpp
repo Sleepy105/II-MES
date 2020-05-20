@@ -53,6 +53,7 @@ int main (int argc, char const *argv[]) {
         for(int i = 0; i < RestoreOrders.vectorPositionTransformation; i++) {
             order_queue.RestoreTrans(RestoreOrders.RestoreTransformation[i]);
         }
+        order_queue.print();
     }
 
     deleteData(dir); // usado so para teste
