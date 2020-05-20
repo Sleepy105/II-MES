@@ -12,7 +12,7 @@ namespace PathFinder {
 
     class BaseModule;
     typedef struct {
-        std::list<BaseModule> path;
+        std::list<BaseModule*> path;
         uint32_t time;
     } ModulePath;
     typedef struct {
@@ -21,6 +21,8 @@ namespace PathFinder {
         uint8_t tool;
         uint8_t time;
     } Transformation;
+
+    enum Direction { Right=1, Down, Left, Up};
     
 };
 
@@ -31,14 +33,15 @@ private:
     std::list<Transformation> valid_transformations;
 
     uint32_t time_so_far;
-    ModulePath* best_so_far;
+    ModulePath* _best_path_so_far;
     
     /**
      * @brief Search all valid upstream modules for best path
      * 
+     * @param time_so_far 
      * @return ModulePath* 
      */
-    ModulePath* searchUpstream();
+    ModulePath* searchUpstream(uint32_t time_so_far, uint32_t best_so_far);
 
 public:
     BaseModule();
@@ -50,7 +53,7 @@ public:
      * @param time_so_far 
      * @return ModulePath* 
      */
-    ModulePath* search(uint32_t time_so_far);
+    ModulePath* search(uint32_t time_so_far, uint32_t best_so_far);
     
     /**
      * @brief Check if module can do a certain transformation of parts
