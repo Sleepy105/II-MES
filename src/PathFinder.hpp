@@ -4,9 +4,11 @@
 #include <iostream>
 #include "Order.hpp"
 
+typedef uint8_t* Path;
+
 class PathFinder{
 public:
-    void FindPath (Order::BaseOrder *order_path);
+    Path FindPath (Order::BaseOrder& order);
 };
 
 #endif

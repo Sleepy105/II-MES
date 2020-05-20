@@ -7,17 +7,17 @@
 4 - cima
 */
 // STUB: escreve sempre o mesmo caminho no vetor path[]
-void PathFinder::FindPath(Order::BaseOrder *order_path){
+Path PathFinder::FindPath(Order::BaseOrder& order){
     uint8_t path[59];
     uint8_t transformation[12] = {0};
     uint8_t machine_transformations[9] = {0};
 
-    Order::Piece *piece = order_path->GetLastPiece();
+    Order::Piece *piece = order.GetLastPiece();
 
-    uint8_t initial_piece = order_path->GetInitialPiece();
-    uint8_t final_piece = order_path->GetFinalPiece();
+    uint8_t initial_piece = order.GetInitialPiece();
+    uint8_t final_piece = order.GetFinalPiece();
     uint8_t destination = final_piece; // isto é redundante. É só para ficar mais claro
-    uint8_t order_type = order_path->GetType();
+    uint8_t order_type = order.GetType();
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
     if (order_type == Order::ORDER_TYPE_TRANSFORMATION){
         if (initial_piece == 2 && final_piece == 6){
