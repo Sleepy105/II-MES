@@ -182,7 +182,7 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 		Order::BaseOrder& order = *orders_iter_;
 		
 		// if it's an unload/transformation order, count is bigger than 0 and there are still pieces of desired type in warehouse
-		if ((order.GetType() != Order::ORDER_TYPE_UNLOAD) && order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
+		if ((order.GetType() != Order::ORDER_TYPE_UNLOAD) && (order.GetType() != Order::ORDER_TYPE_TRANSFORMATION)) {
 			continue;
 		}
 		
