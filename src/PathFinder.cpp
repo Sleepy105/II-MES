@@ -7,6 +7,14 @@
 4 - cima
 */
 
+PathFinder::PathFinder() {
+
+}
+
+PathFinder::~PathFinder() {
+    
+}
+
 Path *PathFinder::FindPath(Order::BaseOrder &order) {
     Path* path = new Path;
 

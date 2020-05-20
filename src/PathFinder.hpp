@@ -6,6 +6,8 @@
 
 class PathFinder{
 public:
+    PathFinder();
+    ~PathFinder();
     /**
      * @brief Search for optimum path for a part of this order
      * 
