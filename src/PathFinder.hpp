@@ -2,19 +2,20 @@
 #define _PATHFINDER_HPP_
 
 #include <iostream>
-#include "Order.hpp"
-#include "cppGraph/Graph.h"
-#include "cppGraph/Node.h"
 #include <string>
 #include <map> 
 
+#include "cppGraph/Graph.h"
+
+#include "Order.hpp"
+
 using namespace std;
 
-typedef struct info_path{
+typedef struct {
   uint8_t path[59] = {0};
   uint8_t transformation[12] = {0};
   uint8_t machine_transformations[9] = {0};
-};
+} info_path;
 
 typedef map<std::string,int> mapT;
 
