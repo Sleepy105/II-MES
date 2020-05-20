@@ -199,7 +199,7 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 		/*** Valid Order Found ***/
 
 		// Find path for new part
-		Path path = pathfinder.FindPath(order);
+		Path* path = pathfinder.FindPath(order);
 		if (!path) {
 			// Order Invalid: At the moment, a valid path has not been found
 			continue;
@@ -213,7 +213,10 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 			return NULL;
 		}
 		
-		order.AddPiece(Order::Piece(part_id));
+		Order::Piece part(part_id);
+		part.SetPath(path);
+
+		order.AddPiece(part);
 		
 		mtx.unlock(); // Unlock order list mutex
 		return &order;

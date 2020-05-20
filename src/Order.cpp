@@ -139,38 +139,33 @@ Piece::Piece(uint32_t id){
 uint32_t Piece::GetID(){
     return PieceID;
 }
-uint8_t *Piece::GetPath(){
-    return Path;
-}
-uint8_t *Piece::GetTransformations(){
-    return Transformations;
-}
-uint8_t *Piece::GetMachines(){
-    return Machines;
+
+Path* Piece::GetPath() {
+    return path_;
 }
 
-void Piece::SetPath(uint8_t path_to_copy[]){
-    int i;
-    for (i = 0; i<59; i++){
-        if (path_to_copy[i] == 0){
-            return;
-        }
-        Path[i] = path_to_copy[i];
-    }
+uint8_t* Piece::GetMoves() {
+    Path* path = GetPath();
+    return path ? path->moves : NULL;
 }
-void Piece::SetTransformations(uint8_t path_to_copy[]){
-    int i;
-    for (i = 0; i<12; i++){
-        Transformations[i] = path_to_copy[i];
-    }
+uint8_t *Piece::GetTransformations(){
+    Path* path = GetPath();
+    return path ? path->transformations : NULL;
 }
-void Piece::SetMachines(uint8_t path_to_copy[]){
-    int i;
-    for (i = 0; i<9; i++){
-        Machines[i] = path_to_copy[i];
-    }
+uint8_t *Piece::GetMachines(){
+    Path* path = GetPath();
+    return path ? path->machine_transformations : NULL;
+}
+
+void Piece::SetPath(Path* new_path){
+    path_ = new_path;
 }
 
 void Piece::print(){
-    std::cout << "\t\tPiece " << PieceID << " has path: {" << (int)Path[0] << ", " << (int)Path[1] << ", " << (int)Path[2] << ", " << (int)Path[3] << "...}" << std::endl;
+    uint8_t* moves = GetMoves();
+    if (!moves) {
+        meslog(ERROR) << "No moves in Piece #" << GetID() << " Path." << std::endl;
+        return;
+    }
+    std::cout << "\t\tPiece " << GetID() << " has path: {" << (int)moves[0] << ", " << (int)moves[1] << ", " << (int)moves[2] << ", " << (int)moves[3] << "...}" << std::endl;
 }

@@ -7,8 +7,8 @@
 4 - cima
 */
 // STUB: escreve sempre o mesmo caminho no vetor path[]
-Path PathFinder::FindPath(Order::BaseOrder& order){
-    uint8_t path[59];
+Path* PathFinder::FindPath(Order::BaseOrder& order){
+    uint8_t moves[59];
     uint8_t transformation[12] = {0};
     uint8_t machine_transformations[9] = {0};
 
@@ -23,95 +23,95 @@ Path PathFinder::FindPath(Order::BaseOrder& order){
         if (initial_piece == 2 && final_piece == 6){
             transformation[2] = 1;
             machine_transformations[0] = 1;
-            path[0] = 1;
-            path[1] = 1;
-            path[2] = 2;
-            path[3] = 2;
-            path[4] = 3;
-            path[5] = 1;
-            path[6] = 2;
-            path[7] = 2;
-            path[8] = 2;
-            path[9] = 2;
-            path[10] = 3;
-            path[11] = 3;
-            path[12] = 0;
+            moves[0] = 1;
+            moves[1] = 1;
+            moves[2] = 2;
+            moves[3] = 2;
+            moves[4] = 3;
+            moves[5] = 1;
+            moves[6] = 2;
+            moves[7] = 2;
+            moves[8] = 2;
+            moves[9] = 2;
+            moves[10] = 3;
+            moves[11] = 3;
+            moves[12] = 0;
         }else if (initial_piece == 3 && final_piece == 5){
             transformation[5] = 1;
             transformation[9] = 1;
             machine_transformations[3] = 1;
             machine_transformations[6] = 1;
-            path[0] = 1;
-            path[1] = 1;
-            path[2] = 2;
-            path[3] = 2;
-            path[4] = 2;
-            path[5] = 3;
-            path[6] = 1;
-            path[7] = 2;
-            path[8] = 3;
-            path[9] = 1;
-            path[10] = 2;
-            path[11] = 2;
-            path[12] = 3;
-            path[13] = 3;
-            path[14] = 0;
+            moves[0] = 1;
+            moves[1] = 1;
+            moves[2] = 2;
+            moves[3] = 2;
+            moves[4] = 2;
+            moves[5] = 3;
+            moves[6] = 1;
+            moves[7] = 2;
+            moves[8] = 3;
+            moves[9] = 1;
+            moves[10] = 2;
+            moves[11] = 2;
+            moves[12] = 3;
+            moves[13] = 3;
+            moves[14] = 0;
         }else if (initial_piece == 7 && final_piece == 9){
             transformation[7] = 1;
             machine_transformations[3] = 1;
-            path[0] = 1;
-            path[1] = 1;
-            path[2] = 2;
-            path[3] = 2;
-            path[4] = 2;
-            path[5] = 3;
-            path[6] = 1;
-            path[7] = 2;
-            path[8] = 2;
-            path[9] = 2;
-            path[10] = 3;
-            path[11] = 3;
-            path[12] = 0;
+            moves[0] = 1;
+            moves[1] = 1;
+            moves[2] = 2;
+            moves[3] = 2;
+            moves[4] = 2;
+            moves[5] = 3;
+            moves[6] = 1;
+            moves[7] = 2;
+            moves[8] = 2;
+            moves[9] = 2;
+            moves[10] = 3;
+            moves[11] = 3;
+            moves[12] = 0;
         }else if (initial_piece == 1 && final_piece == 4){
-            path[0] = 1;
-            path[1] = 1;
-            path[2] = 1;
-            path[3] = 1;
-            path[4] = 1;
-            path[5] = 1;
-            path[6] = 2;
-            path[7] = 2;
-            path[8] = 2;
-            path[9] = 2;
-            path[10] = 3;
-            path[11] = 1;
-            path[12] = 2;
-            path[13] = 2;
-            path[14] = 3;
-            path[15] = 3;
-            path[16] = 3;
-            path[17] = 3;
-            path[18] = 3;
-            path[19] = 3;
-            path[20] = 0;
+            moves[0] = 1;
+            moves[1] = 1;
+            moves[2] = 1;
+            moves[3] = 1;
+            moves[4] = 1;
+            moves[5] = 1;
+            moves[6] = 2;
+            moves[7] = 2;
+            moves[8] = 2;
+            moves[9] = 2;
+            moves[10] = 3;
+            moves[11] = 1;
+            moves[12] = 2;
+            moves[13] = 2;
+            moves[14] = 3;
+            moves[15] = 3;
+            moves[16] = 3;
+            moves[17] = 3;
+            moves[18] = 3;
+            moves[19] = 3;
+            moves[20] = 0;
             transformation[8] = 1;
             machine_transformations[8] = 1;
         }else if (initial_piece == 4 && final_piece == 8){
           transformation[10] = 1;
             machine_transformations[6] = 1;
-            path[0] = 1;
-            path[1] = 1;
-            path[2] = 2;
-            path[3] = 2;
-            path[4] = 2;
-            path[5] = 2;
-            path[6] = 3;
-            path[7] = 1;
-            path[8] = 2;
-            path[9] = 2;
-            path[10] = 3;
-            path[11] = 3;
-            path[12] = 0;
+            moves[0] = 1;
+            moves[1] = 1;
+            moves[2] = 2;
+            moves[3] = 2;
+            moves[4] = 2;
+            moves[5] = 2;
+            moves[6] = 3;
+            moves[7] = 1;
+            moves[8] = 2;
+            moves[9] = 2;
+            moves[10] = 3;
+            moves[11] = 3;
+            moves[12] = 0;
         }else if (initial_piece == 1 && final_piece == 9){
             transformation[8] = 1;
             machine_transformations[6] = 1;
@@ -123,43 +123,43 @@ Path PathFinder::FindPath(Order::BaseOrder& order){
             machine_transformations[8] = 1;
 
 
-            path[0] = 1;
-            path[1] = 1;
-            path[2] = 2;
-            path[3] = 2;
-            path[4] = 2;
-            path[5] = 2;
-            path[6] = 3;
-            path[7] = 1;
-            path[8] = 1;
-            path[9] = 1;
-            path[10] = 1;
-            path[11] = 1;
-            path[12] = 2;
-            path[13] = 2;
-            path[14] = 3;
-            path[15] = 3;
-            path[16] = 3;
-            path[17] = 3;
-            path[18] = 3;
-            path[19] = 3;
-            path[20] = 0;
+            moves[0] = 1;
+            moves[1] = 1;
+            moves[2] = 2;
+            moves[3] = 2;
+            moves[4] = 2;
+            moves[5] = 2;
+            moves[6] = 3;
+            moves[7] = 1;
+            moves[8] = 1;
+            moves[9] = 1;
+            moves[10] = 1;
+            moves[11] = 1;
+            moves[12] = 2;
+            moves[13] = 2;
+            moves[14] = 3;
+            moves[15] = 3;
+            moves[16] = 3;
+            moves[17] = 3;
+            moves[18] = 3;
+            moves[19] = 3;
+            moves[20] = 0;
         }else if (initial_piece == 4 && final_piece == 5){
            transformation[9] = 1;
             machine_transformations[6] = 1;
-            path[0] = 1;
-            path[1] = 1;
-            path[2] = 2;
-            path[3] = 2;
-            path[4] = 2;
-            path[5] = 2;
-            path[6] = 3;
-            path[7] = 1;
-            path[8] = 2;
-            path[9] = 2;
-            path[10] = 3;
-            path[11] = 3;
-            path[12] = 0;
+            moves[0] = 1;
+            moves[1] = 1;
+            moves[2] = 2;
+            moves[3] = 2;
+            moves[4] = 2;
+            moves[5] = 2;
+            moves[6] = 3;
+            moves[7] = 1;
+            moves[8] = 2;
+            moves[9] = 2;
+            moves[10] = 3;
+            moves[11] = 3;
+            moves[12] = 0;
         }else{
           meslog(ERROR) << "No path found for transformation order provided." << std::endl;
         }
@@ -170,50 +170,50 @@ Path PathFinder::FindPath(Order::BaseOrder& order){
         {
         case 1:
           //unload Pusher1
-          path[0] = 1;
-          path[1] = 1;
-          path[2] = 1;
-          path[3] = 1;
-          path[4] = 1;
-          path[5] = 1;
-          path[6] = 1;
-          path[7] = 2;
-          path[8] = 2;
-          path[9] = 1;
-          path[10] = 0;
+          moves[0] = 1;
+          moves[1] = 1;
+          moves[2] = 1;
+          moves[3] = 1;
+          moves[4] = 1;
+          moves[5] = 1;
+          moves[6] = 1;
+          moves[7] = 2;
+          moves[8] = 2;
+          moves[9] = 1;
+          moves[10] = 0;
           break;
           
         case 2:
           //unload Pusher2
-          path[0] = 1;
-          path[1] = 1;
-          path[2] = 1;
-          path[3] = 1;
-          path[4] = 1;
-          path[5] = 1;
-          path[6] = 1;
-          path[7] = 2;
-          path[8] = 2;
-          path[9] = 2;
-          path[10] = 1;
-          path[11] = 0;
+          moves[0] = 1;
+          moves[1] = 1;
+          moves[2] = 1;
+          moves[3] = 1;
+          moves[4] = 1;
+          moves[5] = 1;
+          moves[6] = 1;
+          moves[7] = 2;
+          moves[8] = 2;
+          moves[9] = 2;
+          moves[10] = 1;
+          moves[11] = 0;
           break;
           
         case 3:
           //unload Pusher3
-          path[0] = 1;
-          path[1] = 1;
-          path[2] = 1;
-          path[3] = 1;
-          path[4] = 1;
-          path[5] = 1;
-          path[6] = 1;
-          path[7] = 2;
-          path[8] = 2;
-          path[9] = 2;
-          path[10] = 2;
-          path[11] = 1;
-          path[12] = 0;
+          moves[0] = 1;
+          moves[1] = 1;
+          moves[2] = 1;
+          moves[3] = 1;
+          moves[4] = 1;
+          moves[5] = 1;
+          moves[6] = 1;
+          moves[7] = 2;
+          moves[8] = 2;
+          moves[9] = 2;
+          moves[10] = 2;
+          moves[11] = 1;
+          moves[12] = 0;
           break;
         
         default:
@@ -222,7 +222,8 @@ Path PathFinder::FindPath(Order::BaseOrder& order){
         }
     }
 
-    piece->SetPath(path);
-    piece->SetMachines(machine_transformations);
-    piece->SetTransformations(transformation);
+    //piece->SetPath(moves);
+    //piece->SetMachines(machine_transformations);
+    //piece->SetTransformations(transformation);
+    return NULL;
 }

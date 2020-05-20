@@ -17,7 +17,9 @@
 #include <list>
 #include <iterator>
 #include <string>
+
 #include "DBInterface.hpp"
+
 #include "helpers.h"
 
 namespace Order {
@@ -76,26 +78,35 @@ public:
 };
 
 
-
-
+/**
+ * @brief Stores all information related to a Path to be travelled by a Piece
+ * 
+ */
+typedef struct {
+    uint8_t moves[59] = {0};
+    uint8_t transformations[12] = {0};
+    uint8_t machine_transformations[9] = {0};
+} Path;
 
 class Order::Piece {
 private:
     uint32_t PieceID;
-    uint8_t Path[59] = {0};
-    uint8_t Transformations[12] = {0};
-    uint8_t Machines[9] = {0};
-
+    Path* path_ = NULL;
 
 public:
     Piece(uint32_t id);
     uint32_t GetID();
-    uint8_t *GetPath();
+    Path* GetPath();
+    uint8_t* GetMoves();
     uint8_t *GetTransformations();
     uint8_t *GetMachines();
-    void SetPath(uint8_t[]);
-    void SetTransformations(uint8_t[]);
-    void SetMachines(uint8_t[]);
+
+    /**
+     * @brief Set the Path object
+     * 
+     * @param path 
+     */
+    void SetPath(Path* new_path);
 
     void print();
 
