@@ -1,7 +1,7 @@
 #include "OrderQueue.hpp"
 
-OrderQueue::OrderQueue(){
-	warehouse = new Warehouse(NULL);
+OrderQueue::OrderQueue(Warehouse* warehouse) : warehouse(warehouse){
+
 }
 
 OrderQueue::~OrderQueue(){

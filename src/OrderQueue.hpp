@@ -21,7 +21,7 @@ class OrderQueue{
         
 
     public:
-        OrderQueue(); //vamos usar argumentos para o construtor?
+        OrderQueue(Warehouse* warehouse);
         ~OrderQueue();
         int AddOrder(Order::BaseOrder order_to_add);
         bool RemoveOrder(Order::BaseOrder order_to_remove);

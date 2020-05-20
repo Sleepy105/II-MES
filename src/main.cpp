@@ -17,8 +17,8 @@
 
 int main (int argc, char const *argv[]) {
 
-    OrderQueue order_queue;
     Warehouse warehouse;
+    OrderQueue order_queue(&warehouse);
 
     UDPManager UDPManager(54321);
     XMLParser XMLParser(&order_queue, &UDPManager, &warehouse);
@@ -62,7 +62,7 @@ int main (int argc, char const *argv[]) {
         }
         meslog(INFO) << "Connection established." << std::endl;
     }*/
-    //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
+    //Ciclo de Controlo Principal (threadless, com a excepcao do UDPManager)
     while (opc_ua.Is_Connected()){
         meslog(INFO) << "Running cycle..." << std::endl;
 
