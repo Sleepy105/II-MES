@@ -6,7 +6,7 @@
 3 - esquerda
 4 - cima
 */
-// STUB: escreve sempre o mesmo caminho no vetor path[]
+
 Path *PathFinder::FindPath(Order::BaseOrder &order) {
     Path* path = new Path;
 
