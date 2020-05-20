@@ -172,18 +172,8 @@ Path *PathFinder::FindPath(Order::BaseOrder &order) {
     if (order_type == Order::ORDER_TYPE_TRANSFORMATION) {
         vector<string> shortestPath = T.Dijktras(to_string(initial_piece),to_string(final_piece));
         string _shortestPath;
-        for (auto const& s : shortestPath) { _shortestPath += s; }
-        //cout << "Shortest Path: " << _shortestPath << endl;
-
-        //if (shortestPath == NULL) meslog(ERROR) << "No path found for transformation order provided." << std::endl;
-
-        mapT::iterator  it= LUT.find(_shortestPath);
-        uint8_t index_info = 0;
-        if( it != LUT.end() ) index_info = it->second;
-
-        //mudar SetPath para usar pointers
-        for(int i=0; i<59; i++){
-            path->moves[i] = Info[index_info].path[i];
+        for (auto const& s : shortestPath) {
+            _shortestPath += s;
         }
 
         if (&shortestPath == NULL)
@@ -194,6 +184,10 @@ Path *PathFinder::FindPath(Order::BaseOrder &order) {
         if (it != LUT.end())
             index_info = it->second;
 
+        //mudar SetPath para usar pointers
+        for(int i=0; i<59; i++){
+            path->moves[i] = Info[index_info].path[i];
+        }
 
         for (int i = 0; i < 9; i++) {
             path->machine_transformations[i] = Info[index_info].machine_transformations[i];
