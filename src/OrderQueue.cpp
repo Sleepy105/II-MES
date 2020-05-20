@@ -1,7 +1,7 @@
 #include "OrderQueue.hpp"
 
-OrderQueue::OrderQueue(){
-	warehouse = new Warehouse(NULL);
+OrderQueue::OrderQueue(Warehouse* warehouse) : warehouse(warehouse){
+
 }
 
 OrderQueue::~OrderQueue(){
@@ -55,7 +55,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	}
 	// adiciona order à base de dados
 	
-	return_value = insertDataOrder("factory.db", 
+	return_value = insertDataOrder(DBFILE, 
 						(int) order_to_add.GetID(), 
 						type_string, 
 						state_string, 
@@ -68,7 +68,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 
 	// se for uma order de carga, adiciona piece também
 	if (load_order){
-		return_value = insertDataPiece("factory.db", return_value);
+		return_value = insertDataPiece(DBFILE, return_value);
 		order_to_add.AddPiece((uint32_t)return_value);
 	}
 
@@ -152,7 +152,7 @@ bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 
 	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
 		if ((*orders_iter_).GetID() == order_to_remove.GetID()){
-			updateOrder("factory.db", "Finished", (int) order_to_remove.GetID());
+			updateOrder(DBFILE, "Finished", (int) order_to_remove.GetID());
 			// update order in database before deleting localy.
 			orders_.erase(orders_iter_);
 		}
@@ -180,7 +180,7 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 		for (pieces_iter_ = piece_list->begin(); pieces_iter_ != piece_list->end(); pieces_iter_++){
 		// for each piece
 			if (pieces_iter_->GetID() == target_id){
-				updateDataPiece("factory.db", (int) target_id); // update piece finish time in database
+				updateDataPiece(DBFILE, (int) target_id); // update piece finish time in database
 				piece_list->erase(pieces_iter_);
 				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
 				if ((orders_iter_->GetCount() == 0) && (piece_list->size() == 0)){
@@ -207,25 +207,51 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 Order::BaseOrder *OrderQueue::GetNextOrder(){
 	mtx.lock();
 
-	std::list<Order::BaseOrder>::iterator orders_iter_;
-	int new_piece_id;
-
-	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+	for (std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+		Order::BaseOrder& order = *orders_iter_;
 		
 		// if it's an unload/transformation order, count is bigger than 0 and there are still pieces of desired type in warehouse
-		if  (((orders_iter_->GetType() == Order::ORDER_TYPE_UNLOAD) || (orders_iter_->GetType() == Order::ORDER_TYPE_TRANSFORMATION)) &&
-			(((*orders_iter_).GetCount()) > 0) && 
-			(warehouse->GetPieceCount(orders_iter_->GetInitialPiece()) > 0)){
-				// order encontrada: inserir-lhe uma peca (e na base de dados tambem) e devolver a order
-				new_piece_id = insertDataPiece("factory.db",orders_iter_->GetPK());
-				orders_iter_->AddPiece(Order::Piece(new_piece_id));
-				pathfinder.FindPath(&(*orders_iter_)); // vai escrever para a ultima peca adicionada na order
-				mtx.unlock();
-				return &(*orders_iter_);
+		if ((order.GetType() != Order::ORDER_TYPE_UNLOAD) && (order.GetType() != Order::ORDER_TYPE_TRANSFORMATION)) {
+			continue;
 		}
+		
+		if (order.GetCount() <= 0) {
+			// Order Invalid: No parts left to insert
+			continue;
+		}
+
+		if (warehouse->GetPieceCount(order.GetInitialPiece()) <= 0) {
+			// Order Invalid: No parts available in the warehouse to insert
+			continue;
+		}
+
+		/*** Valid Order Found ***/
+
+		// Find path for new part
+		Path* path = pathfinder.FindPath(order);
+		if (!path) {
+			// Order Invalid: At the moment, a valid path has not been found
+			continue;
+		}
+
+		// Add Part to the Database and receive its ID
+		int part_id = insertDataPiece(DBFILE,order.GetPK());
+		if (part_id < 0) {
+			// Error obtaining a ID for the part
+			//continue;
+			return NULL;
+		}
+		
+		Order::Piece part(part_id);
+		part.SetPath(path);
+
+		order.AddPiece(part);
+		
+		mtx.unlock(); // Unlock order list mutex
+		return &order;
 	}
 
-	mtx.unlock();
+	mtx.unlock(); // Unlock order list mutex
 	throw "No orders found!";
 }
 

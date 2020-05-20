@@ -118,7 +118,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     // Get data to send from order
     uint16_t type_piece = order->GetInitialPiece();
     uint16_t id_piece = (uint16_t)order->GetLastPiece()->GetID();
-    uint8_t *path = order->GetLastPiece()->GetPath();
+    uint8_t *moves = order->GetLastPiece()->GetMoves();
     uint8_t *transformation = order->GetLastPiece()->GetTransformations();
     uint8_t *machines = order->GetLastPiece()->GetMachines();
 
@@ -126,7 +126,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
     uint16_t i;
     for (i = 0; i < 59; i++) {
-        path_UA[i] = (uint16_t) path[i];
+        path_UA[i] = (uint16_t) moves[i];
     }
     UA_Int16* transformation_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
     for (i = 0; i < 12; i++) {

@@ -17,8 +17,8 @@
 
 int main (int argc, char const *argv[]) {
 
-    OrderQueue order_queue;
     Warehouse warehouse;
+    OrderQueue order_queue(&warehouse);
 
     UDPManager UDPManager(54321);
     XMLParser XMLParser(&order_queue, &UDPManager, &warehouse);
@@ -27,7 +27,7 @@ int main (int argc, char const *argv[]) {
 
 
     // Iniciar Base de Dados
-    const char* dir = "factory.db"; // Definir path da DB
+    const char* dir = DBFILE; // Definir path da DB
 	int check = checkDB(dir);
     if(!check) {
         createDB(dir);
@@ -73,28 +73,18 @@ int main (int argc, char const *argv[]) {
     
     OPCUA_Manager opc_ua(OpcUa_conn.c_str(), OpcUa_id.c_str(), 4, &order_queue, &warehouse);
 
-
-    // Inserir algumas orders na queue. Assim que se queira testar as orders a chegar por UDP apaga-se isto
-    // order_queue.AddOrder(Order::BaseOrder(1, Order::ORDER_TYPE_TRANSFORMATION, 4, 2, 6, 300));
-    // order_queue.AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_TRANSFORMATION, 2, 1, 9, 200));
-    // order_queue.AddOrder(Order::BaseOrder(2, Order::ORDER_TYPE_UNLOAD, 4, 8, 2, "doesn't matter"));
-
-    // order_queue.print();
-    // ideia: usar o final_piece da order como tapete de destino no caso de ser do tipo unload (visto que final piece nao e usado nesse caso)
-    
-
     // Setup de variaveis para o ciclo de controlo principal
     Order::BaseOrder *next_order;
     bool order_buffered = false;
 
-    if (!opc_ua.Is_Connected()){
+    /*if (!opc_ua.Is_Connected()){
         meslog(ERROR) << "Couldn't connect to OPC-UA Master, waitting for connection..." << std::endl;
         while (!opc_ua.Is_Connected()){
             opc_ua.Reconnect();
         }
         meslog(INFO) << "Connection established." << std::endl;
-    }
-    //Ciclo de Controlo Principal (threadless, com a excessao do UDPManager)
+    }*/
+    //Ciclo de Controlo Principal (threadless, com a excepcao do UDPManager)
     while (opc_ua.Is_Connected()){
         meslog(INFO) << "Running cycle..." << std::endl;
 
