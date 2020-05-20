@@ -1,11 +1,9 @@
 #include "OrderQueue.hpp"
 
 OrderQueue::OrderQueue(Warehouse* warehouse) : warehouse(warehouse){
-
 }
 
 OrderQueue::~OrderQueue(){
-    
 }
 
 /*
