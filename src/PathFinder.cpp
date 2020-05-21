@@ -239,221 +239,263 @@ uint32_t PathFinder::Rotational::calcTimeToHandlePart(Order::BaseOrder& order, u
     return Rotate + Receive + Rotate;
 }
 
-Path *PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
-    Path* path = new Path;
 
-    Order::Piece *piece = order.GetLastPiece();
 
-    uint8_t initial_piece = order.GetInitialPiece();
-    uint8_t final_piece = order.GetFinalPiece();
-    uint8_t order_type = order.GetType();
+
+
+
+PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) {
+
+    /****** ROW #1 *******/
+
+    cells[1] = new Linear;
+    
+    cells[2] = new Linear;
+    cells[2]->setDir(Direction::Left, cells[1], true);
+    cells[1]->setDir(Direction::Right, cells[2], false);
+
+    cells[3] = new Rotational;
+    cells[3]->setDir(Direction::Left, cells[2], true);
+    cells[2]->setDir(Direction::Right, cells[3], false);
+
+    cells[4] = new Linear;
+    cells[4]->setDir(Direction::Left, cells[3], true);
+    cells[3]->setDir(Direction::Right, cells[4], false);
+
+    cells[5] = new Rotational;
+    cells[5]->setDir(Direction::Left, cells[4], true);
+    cells[4]->setDir(Direction::Right, cells[5], false);
+
+    cells[6] = new Linear;
+    cells[6]->setDir(Direction::Left, cells[5], true);
+    cells[5]->setDir(Direction::Right, cells[6], false);
+
+    cells[7] = new Rotational;
+    cells[7]->setDir(Direction::Left, cells[6], true);
+    cells[6]->setDir(Direction::Right, cells[7], false);
+
+    cells[8] = new Rotational;
+    cells[8]->setDir(Direction::Left, cells[7], true);
+    cells[7]->setDir(Direction::Right, cells[8], false);
+
+    cells[9] = new Linear;
+    cells[9]->setDir(Direction::Left, cells[8], true);
+    cells[8]->setDir(Direction::Right, cells[9], false);
+
+    /****** ROW #2 *******/
+
+    cells[10] = new Linear;
+    cells[10]->setDir(Direction::Up, cells[3], true);
+    cells[3]->setDir(Direction::Down, cells[10], false);
+
+    cells[11] = new Linear;
+    cells[11]->setDir(Direction::Up, cells[5], true);
+    cells[5]->setDir(Direction::Down, cells[11], false);
+
+    cells[12] = new Linear;
+    cells[12]->setDir(Direction::Up, cells[7], true);
+    cells[7]->setDir(Direction::Down, cells[12], false);
+
+    cells[13] = new Linear;
+    cells[13]->setDir(Direction::Up, cells[8], true);
+    cells[8]->setDir(Direction::Down, cells[13], false);
+
+    /****** ROW #3 *******/
+
+    cells[14] = new Machine(warehouse);
+
+    cells[15] = new Rotational;
+    cells[15]->setDir(Direction::Up, cells[10], true);
+    cells[10]->setDir(Direction::Down, cells[15], false);
+    cells[15]->setDir(Direction::Left, cells[14], true);
+    cells[14]->setDir(Direction::Right, cells[15], true);
+
+    cells[16] = new Machine(warehouse);
+    cells[16]->setDir(Direction::Left, cells[15], true);
+    cells[15]->setDir(Direction::Right, cells[16], true);
+
+    cells[17] = new Rotational;
+    cells[17]->setDir(Direction::Up, cells[11], true);
+    cells[11]->setDir(Direction::Down, cells[17], false);
+    cells[17]->setDir(Direction::Left, cells[16], true);
+    cells[16]->setDir(Direction::Right, cells[17], true);
+
+    cells[18] = new Machine(warehouse);
+    cells[18]->setDir(Direction::Left, cells[17], true);
+    cells[17]->setDir(Direction::Right, cells[18], true);
+
+    cells[19] = new Rotational;
+    cells[19]->setDir(Direction::Up, cells[12], true);
+    cells[12]->setDir(Direction::Down, cells[19], false);
+    cells[19]->setDir(Direction::Left, cells[18], true);
+    cells[18]->setDir(Direction::Right, cells[19], true);
+
+    cells[20] = new Pusher;
+    cells[20]->setDir(Direction::Up, cells[13], true);
+    cells[13]->setDir(Direction::Down, cells[20], false);
+
+    /****** ROW #4 *******/
+
+    cells[25] = new Machine(warehouse);
+
+    cells[26] = new Rotational;
+    cells[26]->setDir(Direction::Up, cells[15], true);
+    cells[15]->setDir(Direction::Down, cells[26], false);
+    cells[26]->setDir(Direction::Left, cells[25], true);
+    cells[25]->setDir(Direction::Right, cells[26], true);
+
+    cells[27] = new Machine(warehouse);
+    cells[27]->setDir(Direction::Left, cells[26], true);
+    cells[26]->setDir(Direction::Right, cells[27], true);
+
+    cells[28] = new Rotational;
+    cells[28]->setDir(Direction::Up, cells[17], true);
+    cells[17]->setDir(Direction::Down, cells[28], false);
+    cells[28]->setDir(Direction::Left, cells[27], true);
+    cells[27]->setDir(Direction::Right, cells[28], true);
+
+    cells[29] = new Machine(warehouse);
+    cells[29]->setDir(Direction::Left, cells[28], true);
+    cells[28]->setDir(Direction::Right, cells[29], true);
+
+    cells[30] = new Rotational;
+    cells[30]->setDir(Direction::Up, cells[19], true);
+    cells[19]->setDir(Direction::Down, cells[30], false);
+    cells[30]->setDir(Direction::Left, cells[29], true);
+    cells[29]->setDir(Direction::Right, cells[30], true);
+
+    cells[31] = new Pusher;
+    cells[31]->setDir(Direction::Up, cells[20], true);
+    cells[20]->setDir(Direction::Down, cells[31], false);
+
+    /****** ROW #5 *******/
+
+    cells[36] = new Machine(warehouse);
+
+    cells[37] = new Rotational;
+    cells[37]->setDir(Direction::Up, cells[26], true);
+    cells[26]->setDir(Direction::Down, cells[37], false);
+    cells[37]->setDir(Direction::Left, cells[36], true);
+    cells[36]->setDir(Direction::Right, cells[37], true);
+
+    cells[38] = new Machine(warehouse);
+    cells[38]->setDir(Direction::Left, cells[37], true);
+    cells[37]->setDir(Direction::Right, cells[38], true);
+
+    cells[39] = new Rotational;
+    cells[39]->setDir(Direction::Up, cells[28], true);
+    cells[28]->setDir(Direction::Down, cells[39], false);
+    cells[39]->setDir(Direction::Left, cells[38], true);
+    cells[38]->setDir(Direction::Right, cells[39], true);
+
+    cells[40] = new Machine(warehouse);
+    cells[40]->setDir(Direction::Left, cells[39], true);
+    cells[39]->setDir(Direction::Right, cells[40], true);
+
+    cells[41] = new Rotational;
+    cells[41]->setDir(Direction::Up, cells[30], true);
+    cells[30]->setDir(Direction::Down, cells[41], false);
+    cells[41]->setDir(Direction::Left, cells[40], true);
+    cells[40]->setDir(Direction::Right, cells[41], true);
+
+    cells[42] = new Pusher;
+    cells[42]->setDir(Direction::Up, cells[31], true);
+    cells[31]->setDir(Direction::Down, cells[42], false);
+
+    /****** ROW #6 *******/
+
+    cells[47] = new Linear;
+    cells[47]->setDir(Direction::Up, cells[37], true);
+    cells[37]->setDir(Direction::Down, cells[47], false);
+
+    cells[48] = new Linear;
+    cells[48]->setDir(Direction::Up, cells[39], true);
+    cells[39]->setDir(Direction::Down, cells[48], false);
+
+    cells[49] = new Linear;
+    cells[49]->setDir(Direction::Up, cells[41], true);
+    cells[41]->setDir(Direction::Down, cells[49], false);
+
+    cells[50] = new Linear;
+    cells[50]->setDir(Direction::Up, cells[42], true);
+    cells[42]->setDir(Direction::Down, cells[50], false);
+
+    /****** ROW #7 *******/
+
+    cells[51] = new Linear;
+
+    cells[52] = new Linear;
+    cells[52]->setDir(Direction::Left, cells[51], false);
+    cells[51]->setDir(Direction::Right, cells[52], true);
+
+    cells[53] = new Rotational;
+    cells[53]->setDir(Direction::Up, cells[47], true);
+    cells[47]->setDir(Direction::Down, cells[53], false);
+    cells[53]->setDir(Direction::Left, cells[52], false);
+    cells[52]->setDir(Direction::Right, cells[53], true);
+
+    cells[54] = new Linear;
+    cells[54]->setDir(Direction::Left, cells[53], false);
+    cells[53]->setDir(Direction::Right, cells[54], true);
+
+    cells[55] = new Rotational;
+    cells[55]->setDir(Direction::Up, cells[48], true);
+    cells[48]->setDir(Direction::Down, cells[55], false);
+    cells[55]->setDir(Direction::Left, cells[54], false);
+    cells[54]->setDir(Direction::Right, cells[55], true);
+
+    cells[56] = new Linear;
+    cells[56]->setDir(Direction::Left, cells[55], false);
+    cells[55]->setDir(Direction::Right, cells[56], true);
+
+    cells[57] = new Rotational;
+    cells[57]->setDir(Direction::Up, cells[49], true);
+    cells[49]->setDir(Direction::Down, cells[57], false);
+    cells[57]->setDir(Direction::Left, cells[56], false);
+    cells[56]->setDir(Direction::Right, cells[57], true);
+
+    cells[58] = new Rotational;
+    cells[58]->setDir(Direction::Up, cells[50], true);
+    cells[50]->setDir(Direction::Down, cells[58], false);
+    cells[58]->setDir(Direction::Left, cells[57], false);
+    cells[57]->setDir(Direction::Right, cells[58], true);
+
+    cells[59] = new Linear;
+    cells[59]->setDir(Direction::Left, cells[58], false);
+    cells[58]->setDir(Direction::Right, cells[59], true);
+
+}
+
+
+
+Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
+    ModulePath* module_path = NULL;
+
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
-    if (order_type == Order::ORDER_TYPE_TRANSFORMATION) {
-        if (initial_piece == 2 && final_piece == 6) {
-            path->transformations[2] = 1;
-            path->machine_transformations[0] = 1;
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 2;
-            path->moves[3] = 2;
-            path->moves[4] = 3;
-            path->moves[5] = 1;
-            path->moves[6] = 2;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 3;
-            path->moves[11] = 3;
-            path->moves[12] = 0;
-        }
-        else if (initial_piece == 3 && final_piece == 5) {
-            path->transformations[5] = 1;
-            path->transformations[9] = 1;
-            path->machine_transformations[3] = 1;
-            path->machine_transformations[6] = 1;
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 2;
-            path->moves[3] = 2;
-            path->moves[4] = 2;
-            path->moves[5] = 3;
-            path->moves[6] = 1;
-            path->moves[7] = 2;
-            path->moves[8] = 3;
-            path->moves[9] = 1;
-            path->moves[10] = 2;
-            path->moves[11] = 2;
-            path->moves[12] = 3;
-            path->moves[13] = 3;
-            path->moves[14] = 0;
-        }
-        else if (initial_piece == 7 && final_piece == 9) {
-            path->transformations[7] = 1;
-            path->machine_transformations[3] = 1;
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 2;
-            path->moves[3] = 2;
-            path->moves[4] = 2;
-            path->moves[5] = 3;
-            path->moves[6] = 1;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 3;
-            path->moves[11] = 3;
-            path->moves[12] = 0;
-        }
-        else if (initial_piece == 1 && final_piece == 4) {
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 1;
-            path->moves[3] = 1;
-            path->moves[4] = 1;
-            path->moves[5] = 1;
-            path->moves[6] = 2;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 3;
-            path->moves[11] = 1;
-            path->moves[12] = 2;
-            path->moves[13] = 2;
-            path->moves[14] = 3;
-            path->moves[15] = 3;
-            path->moves[16] = 3;
-            path->moves[17] = 3;
-            path->moves[18] = 3;
-            path->moves[19] = 3;
-            path->moves[20] = 0;
-            path->transformations[8] = 1;
-            path->machine_transformations[8] = 1;
-        }
-        else if (initial_piece == 4 && final_piece == 8) {
-            path->transformations[10] = 1;
-            path->machine_transformations[6] = 1;
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 2;
-            path->moves[3] = 2;
-            path->moves[4] = 2;
-            path->moves[5] = 2;
-            path->moves[6] = 3;
-            path->moves[7] = 1;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 3;
-            path->moves[11] = 3;
-            path->moves[12] = 0;
-        }
-        else if (initial_piece == 1 && final_piece == 9) {
-            path->transformations[8] = 1;
-            path->machine_transformations[6] = 1;
-
-            path->transformations[10] = 1;
-            path->machine_transformations[7] = 1;
-
-            path->transformations[11] = 1;
-            path->machine_transformations[8] = 1;
-
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 2;
-            path->moves[3] = 2;
-            path->moves[4] = 2;
-            path->moves[5] = 2;
-            path->moves[6] = 3;
-            path->moves[7] = 1;
-            path->moves[8] = 1;
-            path->moves[9] = 1;
-            path->moves[10] = 1;
-            path->moves[11] = 1;
-            path->moves[12] = 2;
-            path->moves[13] = 2;
-            path->moves[14] = 3;
-            path->moves[15] = 3;
-            path->moves[16] = 3;
-            path->moves[17] = 3;
-            path->moves[18] = 3;
-            path->moves[19] = 3;
-            path->moves[20] = 0;
-        }
-        else if (initial_piece == 4 && final_piece == 5) {
-            path->transformations[9] = 1;
-            path->machine_transformations[6] = 1;
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 2;
-            path->moves[3] = 2;
-            path->moves[4] = 2;
-            path->moves[5] = 2;
-            path->moves[6] = 3;
-            path->moves[7] = 1;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 3;
-            path->moves[11] = 3;
-            path->moves[12] = 0;
-        }
-        else {
-            meslog(ERROR) << "No path found for transformation order provided." << std::endl;
+    if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
+        module_path = cells[51]->search(order, order.GetFinalPiece(), 0, NULL);
+        if (!module_path) {
+            meslog(ERROR) << "No path found for transformation order #" << order.GetID() << std::endl;
+            return NULL;
         }
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
-    else if (order_type == Order::ORDER_TYPE_UNLOAD) {
-        switch (final_piece) {
-        case 1:
-            //unload Pusher1
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 1;
-            path->moves[3] = 1;
-            path->moves[4] = 1;
-            path->moves[5] = 1;
-            path->moves[6] = 1;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 1;
-            path->moves[10] = 0;
-            break;
-
-        case 2:
-            //unload Pusher2
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 1;
-            path->moves[3] = 1;
-            path->moves[4] = 1;
-            path->moves[5] = 1;
-            path->moves[6] = 1;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 1;
-            path->moves[11] = 0;
-            break;
-
-        case 3:
-            //unload Pusher3
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 1;
-            path->moves[3] = 1;
-            path->moves[4] = 1;
-            path->moves[5] = 1;
-            path->moves[6] = 1;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 2;
-            path->moves[11] = 1;
-            path->moves[12] = 0;
-            break;
-
-        default:
-            meslog(ERROR) << "Invalid destination for Unload-type order." << std::endl;
-            break;
+    else if (order.GetType() == Order::ORDER_TYPE_UNLOAD) {
+        module_path = cells[9+order.GetFinalPiece()*11]->search(order, order.GetFinalPiece(), 0, NULL);
+        if (!module_path) {
+            meslog(ERROR) << "No path found for unload order #" << order.GetID() << std::endl;
+            return NULL;
         }
+    }
+
+    Path* path = new Path;
+    uint32_t count = 0;
+    for (std::list<BaseModule*>::iterator iter = module_path->path.begin();
+        iter != module_path->path.end();
+        iter++)
+    {
+        BaseModule* module = (*iter);
+        path->moves[count++] = module->searchDir(*(++iter--));
     }
 
     return path;

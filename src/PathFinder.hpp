@@ -98,6 +98,14 @@ public:
     BaseModule* getDir(Direction dir);
 
     /**
+     * @brief Get the direction for that Module
+     * 
+     * @param module 
+     * @return Direction 
+     */
+    Direction searchDir(BaseModule* module);
+
+    /**
      * @brief Returns if the direction is an upstream
      * 
      * @param dir 
@@ -234,8 +242,9 @@ public:
 class PathFinder::PathFinder{
 private:
     Warehouse* warehouse;
+    BaseModule* cells[60] = {NULL};
 public:
-    PathFinder(Warehouse* warehouse) : warehouse(warehouse) {}
+    PathFinder(Warehouse* warehouse);
     ~PathFinder() {}
     /**
      * @brief Search for optimum path for a part of this order
