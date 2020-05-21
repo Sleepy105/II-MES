@@ -11,6 +11,11 @@ namespace PathFinder {
     class PathFinder;
 
     class BaseModule;
+    class Machine;
+    class Linear;
+    class Rotational;
+    class Slider;
+
     typedef struct {
         std::list<BaseModule*> path;
         uint32_t time;
@@ -28,8 +33,6 @@ namespace PathFinder {
 
 
 class PathFinder::BaseModule {
-    enum Type {Machine, Linear, Rotational, Slider};
-
 private:
     BaseModule* modules[4] = {NULL};
     bool upstreams[4] = {false};
@@ -46,9 +49,10 @@ private:
     ModulePath* searchUpstream(uint32_t time_so_far, ModulePath* best_so_far);
 
 public:
-    BaseModule(Type type);
+    BaseModule();
     ~BaseModule();
-    
+
+    enum Type {Machine, Linear, Rotational, Slider};
     Type type;
 
     /**
@@ -101,6 +105,39 @@ public:
      */
     bool isUpstream(Direction dir);
 };
+
+class PathFinder::Machine : BaseModule {
+private:
+    /* data */
+public:
+    Machine();
+    ~Machine();
+};
+
+class PathFinder::Linear : BaseModule {
+private:
+    /* data */
+public:
+    Linear();
+    ~Linear();
+};
+
+class PathFinder::Rotational : BaseModule {
+private:
+    /* data */
+public:
+    Rotational();
+    ~Rotational();
+};
+
+class PathFinder::Slider : BaseModule {
+private:
+    /* data */
+public:
+    Slider();
+    ~Slider();
+};
+
 
 
 class PathFinder::PathFinder{

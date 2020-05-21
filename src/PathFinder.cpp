@@ -1,12 +1,5 @@
 #include "PathFinder.hpp"
 
-/*
-1 - direita
-2 - baixo 
-3 - esquerda
-4 - cima
-*/
-
 PathFinder::Transformation T1 = {
     .from   = 1,
     .to     = 2,
@@ -91,7 +84,7 @@ PathFinder::Transformation T12 = {
     .time   = 10,
 };
 
-PathFinder::BaseModule::BaseModule(Type type) : type(type) {
+PathFinder::BaseModule::BaseModule() {
 
 }
 
@@ -175,6 +168,38 @@ PathFinder::BaseModule* PathFinder::BaseModule::getDir(Direction dir) {
 
 bool PathFinder::BaseModule::isUpstream(Direction dir) {
     return upstreams[dir];
+}
+
+PathFinder::Machine::Machine() {
+    type = Type::Machine;
+}
+
+PathFinder::Machine::~Machine() {
+
+}
+
+PathFinder::Linear::Linear() {
+    type = Type::Linear;
+}
+
+PathFinder::Linear::~Linear() {
+
+}
+
+PathFinder::Rotational::Rotational() {
+    type = Type::Rotational;
+}
+
+PathFinder::Rotational::~Rotational() {
+
+}
+
+PathFinder::Slider::Slider() {
+    type = Type::Slider;
+}
+
+PathFinder::Slider::~Slider() {
+
 }
 
 PathFinder::PathFinder::PathFinder() {
