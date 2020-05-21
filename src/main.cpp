@@ -84,26 +84,34 @@ int main (int argc, char const *argv[]) {
         }
         meslog(INFO) << "Running cycle..." << std::endl;
 
+        if (opc_ua.CheckOutgoingPieces()){
+            meslog(INFO) << "Pieces left factory floor." << std::endl;
+        }
+
         //envia peca das orders de load e transformation
         try{
             if (opc_ua.warehouseOutCarpetIsFree()){
                 next_order = order_queue.GetNextOrder(); // this generates an exception if no orders found (will jump to "catch()", below)
+
                 // This code will only run if the previous call to GetNextOrder() didn't generate an exception:
-                opc_ua.SendPieceOPC_UA(next_order);
-                next_order->DecreaseCount();
-                meslog(INFO) << "Piece Sent. Current count for order " << next_order->GetID() << ": "<< next_order->GetCount() << std::endl;
+                if(opc_ua.SendPiece(next_order)){
+
+                    next_order->DecreaseCount();
+                    meslog(INFO) << "Piece Sent. Current count for order " << next_order->GetID() << ": "<< next_order->GetCount() << "." << std::endl;
+                }
             }
         }catch(const char *msg){
-            // Run this if no orders were found. msg already holds the error message, in case we want to display it, like so: "meslog(ERROR) << msg << std::endl"
+            // Run this if no orders were found. msg already holds the error message, in case we want to display it, like so: 
+            // meslog(ERROR) << msg << std::endl;
 
         }
         //verifica se recebeu pecas
         if (opc_ua.CheckIncomingPieces()){
-            meslog(INFO) << "Incoming piece in factory floor" << std::endl;
+            meslog(INFO) << "Incoming piece in factory floor." << std::endl;
         }
         // verifica se chegaram pecas a warehouse
         if (opc_ua.CheckPiecesFinished()){
-            meslog(INFO) << "Piece(s) finished in factory floor" << std::endl;
+            meslog(INFO) << "Piece(s) finished in factory floor." << std::endl;
         }
 
         std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS*1000000)); // 1 s

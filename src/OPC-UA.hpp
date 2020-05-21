@@ -28,6 +28,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <queue>
 #include <iterator>
 #include "Order.hpp"
 #include "OrderQueue.hpp"
@@ -41,7 +42,8 @@ private:
     char URL_[128];
     int16_t nodeIndex_;
     bool connected_;
-    uint8_t pusher_allocation_[3] = {0};
+    std::queue <Order::Piece> pusher_queue[3]; // Estas Queues sao Read-Only, alterar estas Pieces nao altera a versao original da Piece!
+    uint16_t pusher_queue_size[3]; // Isto NAO sao quantas pecas estao alocadas, mas sim fisicamente presentes no slider
 
     OrderQueue *order_queue;
     Warehouse *warehouse;
@@ -58,7 +60,7 @@ public:
     
     bool Reconnect();
 
-    bool SendPieceOPC_UA (Order::BaseOrder *order);
+    bool SendPiece (Order::BaseOrder *order);
 
     bool CheckPiecesFinished();
 
@@ -67,6 +69,15 @@ public:
     bool warehouseOutCarpetIsFree();
 
     bool CheckOutgoingPieces();
+
+    /**
+     * @brief Get piece allocation for specific pusher
+     * 
+     * @param pusher_number pusher identifier, from which the piece allocation will be retrieved and
+     * should be either 1,2 or 3.
+     * @return number of allocated pieces for specified pusher. Returns 0 if it fails
+     */
+    unsigned int GetPieceAllocInPusher(uint8_t pusher_number);
 };
 
 #endif

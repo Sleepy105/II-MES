@@ -20,6 +20,13 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
     warehouse = warehouse_reference;
 
 
+    // fill pusher queues with dummy pieces. This gets rectified after the first CheckOutgoingPieces() call
+    for (int i = 0; i < 3; i++){
+        pusher_queue_size[i] = 4;
+        for (int j = 0; j < 4; j++){
+            pusher_queue[i].push(Order::Piece(0));
+        }
+    }
 }
 
 OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *order_queue_reference, Warehouse *warehouse_reference, uint16_t index) {
@@ -37,6 +44,13 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
     warehouse = warehouse_reference;
 
 
+    // fill pusher queues with dummy pieces. This gets rectified after the first CheckOutgoingPieces() call
+    for (int i = 0; i < 3; i++){
+        pusher_queue_size[i] = 4;
+        for (int j = 0; j < 4; j++){
+            pusher_queue[i].push(Order::Piece(0));
+        }
+    }
 }
 
 // Completo: testa a conecao e tenta reconetar-se, se ja nao estiver conetado.
@@ -129,7 +143,7 @@ bool OPCUA_Manager::warehouseOutCarpetIsFree() {
 // Quase completo: falta substituir dummy value de transformation.
 // Envia ultima peca que esteja na lista de pecas da order. 
 // Nesta altura a peca ja deve estar na base de dados e ter um id atribuido
-bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
+bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     // Create base string for node access
     char NodeID[128];
     char NodeID_backup[128];
@@ -148,12 +162,14 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     uint16_t object_index = 1;
 
     // Get data to send from order
+    uint8_t pusher_destination = (order->GetType() == Order::ORDER_TYPE_UNLOAD ? order->GetFinalPiece() : 0);
     uint16_t type_piece = order->GetInitialPiece();
     uint8_t piece_type_to_remove = (uint8_t) type_piece;
-    uint16_t id_piece = (uint16_t)order->GetLastPiece()->GetID();
-    uint8_t *moves = order->GetLastPiece()->GetMoves();
-    uint8_t *transformation = order->GetLastPiece()->GetTransformations();
-    uint8_t *machines = order->GetLastPiece()->GetMachines();
+    Order::Piece piece_copy = *(order->GetLastPiece());
+    uint16_t id_piece = (uint16_t)piece_copy.GetID();
+    uint8_t *moves = piece_copy.GetMoves();
+    uint8_t *transformation = piece_copy.GetTransformations();
+    uint8_t *machines = piece_copy.GetMachines();
 
     // Criar vetor em formato compatível com OPC-UA
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
@@ -316,21 +332,27 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
 
+    // remove piece from warehouse
     warehouse->RemovePiece(piece_type_to_remove);
+    // push piece to queue, reserving a spot in a slider and check it as finished in DataBase
+    if (pusher_destination > 0){ // same as checking if it's an unload order
+        if (pusher_destination > 3){
+            meslog(ERROR) << "Invalid pusher destination. Piece will still be sent and updated but not included in pusher allocation." << std::endl;
+            order_queue->RemovePiece(piece_copy.GetID()); // imediately check piece as finished
+        }
+        pusher_queue[pusher_destination-1].push(piece_copy);
+        if (pusher_queue[pusher_destination-1].size() > 4){
+            meslog(ERROR) << "Pusher " << (int)pusher_destination << " has " << pusher_queue[pusher_destination-1].size() - 4 << " excess pieces allocated to it! This is only an ERROR if pathfinder already has this feature." << std::endl;
+        }
+        order_queue->RemovePiece(piece_copy.GetID()); // imediately check piece as finished
+    }
 
     return true;
 }
 
 
-// Incompleto e nao testado: id das pecas e lido, mas nao se faz nada quanto a isso.
-// Falta remover as pecas da lista de pecas e atualizar orders conforme ids lidos.
-// Verifica buffer de pecas que deram entrada no armazem. Le as pecas todas imediatamente
-// i.e. nao e preciso executar esta funcao 5x para ler 5 pecas, sempre que se chama a
-// funcao ela lê as pecas todas e limpa o buffer. Consoante o buffer, leem-se os ids
-// das pecas para um vetor e mete-se as flags respetivas do buffer como "lidas" para
-// o PLC saber que pode escrever nesse sitio do buffer. Falta remover as pecas recebidas
-// da lista de pecas da OrderQueue
-// Retorna true se conseguiu ler pecas, ou false se nao conseguiu (porque nao havia)
+// Completo: 
+// Retorna true se conseguiu ler pecas, ou false se nao conseguiu (porque nao havia ou porque falhou)
 bool OPCUA_Manager::CheckPiecesFinished(){
     char NodeID[128];
     char NodeID_backup[128];
@@ -378,7 +400,6 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     strcat (NodeID_backup, "PLC_PRG.AT2.piece_id_array[");
 
     // check if the queue has any unprocessed pieces and count how many nodes we need to read
-    // start initializing nodes_to_read as we go (save us from another loop)
     number_of_ids_to_read = 0;
     for (i = 0; i < 10; i++){
         if (piece_queue[i]){
@@ -462,17 +483,15 @@ bool OPCUA_Manager::CheckPiecesFinished(){
 }
 
 
-// Completo mas nao testado.
-// Verifica pecas que estejam nos tapetes de carga. Se houver pecas adiciona-as
+// Completo: verifica pecas que estejam nos tapetes de carga. Se houver pecas adiciona-as
 // imediatamente a uma order que tambem e criada pela funcao. Esta funcao tambem
 // serve para o PLC poder prosseguir e colocar a peca acabada de chegar no armazem.
 // Retorna true se tiver detetado pecas (em qualquer um dos tapetes) e false se ambos
-// os tapetes estava vazios
+// os tapetes estavam vazios
 bool OPCUA_Manager::CheckIncomingPieces(){
     // to write stuff with OPC_UA (might go unused)
     UA_WriteRequest wReq;
     UA_WriteResponse wResp;
-    UA_WriteValue nodes_to_write[2];
     uint16_t PieceID;
     bool Mes_is_ok = true;
     bool MES_ok = true;
@@ -633,6 +652,70 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     return return_value;
 }
 
-bool CheckOutgoingPieces(){
-    return false;
+bool OPCUA_Manager::CheckOutgoingPieces(){
+    // OPC-UA Node Read
+    
+    UA_StatusCode retval;
+    UA_Variant *val;
+    char NodeID[128] = {0};
+    char NodeID_Backup[128];
+    uint16_t queue_size_in_PLC[3];
+    bool return_value = false;
+    int i;
+
+    strcpy (NodeID_Backup, BaseNodeID_);
+    strcat (NodeID_Backup,"PLC_PRG.C7T");
+
+    for (i = 0; i < 3; i++){
+        strcpy (NodeID, NodeID_Backup);
+
+        switch(i) {
+            case 0:
+                strcat (NodeID, "3");
+                break;
+            case 1:
+                strcat (NodeID, "4");
+                break;
+            case 2:
+                strcat (NodeID, "5");
+                break;
+        }
+
+        strcat (NodeID, ".slider_queue");
+
+        val = UA_Variant_new();
+        retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+        if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
+            meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+            return false;
+        }
+        if (retval != UA_STATUSCODE_GOOD){
+            meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
+            return false;
+        }
+
+        queue_size_in_PLC[i] = *(UA_UInt16*)val->data;
+        UA_Variant_delete(val);
+    }
+
+    /// OPC-UA Node Read finished. All pusher queue sizes in PLC have been read.
+    for (i = 0; i < 3; i++){
+        while (queue_size_in_PLC[i] < pusher_queue_size[i]){
+            meslog(INFO) << "Popped piece " << pusher_queue[i].front().GetID() << " from Pusher " << i+1 << "'s queue." << std::endl;
+            return_value = true;
+            pusher_queue[i].pop();
+            pusher_queue_size[i] -= 1;
+        }pusher_queue_size[i] = queue_size_in_PLC[i];
+    }
+
+    return return_value;
+}
+
+unsigned int OPCUA_Manager::GetPieceAllocInPusher(uint8_t pusher_number){
+    if (pusher_number > 3 || pusher_number < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify pushers by 1, 2 or 3." << std::endl;
+        return 0;
+    }
+    return pusher_queue[pusher_number-1].size();
+
 }
