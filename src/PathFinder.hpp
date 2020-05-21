@@ -155,7 +155,16 @@ class PathFinder::Machine : public Linear {
 protected:
     Warehouse* warehouse;
 
-    const uint32_t ToolChange = 1;
+    const uint32_t ToolChange = 30;
+
+    enum OperationType {ChangeTools=1, PartTransformation};
+    
+    typedef struct {
+        OperationType type;
+        Transformation* transformation = NULL;
+    } Operation;
+
+    std::list<Operation*> operation_queue;
 
     /**
      * @brief Get the Transformation that makes parts of this type
