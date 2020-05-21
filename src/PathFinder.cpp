@@ -91,7 +91,7 @@ PathFinder::Transformation T12 = {
     .time   = 10,
 };
 
-PathFinder::BaseModule::BaseModule() {
+PathFinder::BaseModule::BaseModule(Type type) : type(type) {
 
 }
 
@@ -103,10 +103,10 @@ PathFinder::ModulePath* PathFinder::BaseModule::search(uint32_t time_so_far, Mod
     // TODO self calculation
     uint32_t self_time = 0;
 
-    ModulePath* best_path = searchUpstream(time_so_far, best_so_far);
-    if (!best_path) {
-        best_path = new ModulePath();
+    if (!best_so_far) {
+        best_so_far = new ModulePath();
     }
+    ModulePath* best_path = searchUpstream(time_so_far, best_so_far);
     best_path->path.push_back(this);
     best_path->time += self_time;
     return best_path;
@@ -122,6 +122,10 @@ PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_
         if (!module) {
             continue;
         }
+
+        /*if (module->type == Type::Machine && !module->canDoTransformation()) {
+            continue;
+        }*/
         
         ModulePath* path = module->search(time_so_far, best_so_far);
 
@@ -138,7 +142,7 @@ PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_
             continue;
         }
     }
-    return NULL;
+    return best_so_far;
 }
 
 bool PathFinder::BaseModule::canDoTransformation(Transformation* t) {
