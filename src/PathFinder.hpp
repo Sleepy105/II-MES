@@ -22,14 +22,15 @@ namespace PathFinder {
         uint8_t time;
     } Transformation;
 
-    enum Direction { Right=1, Down, Left, Up};
+    enum Direction { Right=1, Down, Left, Up };
     
 };
 
 
 class PathFinder::BaseModule {
 private:
-    std::list<BaseModule> upstream_modules;
+    BaseModule* modules[4] = {NULL};
+    bool upstreams[4] = {false};
     std::list<Transformation> valid_transformations;
 
     uint32_t time_so_far;
@@ -63,6 +64,32 @@ public:
      * @return false 
      */
     bool canDoTransformation(Transformation& t);
+
+    /**
+     * @brief Set the Module present in Dir direction
+     * 
+     * @param dir 
+     * @param module 
+     * @param upstream Is this direction considered to be an upstream direction
+     */
+    void setDir(Direction dir, BaseModule* module, bool upstream);
+
+    /**
+     * @brief Get the Module for that direction
+     * 
+     * @param dir 
+     * @return BaseModule* 
+     */
+    BaseModule* getDir(Direction dir);
+
+    /**
+     * @brief Returns if the direction is an upstream
+     * 
+     * @param dir 
+     * @return true 
+     * @return false 
+     */
+    bool isUpstream(Direction dir);
 };
 
 

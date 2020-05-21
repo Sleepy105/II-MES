@@ -110,11 +110,17 @@ PathFinder::ModulePath* PathFinder::BaseModule::search(uint32_t time_so_far, uin
 }
 
 PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_far, uint32_t best_so_far) {
-    for(std::list<BaseModule>::iterator iter = upstream_modules.begin(); 
-        iter != upstream_modules.end();
-        iter++)
-    {
-        ModulePath* path = (*iter).search(time_so_far, best_so_far);
+    for ( const auto dir : { Direction::Right, Direction::Up } ) {
+        if (!isUpstream(dir)) {
+            continue;
+        }
+        
+        BaseModule* module = getDir(dir);
+        if (!module) {
+            continue;
+        }
+        
+        ModulePath* path = module->search(time_so_far, best_so_far);
 
         if (!_best_path_so_far) {
             _best_path_so_far = path;
@@ -130,6 +136,19 @@ PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_
         }
     }
     return NULL;
+}
+
+void PathFinder::BaseModule::setDir(Direction dir, BaseModule* module, bool upstream) {
+    modules[dir] = module;
+    upstreams[dir] = upstream;
+}
+
+PathFinder::BaseModule* PathFinder::BaseModule::getDir(Direction dir) {
+    return modules[dir];
+}
+
+bool PathFinder::BaseModule::isUpstream(Direction dir) {
+    return upstreams[dir];
 }
 
 PathFinder::PathFinder::PathFinder() {
