@@ -93,10 +93,10 @@ bool XMLParser::parse_RequestStores() {
 
 void XMLParser::handleParsingError() {
     /**
-     *  TODO: Handle parsing errors. Should send a message back through UDP
+     *  Handle parsing errors. Should send a message back through UDP
      *
      */
-    const char* data = "Error in MES\n";
+    const char* data = "Error in MES!!!\n";
     ((UDPManager*)udp)->sendData(data);
     return;
 }
