@@ -135,6 +135,8 @@ PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(Order::BaseOrder&
             best_so_far = path;
             continue;
         }
+
+        delete(path);
     }
     return best_so_far;
 }
@@ -172,7 +174,6 @@ bool PathFinder::BaseModule::isUpstream(Direction dir) {
 }
 
 uint32_t PathFinder::BaseModule::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
-    // TODO
     return 0;
 }
 

@@ -106,7 +106,8 @@ public:
     bool isUpstream(Direction dir);
 
     /**
-     * @brief Calculate time that this module will take to handle a part of this type
+     * @brief Calculate time that this module will take to handle a part of this type.
+     * Always returns 0. To be implemented in subclass
      * 
      * @param order
      * @param part_type 
