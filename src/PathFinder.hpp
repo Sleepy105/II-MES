@@ -134,8 +134,14 @@ public:
 };
 
 class PathFinder::Machine : BaseModule {
-private:
-    /* data */
+protected:
+    /**
+     * @brief Get the Transformation that makes parts of this type
+     * 
+     * @param part_type 
+     * @return Transformation* 
+     */
+    Transformation* getTransformationThatMakesPart(uint8_t part_type);
 public:
     Machine();
     ~Machine();

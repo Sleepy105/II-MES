@@ -193,16 +193,30 @@ PathFinder::Machine::~Machine() {
 
 }
 
-bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
+PathFinder::Transformation* PathFinder::Machine::getTransformationThatMakesPart(uint8_t part_type) {
     for (std::list<Transformation*>::iterator iter = valid_transformations.begin();
             iter != valid_transformations.end();
             iter++)
     {
         if ((*iter)->to == part_type) {
-            return true;
+            return (*iter);
         }
     }
-    return false;
+    return NULL;
+}
+
+bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
+    return (getTransformationThatMakesPart(part_type));
+}
+
+uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
+    // TODO
+    return 0;
+}
+
+uint8_t PathFinder::Machine::changeType(uint8_t part_type) {
+    Transformation* t = getTransformationThatMakesPart(part_type);
+    return t->from;
 }
 
 PathFinder::Linear::Linear() {
