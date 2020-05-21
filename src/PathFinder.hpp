@@ -33,7 +33,7 @@ namespace PathFinder {
 
 
 class PathFinder::BaseModule {
-private:
+protected:
     BaseModule* modules[4] = {NULL};
     bool upstreams[4] = {false};
     std::list<Transformation*> valid_transformations;
@@ -106,6 +106,15 @@ public:
     bool isUpstream(Direction dir);
 
     /**
+     * @brief Check if this Module can handle a part of this type
+     * 
+     * @param part_type 
+     * @return true 
+     * @return false 
+     */
+    bool canHandlePart(uint8_t part_type);
+
+    /**
      * @brief Calculate time that this module will take to handle a part of this type.
      * Always returns 0. To be implemented in subclass
      * 
@@ -130,6 +139,33 @@ private:
 public:
     Machine();
     ~Machine();
+
+    /**
+     * @brief Check if this Module can handle a part of this type
+     * 
+     * @param part_type 
+     * @return true 
+     * @return false 
+     */
+    bool canHandlePart(uint8_t part_type);
+
+    /**
+     * @brief Calculate time that this module will take to handle a part of this type.
+     * Always returns 0. To be implemented in subclass
+     * 
+     * @param order
+     * @param part_type 
+     * @return uint32_t 
+     */
+    uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
+
+    /**
+     * @brief Does nothing. Subclasses can implement this to change part_type, if needed, mid search().
+     * 
+     * @param part_type 
+     * @return uint8_t Returns part_type
+     */
+    uint8_t changeType(uint8_t part_type);
 };
 
 class PathFinder::Linear : BaseModule {

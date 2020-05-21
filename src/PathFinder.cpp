@@ -117,9 +117,9 @@ PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(Order::BaseOrder&
             continue;
         }
 
-        /*if (module->type == Type::Machine && !module->canDoTransformation()) {
+        if (!module->canHandlePart(part_type)) {
             continue;
-        }*/
+        }
         
         ModulePath* path = module->search(order, part_type, time_so_far, best_so_far);
 
@@ -173,6 +173,10 @@ bool PathFinder::BaseModule::isUpstream(Direction dir) {
     return upstreams[dir];
 }
 
+bool PathFinder::BaseModule::canHandlePart(uint8_t part_type) {
+    return true;
+}
+
 uint32_t PathFinder::BaseModule::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
     return 0;
 }
@@ -187,6 +191,18 @@ PathFinder::Machine::Machine() {
 
 PathFinder::Machine::~Machine() {
 
+}
+
+bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
+    for (std::list<Transformation*>::iterator iter = valid_transformations.begin();
+            iter != valid_transformations.end();
+            iter++)
+    {
+        if ((*iter)->to == part_type) {
+            return true;
+        }
+    }
+    return false;
 }
 
 PathFinder::Linear::Linear() {
