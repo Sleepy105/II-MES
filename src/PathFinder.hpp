@@ -46,7 +46,7 @@ private:
      * @param time_so_far 
      * @return ModulePath* 
      */
-    ModulePath* searchUpstream(uint32_t time_so_far, ModulePath* best_so_far);
+    ModulePath* searchUpstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far);
 
 public:
     BaseModule();
@@ -61,7 +61,7 @@ public:
      * @param time_so_far 
      * @return ModulePath* 
      */
-    ModulePath* search(uint32_t time_so_far, ModulePath* best_so_far);
+    ModulePath* search(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far);
     
     /**
      * @brief Check if module can do a certain transformation of parts
@@ -104,6 +104,23 @@ public:
      * @return false 
      */
     bool isUpstream(Direction dir);
+
+    /**
+     * @brief Calculate time that this module will take to handle a part of this type
+     * 
+     * @param order
+     * @param part_type 
+     * @return uint32_t 
+     */
+    uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
+
+    /**
+     * @brief Does nothing. Subclasses can implement this to change part_type, if needed, mid search().
+     * 
+     * @param part_type 
+     * @return uint8_t Returns part_type
+     */
+    uint8_t changeType(uint8_t part_type);
 };
 
 class PathFinder::Machine : BaseModule {

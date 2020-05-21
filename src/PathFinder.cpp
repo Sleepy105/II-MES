@@ -92,20 +92,21 @@ PathFinder::BaseModule::~BaseModule() {
     
 }
 
-PathFinder::ModulePath* PathFinder::BaseModule::search(uint32_t time_so_far, ModulePath* best_so_far) {
-    // TODO self calculation
-    uint32_t self_time = 0;
+PathFinder::ModulePath* PathFinder::BaseModule::search(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far) {
+    uint32_t self_time = calcTimeToHandlePart(order, part_type);
+
+    part_type = changeType(part_type);
 
     if (!best_so_far) {
         best_so_far = new ModulePath();
     }
-    ModulePath* best_path = searchUpstream(time_so_far, best_so_far);
+    ModulePath* best_path = searchUpstream(order, part_type, time_so_far+self_time, best_so_far);
     best_path->path.push_back(this);
     best_path->time += self_time;
     return best_path;
 }
 
-PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_far, ModulePath* best_so_far) {
+PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far) {
     for ( const auto dir : { Direction::Right, Direction::Up } ) {
         if (!isUpstream(dir)) {
             continue;
@@ -120,7 +121,7 @@ PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_
             continue;
         }*/
         
-        ModulePath* path = module->search(time_so_far, best_so_far);
+        ModulePath* path = module->search(order, part_type, time_so_far, best_so_far);
 
         if (!best_so_far) {
             best_so_far = path;
@@ -168,6 +169,15 @@ PathFinder::BaseModule* PathFinder::BaseModule::getDir(Direction dir) {
 
 bool PathFinder::BaseModule::isUpstream(Direction dir) {
     return upstreams[dir];
+}
+
+uint32_t PathFinder::BaseModule::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
+    // TODO
+    return 0;
+}
+
+uint8_t PathFinder::BaseModule::changeType(uint8_t part_type) {
+    return part_type;
 }
 
 PathFinder::Machine::Machine() {
