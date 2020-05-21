@@ -210,8 +210,11 @@ bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
 }
 
 uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
-    // TODO
-    return 0;
+    // TODO Check for tool changes
+    // Divide tool change time by number of parts in the order
+
+    Transformation* t = getTransformationThatMakesPart(part_type);
+    return t->time +1;
 }
 
 uint8_t PathFinder::Machine::changeType(uint8_t part_type) {
