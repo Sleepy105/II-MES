@@ -6,6 +6,7 @@
 #include <iterator>
 
 #include "Order.hpp"
+#include "Warehouse.hpp"
 
 namespace PathFinder {
     class PathFinder;
@@ -152,6 +153,10 @@ public:
 
 class PathFinder::Machine : public Linear {
 protected:
+    Warehouse* warehouse;
+
+    const uint32_t ToolChange = 1;
+
     /**
      * @brief Get the Transformation that makes parts of this type
      * 
@@ -160,7 +165,7 @@ protected:
      */
     Transformation* getTransformationThatMakesPart(uint8_t part_type);
 public:
-    Machine() { type = Type::Machine; }
+    Machine(Warehouse* warehouse) : warehouse(warehouse) { type = Type::Machine; }
     ~Machine() {}
 
     /**
@@ -218,8 +223,10 @@ public:
 
 
 class PathFinder::PathFinder{
+private:
+    Warehouse* warehouse;
 public:
-    PathFinder() {}
+    PathFinder(Warehouse* warehouse) : warehouse(warehouse) {}
     ~PathFinder() {}
     /**
      * @brief Search for optimum path for a part of this order

@@ -16,7 +16,7 @@ class OrderQueue{
     private:
         std::list<Order::BaseOrder> orders_;
         Warehouse *warehouse;
-        PathFinder::PathFinder pathfinder;
+        PathFinder::PathFinder* pathfinder;
         std::mutex mtx;
         
 

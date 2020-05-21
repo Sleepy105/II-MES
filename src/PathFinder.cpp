@@ -198,11 +198,22 @@ bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
 }
 
 uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
+    uint32_t handle_time = Receive;
     // TODO Check for tool changes
-    // Divide tool change time by number of parts in the order
+    bool requiresToolChange = false;
+    
+    if (requiresToolChange) {
+        // Divide tool change time by number of parts in the order
+        // Take into account number of available parts in the warehouse
+        uint32_t order_part_count = order.GetCount();
+        uint32_t available_part_count = 0;
+        handle_time += ToolChange/(available_part_count < order_part_count ? available_part_count : order_part_count );
+    }
 
     Transformation* t = getTransformationThatMakesPart(part_type);
-    return t->time + Receive;
+    handle_time += t->time;
+
+    return handle_time;
 }
 
 uint8_t PathFinder::Machine::changeType(uint8_t part_type) {

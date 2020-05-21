@@ -1,7 +1,7 @@
 #include "OrderQueue.hpp"
 
 OrderQueue::OrderQueue(Warehouse* warehouse) : warehouse(warehouse){
-
+	pathfinder = new PathFinder::PathFinder(warehouse);
 }
 
 OrderQueue::~OrderQueue(){
@@ -228,7 +228,7 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 		/*** Valid Order Found ***/
 
 		// Find path for new part
-		Path* path = pathfinder.FindPath(order);
+		Path* path = pathfinder->FindPath(order);
 		if (!path) {
 			// Order Invalid: At the moment, a valid path has not been found
 			continue;
