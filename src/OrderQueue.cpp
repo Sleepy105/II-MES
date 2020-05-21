@@ -168,7 +168,6 @@ bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 	Se conseguir encontrar e remover a peca retorna tipo de peça removida, senao retorna 0.
 */
 uint8_t OrderQueue::RemovePiece(uint32_t target_id){
-	meslog(INFO) << "Erasing piece " << target_id << std::endl;
 
 	uint8_t removed_piece_type;
 
@@ -187,11 +186,10 @@ uint8_t OrderQueue::RemovePiece(uint32_t target_id){
 				piece_list->erase(pieces_iter_);
 				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
 				if ((orders_iter_->GetCount() == 0) && (piece_list->size() == 0)){
-					meslog (ERROR) << "REMOVE ORDER!!!!!!" << std::endl;
 					RemoveOrder((*orders_iter_));
 				}
 				meslog(INFO) << "Piece " << target_id << " erased!" << std::endl;
-				print();
+				//print();
 				return removed_piece_type; // a piece was found and deleted, return true
 			}
 		}
