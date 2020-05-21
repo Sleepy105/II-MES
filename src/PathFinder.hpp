@@ -49,8 +49,8 @@ protected:
     ModulePath* searchUpstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far);
 
 public:
-    BaseModule();
-    ~BaseModule();
+    BaseModule() {}
+    ~BaseModule() {}
 
     enum Type {Machine, Linear, Rotational, Pusher};
     Type type;

@@ -84,14 +84,6 @@ PathFinder::Transformation T12 = {
     .time   = 10,
 };
 
-PathFinder::BaseModule::BaseModule() {
-
-}
-
-PathFinder::BaseModule::~BaseModule() {
-    
-}
-
 PathFinder::ModulePath* PathFinder::BaseModule::search(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far) {
     uint32_t self_time = calcTimeToHandlePart(order, part_type);
 
