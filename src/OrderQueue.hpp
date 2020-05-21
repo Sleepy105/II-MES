@@ -25,7 +25,7 @@ class OrderQueue{
         ~OrderQueue();
         int AddOrder(Order::BaseOrder order_to_add);
         bool RemoveOrder(Order::BaseOrder order_to_remove);
-        bool RemovePiece(uint32_t target_id);
+        uint8_t RemovePiece(uint32_t target_id);
         bool RestoreLoadUnload(InformationDisInc LoadUndload);
         bool RestoreTrans(Transformation temp);
         Order::BaseOrder *GetNextOrder();

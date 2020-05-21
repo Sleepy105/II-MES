@@ -20,13 +20,17 @@ Warehouse::~Warehouse(){
 }
 
 bool Warehouse::AddPiece(uint8_t type){
-    pieceTypeCount_[type-1]++;
-    return true;
+    if (type > 0){
+        pieceTypeCount_[type-1] += 1;
+        return true;
+    }
+    return false;
 }
 
 bool Warehouse::RemovePiece(uint8_t type){
-    if (pieceTypeCount_[type-1] > 0){
-        pieceTypeCount_[type-1]--;
+    // if type is not type 0 and warehouse still has pieces of that type
+    if (type > 0 && pieceTypeCount_[type-1] > 0){
+        pieceTypeCount_[type-1] -= 1;
         return true;
     }
     return false;

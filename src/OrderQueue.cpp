@@ -165,10 +165,12 @@ bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 /*
 	Remove primeira peca que de match com o target_id, independentemente da order (nao verifica se ha pecas duplicadas).
 	Se esta peca for a ultima peca da order, remove a order também.
-	Se conseguir encontrar e remover a peca retorna true, senao retorna false.
+	Se conseguir encontrar e remover a peca retorna tipo de peça removida, senao retorna 0.
 */
-bool OrderQueue::RemovePiece(uint32_t target_id){
+uint8_t OrderQueue::RemovePiece(uint32_t target_id){
 	meslog(INFO) << "Erasing piece " << target_id << std::endl;
+
+	uint8_t removed_piece_type;
 
 	std::list<Order::BaseOrder>::iterator orders_iter_;
 	std::list<Order::Piece>::iterator pieces_iter_;
@@ -181,6 +183,7 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 		// for each piece
 			if (pieces_iter_->GetID() == target_id){
 				updateDataPiece(DBFILE, (int) target_id); // update piece finish time in database
+				removed_piece_type = orders_iter_->GetLastPiece;
 				piece_list->erase(pieces_iter_);
 				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
 				if ((orders_iter_->GetCount() == 0) && (piece_list->size() == 0)){
@@ -189,12 +192,12 @@ bool OrderQueue::RemovePiece(uint32_t target_id){
 				}
 				meslog(INFO) << "Piece " << target_id << " erased!" << std::endl;
 				print();
-				return true; // a piece was found and deleted, return true
+				return removed_piece_type; // a piece was found and deleted, return true
 			}
 		}
 	}
 	meslog(ERROR) << "Couldn't find Piece " << target_id << " in Order Queue!" << std::endl;
-	return false; // end of function reached only if piece was not found
+	return 0; // end of function reached only if piece was not found
 }
 
 /*

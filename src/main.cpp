@@ -67,8 +67,7 @@ int main (int argc, char const *argv[]) {
         std::getline(infile, OpcUa_conn);
     }
     else {
-        meslog(ERROR) << "Couldn't open opc-ua-conf.txt, using default ID..." << std::endl;
-        meslog(ERROR) << "Couldn't open opc-ua-conf.txt, using default Protocol, IP Address and Port..." << std::endl;
+        meslog(ERROR) << "Couldn't open opc-ua-conf.txt, using default ID, Protocol, IP Address and Port......" << std::endl;
     }
     
     OPCUA_Manager opc_ua(OpcUa_conn.c_str(), OpcUa_id.c_str(), 4, &order_queue, &warehouse);
@@ -77,27 +76,26 @@ int main (int argc, char const *argv[]) {
     Order::BaseOrder *next_order;
     bool order_buffered = false;
 
-    /*if (!opc_ua.Is_Connected()){
-        meslog(ERROR) << "Couldn't connect to OPC-UA Master, waitting for connection..." << std::endl;
-        while (!opc_ua.Is_Connected()){
-            opc_ua.Reconnect();
-        }
-        meslog(INFO) << "Connection established." << std::endl;
-    }*/
     //Ciclo de Controlo Principal (threadless, com a excepcao do UDPManager)
-    while (opc_ua.Is_Connected()){
+    while (true){
+        while(!opc_ua.Reconnect()){ // if no connection, reconnect (Reconnect() does both the checking and the reconnecting)
+            meslog(ERROR) << "Couldn't connect to OPC-UA Master, waitting for connection..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS/10*1000000)); // 0,1 s
+        }
         meslog(INFO) << "Running cycle..." << std::endl;
 
         //envia peca das orders de load e transformation
         try{
             if (opc_ua.warehouseOutCarpetIsFree()){
-                next_order = order_queue.GetNextOrder();
+                next_order = order_queue.GetNextOrder(); // this generates an exception if no orders found (will jump to "catch()", below)
+                // This code will only run if the previous call to GetNextOrder() didn't generate an exception:
                 opc_ua.SendPieceOPC_UA(next_order);
                 next_order->DecreaseCount();
                 meslog(INFO) << "Piece Sent. Current count for order " << next_order->GetID() << ": "<< next_order->GetCount() << std::endl;
             }
         }catch(const char *msg){
-            
+            // Run this if no orders were found. msg already holds the error message, in case we want to display it, like so: "meslog(ERROR) << msg << std::endl"
+
         }
         //verifica se recebeu pecas
         if (opc_ua.CheckIncomingPieces()){
@@ -108,7 +106,7 @@ int main (int argc, char const *argv[]) {
             meslog(INFO) << "Piece(s) finished in factory floor" << std::endl;
         }
 
-        std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS*1000000)); // 0,2 s
+        std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS*1000000)); // 1 s
     } meslog(ERROR) << "Disconnected from OPC-UA Master" << std::endl;
 
 

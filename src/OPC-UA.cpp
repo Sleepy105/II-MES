@@ -5,7 +5,24 @@
 
 #include "OPC-UA.hpp"
 
-OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index, OrderQueue *order_queue_reference, Warehouse *warehouse_reference) {
+OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *order_queue_reference, Warehouse *warehouse_reference) {
+    strcpy(URL_, URL);
+    client_ = ServerConnect(URL_);
+    nodeIndex_ = 4;
+    BaseNodeID_ = BaseID;
+    if (!client_) {
+        connected_ = false;
+    }
+    else {
+        connected_ = true;
+    }
+    order_queue = order_queue_reference;
+    warehouse = warehouse_reference;
+
+
+}
+
+OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *order_queue_reference, Warehouse *warehouse_reference, uint16_t index) {
     strcpy(URL_, URL);
     client_ = ServerConnect(URL_);
     nodeIndex_ = index;
@@ -22,8 +39,23 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, int16_t index,
 
 }
 
-void OPCUA_Manager::Reconnect(){
+// Completo: testa a conecao e tenta reconetar-se, se ja nao estiver conetado.
+bool OPCUA_Manager::Reconnect(){
+    // In case reconnect is called even though we were already connected
+    if (client_) { 
+        if (UA_Client_connect(client_, URL_) == UA_STATUSCODE_GOOD){
+            return true;
+        }
+        UA_Client_delete(client_);
+    }
+    // Actual "reconnect" part:
     client_ = ServerConnect(URL_);
+    if (client_) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 
@@ -117,6 +149,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
 
     // Get data to send from order
     uint16_t type_piece = order->GetInitialPiece();
+    uint8_t piece_type_to_remove = (uint8_t) type_piece;
     uint16_t id_piece = (uint16_t)order->GetLastPiece()->GetID();
     uint8_t *moves = order->GetLastPiece()->GetMoves();
     uint8_t *transformation = order->GetLastPiece()->GetTransformations();
@@ -283,6 +316,8 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
 
+    warehouse->RemovePiece(uint8_t piece_type_to_remove)
+
     return true;
 }
 
@@ -311,6 +346,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     // received but haven't yet been processed by MES)
     bool piece_queue[10] = { false };
     uint16_t piece_ids[10] = {0};
+    uint8_t piece_type_to_add;
     UA_Variant *val;
     UA_StatusCode retval;
 
@@ -366,7 +402,8 @@ bool OPCUA_Manager::CheckPiecesFinished(){
             piece_ids[i] = *(UA_UInt16*)val->data;
             UA_Variant_delete(val);
 
-            order_queue->RemovePiece((uint32_t) piece_ids[i]);
+            piece_type_to_add = order_queue->RemovePiece((uint32_t) piece_ids[i]);
+            warehouse->RemovePiece(piece_type_to_add);
 
             number_of_ids_to_read++;
         }
@@ -594,4 +631,8 @@ bool OPCUA_Manager::CheckIncomingPieces(){
 
 
     return return_value;
+}
+
+bool CheckOutgoingPieces(){
+    return false;
 }

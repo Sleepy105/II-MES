@@ -50,7 +50,8 @@ private:
     void ConvIntToString(char* string, uint16_t value);
 
 public:
-    OPCUA_Manager(const char* URL, const char* BaseID, int16_t index, OrderQueue *order_queue_reference, Warehouse *warehouse_reference);
+    OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *order_queue_reference, Warehouse *warehouse_reference);
+    OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *order_queue_reference, Warehouse *warehouse_reference, int16_t index);
 
     bool Is_Connected();
     
@@ -63,6 +64,8 @@ public:
     bool CheckIncomingPieces();
 
     bool warehouseOutCarpetIsFree();
+
+    bool CheckOutgoingPieces();
 };
 
 #endif
