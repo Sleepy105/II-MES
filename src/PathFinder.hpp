@@ -28,6 +28,8 @@ namespace PathFinder {
 
 
 class PathFinder::BaseModule {
+    enum Type {Machine, Linear, Rotational, Slider};
+
 private:
     BaseModule* modules[4] = {NULL};
     bool upstreams[4] = {false};
@@ -44,8 +46,10 @@ private:
     ModulePath* searchUpstream(uint32_t time_so_far, ModulePath* best_so_far);
 
 public:
-    BaseModule();
+    BaseModule(Type type);
     ~BaseModule();
+    
+    Type type;
 
     /**
      * @brief Evaluate self (and upstream)
