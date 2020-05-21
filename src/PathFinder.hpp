@@ -137,8 +137,8 @@ class PathFinder::Linear : public BaseModule {
 protected:
     const uint32_t Receive = 1;
 public:
-    Linear();
-    ~Linear();
+    Linear() { type = Type::Linear; }
+    ~Linear() {}
 
     /**
      * @brief Calculate time that this Linear Conveyor will take to handle a part of this type.
@@ -160,8 +160,8 @@ protected:
      */
     Transformation* getTransformationThatMakesPart(uint8_t part_type);
 public:
-    Machine();
-    ~Machine();
+    Machine() { type = Type::Machine; }
+    ~Machine() {}
 
     /**
      * @brief Check if this Module can handle a part of this type
@@ -194,8 +194,8 @@ class PathFinder::Rotational : public Linear {
 protected:
     const uint32_t Rotate = 1;
 public:
-    Rotational();
-    ~Rotational();
+    Rotational() { type = Type::Rotational; }
+    ~Rotational() {}
 
     /**
      * @brief Calculate time that this Rotational Conveyor will take to handle a part of this type.
@@ -211,16 +211,16 @@ class PathFinder::Pusher : public Linear {
 private:
     /* data */
 public:
-    Pusher();
-    ~Pusher();
+    Pusher() { type = Type::Pusher; }
+    ~Pusher() {}
 };
 
 
 
 class PathFinder::PathFinder{
 public:
-    PathFinder();
-    ~PathFinder();
+    PathFinder() {}
+    ~PathFinder() {}
     /**
      * @brief Search for optimum path for a part of this order
      * 
