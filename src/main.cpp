@@ -70,7 +70,7 @@ int main (int argc, char const *argv[]) {
         meslog(ERROR) << "Couldn't open opc-ua-conf.txt, using default ID, Protocol, IP Address and Port......" << std::endl;
     }
     
-    OPCUA_Manager opc_ua(OpcUa_conn.c_str(), OpcUa_id.c_str(), 4, &order_queue, &warehouse);
+    OPCUA_Manager opc_ua(OpcUa_conn.c_str(), OpcUa_id.c_str(), &order_queue, &warehouse);
 
     // Setup de variaveis para o ciclo de controlo principal
     Order::BaseOrder *next_order;

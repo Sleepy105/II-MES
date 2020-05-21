@@ -41,6 +41,7 @@ private:
     char URL_[128];
     int16_t nodeIndex_;
     bool connected_;
+    uint8_t pusher_allocation_[3] = {0};
 
     OrderQueue *order_queue;
     Warehouse *warehouse;
@@ -51,11 +52,11 @@ private:
 
 public:
     OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *order_queue_reference, Warehouse *warehouse_reference);
-    OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *order_queue_reference, Warehouse *warehouse_reference, int16_t index);
+    OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *order_queue_reference, Warehouse *warehouse_reference, uint16_t index);
 
     bool Is_Connected();
     
-    void Reconnect();
+    bool Reconnect();
 
     bool SendPieceOPC_UA (Order::BaseOrder *order);
 

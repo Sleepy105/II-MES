@@ -183,7 +183,7 @@ uint8_t OrderQueue::RemovePiece(uint32_t target_id){
 		// for each piece
 			if (pieces_iter_->GetID() == target_id){
 				updateDataPiece(DBFILE, (int) target_id); // update piece finish time in database
-				removed_piece_type = orders_iter_->GetLastPiece;
+				removed_piece_type = orders_iter_->GetFinalPiece();
 				piece_list->erase(pieces_iter_);
 				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
 				if ((orders_iter_->GetCount() == 0) && (piece_list->size() == 0)){

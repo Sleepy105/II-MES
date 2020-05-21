@@ -316,7 +316,7 @@ bool OPCUA_Manager::SendPieceOPC_UA(Order::BaseOrder *order) {
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
 
-    warehouse->RemovePiece(uint8_t piece_type_to_remove)
+    warehouse->RemovePiece(piece_type_to_remove);
 
     return true;
 }
