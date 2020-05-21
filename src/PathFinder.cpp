@@ -99,17 +99,20 @@ PathFinder::BaseModule::~BaseModule() {
     
 }
 
-PathFinder::ModulePath* PathFinder::BaseModule::search(uint32_t time_so_far, uint32_t best_so_far) {
+PathFinder::ModulePath* PathFinder::BaseModule::search(uint32_t time_so_far, ModulePath* best_so_far) {
     // TODO self calculation
     uint32_t self_time = 0;
 
     ModulePath* best_path = searchUpstream(time_so_far, best_so_far);
+    if (!best_path) {
+        best_path = new ModulePath();
+    }
     best_path->path.push_back(this);
     best_path->time += self_time;
     return best_path;
 }
 
-PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_far, uint32_t best_so_far) {
+PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_far, ModulePath* best_so_far) {
     for ( const auto dir : { Direction::Right, Direction::Up } ) {
         if (!isUpstream(dir)) {
             continue;
@@ -122,20 +125,39 @@ PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(uint32_t time_so_
         
         ModulePath* path = module->search(time_so_far, best_so_far);
 
-        if (!_best_path_so_far) {
-            _best_path_so_far = path;
+        if (!best_so_far) {
+            best_so_far = path;
             continue;
         }
 
         // TODO Even if slower, prioritize paths that use a larger number of machines of the same type, if the order is for more than 1 part
 
-        if (path->time < _best_path_so_far->time) {
-            delete(_best_path_so_far);
-            _best_path_so_far = path;
+        if (path->time < best_so_far->time) {
+            delete(best_so_far);
+            best_so_far = path;
             continue;
         }
     }
     return NULL;
+}
+
+bool PathFinder::BaseModule::canDoTransformation(Transformation* t) {
+    for (std::list<Transformation*>::iterator iter = valid_transformations.begin();
+            iter != valid_transformations.end();
+            iter++)
+    {
+        if ((*iter) == t) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void PathFinder::BaseModule::addCanDoTransformation(Transformation* t) {
+    if (canDoTransformation(t)) {
+        return;
+    }
+    valid_transformations.push_back(t);
 }
 
 void PathFinder::BaseModule::setDir(Direction dir, BaseModule* module, bool upstream) {

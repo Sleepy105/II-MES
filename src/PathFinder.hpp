@@ -31,10 +31,9 @@ class PathFinder::BaseModule {
 private:
     BaseModule* modules[4] = {NULL};
     bool upstreams[4] = {false};
-    std::list<Transformation> valid_transformations;
+    std::list<Transformation*> valid_transformations;
 
     uint32_t time_so_far;
-    ModulePath* _best_path_so_far;
     
     /**
      * @brief Search all valid upstream modules for best path
@@ -42,7 +41,7 @@ private:
      * @param time_so_far 
      * @return ModulePath* 
      */
-    ModulePath* searchUpstream(uint32_t time_so_far, uint32_t best_so_far);
+    ModulePath* searchUpstream(uint32_t time_so_far, ModulePath* best_so_far);
 
 public:
     BaseModule();
@@ -54,7 +53,7 @@ public:
      * @param time_so_far 
      * @return ModulePath* 
      */
-    ModulePath* search(uint32_t time_so_far, uint32_t best_so_far);
+    ModulePath* search(uint32_t time_so_far, ModulePath* best_so_far);
     
     /**
      * @brief Check if module can do a certain transformation of parts
@@ -63,7 +62,14 @@ public:
      * @return true 
      * @return false 
      */
-    bool canDoTransformation(Transformation& t);
+    bool canDoTransformation(Transformation* t);
+
+    /**
+     * @brief Set that it can do the Transformation t
+     * 
+     * @param t 
+     */
+    void addCanDoTransformation(Transformation* t);
 
     /**
      * @brief Set the Module present in Dir direction
