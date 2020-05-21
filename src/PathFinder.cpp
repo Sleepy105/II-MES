@@ -226,7 +226,7 @@ uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint
     // Divide tool change time by number of parts in the order
 
     Transformation* t = getTransformationThatMakesPart(part_type);
-    return t->time +1;
+    return t->time + Receive;
 }
 
 uint8_t PathFinder::Machine::changeType(uint8_t part_type) {
@@ -240,6 +240,10 @@ PathFinder::Rotational::Rotational() {
 
 PathFinder::Rotational::~Rotational() {
 
+}
+
+uint32_t PathFinder::Rotational::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
+    return Rotate + Receive + Rotate;
 }
 
 PathFinder::Pusher::Pusher() {

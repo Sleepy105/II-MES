@@ -191,11 +191,20 @@ public:
 };
 
 class PathFinder::Rotational : public Linear {
-private:
-    /* data */
+protected:
+    const uint32_t Rotate = 1;
 public:
     Rotational();
     ~Rotational();
+
+    /**
+     * @brief Calculate time that this Rotational Conveyor will take to handle a part of this type.
+     * 
+     * @param order
+     * @param part_type 
+     * @return uint32_t 
+     */
+    uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
 };
 
 class PathFinder::Pusher : public Linear {
