@@ -206,7 +206,7 @@ uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint
         // Divide tool change time by number of parts in the order
         // Take into account number of available parts in the warehouse
         uint32_t order_part_count = order.GetCount();
-        uint32_t available_part_count = 0;
+        uint32_t available_part_count = warehouse->GetPieceCount(order.GetInitialPiece());
         handle_time += ToolChange/(available_part_count < order_part_count ? available_part_count : order_part_count );
     }
 
