@@ -14,7 +14,7 @@ namespace PathFinder {
     class Machine;
     class Linear;
     class Rotational;
-    class Slider;
+    class Pusher;
 
     typedef struct {
         std::list<BaseModule*> path;
@@ -52,7 +52,7 @@ public:
     BaseModule();
     ~BaseModule();
 
-    enum Type {Machine, Linear, Rotational, Slider};
+    enum Type {Machine, Linear, Rotational, Pusher};
     Type type;
 
     /**
@@ -133,7 +133,24 @@ public:
     uint8_t changeType(uint8_t part_type);
 };
 
-class PathFinder::Machine : BaseModule {
+class PathFinder::Linear : public BaseModule {
+protected:
+    const uint32_t Receive = 1;
+public:
+    Linear();
+    ~Linear();
+
+    /**
+     * @brief Calculate time that this Linear Conveyor will take to handle a part of this type.
+     * 
+     * @param order
+     * @param part_type 
+     * @return uint32_t 
+     */
+    uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
+};
+
+class PathFinder::Machine : public Linear {
 protected:
     /**
      * @brief Get the Transformation that makes parts of this type
@@ -156,8 +173,7 @@ public:
     bool canHandlePart(uint8_t part_type);
 
     /**
-     * @brief Calculate time that this module will take to handle a part of this type.
-     * Always returns 0. To be implemented in subclass
+     * @brief Calculate time that this Machine will take to handle a part of this type.
      * 
      * @param order
      * @param part_type 
@@ -174,15 +190,7 @@ public:
     uint8_t changeType(uint8_t part_type);
 };
 
-class PathFinder::Linear : BaseModule {
-private:
-    /* data */
-public:
-    Linear();
-    ~Linear();
-};
-
-class PathFinder::Rotational : BaseModule {
+class PathFinder::Rotational : public Linear {
 private:
     /* data */
 public:
@@ -190,12 +198,12 @@ public:
     ~Rotational();
 };
 
-class PathFinder::Slider : BaseModule {
+class PathFinder::Pusher : public Linear {
 private:
     /* data */
 public:
-    Slider();
-    ~Slider();
+    Pusher();
+    ~Pusher();
 };
 
 

@@ -185,6 +185,18 @@ uint8_t PathFinder::BaseModule::changeType(uint8_t part_type) {
     return part_type;
 }
 
+PathFinder::Linear::Linear() {
+    type = Type::Linear;
+}
+
+PathFinder::Linear::~Linear() {
+
+}
+
+uint32_t PathFinder::Linear::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
+    return Receive;
+}
+
 PathFinder::Machine::Machine() {
     type = Type::Machine;
 }
@@ -222,14 +234,6 @@ uint8_t PathFinder::Machine::changeType(uint8_t part_type) {
     return t->from;
 }
 
-PathFinder::Linear::Linear() {
-    type = Type::Linear;
-}
-
-PathFinder::Linear::~Linear() {
-
-}
-
 PathFinder::Rotational::Rotational() {
     type = Type::Rotational;
 }
@@ -238,11 +242,11 @@ PathFinder::Rotational::~Rotational() {
 
 }
 
-PathFinder::Slider::Slider() {
-    type = Type::Slider;
+PathFinder::Pusher::Pusher() {
+    type = Type::Pusher;
 }
 
-PathFinder::Slider::~Slider() {
+PathFinder::Pusher::~Pusher() {
 
 }
 
