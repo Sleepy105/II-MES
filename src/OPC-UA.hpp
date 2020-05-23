@@ -44,6 +44,7 @@ private:
     bool connected_;
     std::queue <Order::Piece> pusher_queue[3]; // Estas Queues sao Read-Only, alterar estas Pieces nao altera a versao original da Piece!
     uint16_t pusher_queue_size[3]; // Isto NAO sao quantas pecas estao alocadas, mas sim fisicamente presentes no slider
+    uint8_t machine_tools_in_use[3][3];
 
     OrderQueue *order_queue;
     Warehouse *warehouse;
@@ -69,6 +70,8 @@ public:
     bool warehouseOutCarpetIsFree();
 
     bool CheckOutgoingPieces();
+    
+    bool UpdateToolsInUse();
 
     /**
      * @brief Get piece allocation for specific pusher
@@ -78,6 +81,16 @@ public:
      * @return number of allocated pieces for specified pusher. Returns 0 if it fails
      */
     unsigned int GetPieceAllocInPusher(uint8_t pusher_number);
+    /**
+     * @brief Get current tool for specific machine from specific cell
+     * 
+     * @param machine_type identifier for machine type, from which the currently equipped tool will be retrieved and
+     * should be either 1,2 or 3, for A,B and C respectively.
+     * @param cell_number identifier for cell, from which the currently equipped tool will be retrieved and
+     * should be either 1,2 or 3.
+     * @return number of currently equipped tool (1,2 or 3). There's no "fail" return;
+     */
+    unsigned int GetCurrentToolInMachine(uint8_t machine_type, uint8_t cell_number);
 };
 
 #endif

@@ -23,7 +23,9 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
     // fill pusher queues with dummy pieces. This gets rectified after the first CheckOutgoingPieces() call
     for (int i = 0; i < 3; i++){
         pusher_queue_size[i] = 4;
-        for (int j = 0; j < 4; j++){
+        pusher_queue[i].push(Order::Piece(0)); // that one piece that we never know if it's there or not
+        for (int j = 0; j < 3; j++){
+            machine_tools_in_use[i][j] = 1;
             pusher_queue[i].push(Order::Piece(0));
         }
     }
@@ -47,7 +49,9 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
     // fill pusher queues with dummy pieces. This gets rectified after the first CheckOutgoingPieces() call
     for (int i = 0; i < 3; i++){
         pusher_queue_size[i] = 4;
-        for (int j = 0; j < 4; j++){
+        pusher_queue[i].push(Order::Piece(0)); // that one piece that we never know if it's there or not
+        for (int j = 0; j < 3; j++){
+            machine_tools_in_use[i][j] = 1;
             pusher_queue[i].push(Order::Piece(0));
         }
     }
@@ -718,4 +722,64 @@ unsigned int OPCUA_Manager::GetPieceAllocInPusher(uint8_t pusher_number){
     }
     return pusher_queue[pusher_number-1].size();
 
+}
+
+bool OPCUA_Manager::UpdateToolsInUse(){
+    UA_StatusCode retval;
+    UA_Variant *val;
+    bool tool_changed = false;
+    char NodeID[128] = {0};
+    char NodeID_Backup[128];
+    char NodeID_Backup2[128];
+    char aux[3];
+    char machine_type_name;
+
+    strcpy(NodeID_Backup, BaseNodeID_);
+    strcat(NodeID_Backup, "PLC_PRG.C");
+
+    for (int cell = 0; cell < 3; cell++){
+        strcpy (NodeID_Backup2, NodeID_Backup);
+        ConvIntToString(aux, 1+cell*2);
+        strcat (NodeID_Backup2, aux);
+        strcat (NodeID_Backup2, "T");
+        for (int machine_type = 0; machine_type < 3; machine_type++){
+            strcpy (NodeID, NodeID_Backup2);
+            ConvIntToString(aux, machine_type+3);
+            strcat(NodeID, aux);
+            strcat(NodeID, ".current_tool");
+
+            val = UA_Variant_new();
+            retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+            if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
+                meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                return tool_changed;
+            }
+            if (retval != UA_STATUSCODE_GOOD){
+                meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
+                return tool_changed;
+            }
+            if (machine_tools_in_use[cell][machine_type] != *(UA_UInt16*)val->data){
+                switch(machine_type){
+                    case 0:
+                        machine_type_name = 'A';
+                        break;
+                    case 1:
+                        machine_type_name = 'B';
+                        break;
+                    case 2:
+                        machine_type_name = 'C';
+                        break;
+                }
+                meslog(INFO) << "Machine " << machine_type_name << cell << " changed from tool " << (int)machine_tools_in_use[cell][machine_type] << " to tool " << *(UA_UInt16*)val->data << "." << std::endl;
+                machine_tools_in_use[cell][machine_type] = *(UA_UInt16*)val->data;
+                tool_changed = true;
+            }
+            UA_Variant_delete(val);
+        }
+    }
+    return tool_changed;
+}
+
+unsigned int OPCUA_Manager::GetCurrentToolInMachine(uint8_t machine_type, uint8_t cell_number){
+    return machine_tools_in_use[cell_number, machine_type];
 }
