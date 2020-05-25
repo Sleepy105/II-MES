@@ -45,6 +45,8 @@ private:
     std::queue <Order::Piece> pusher_queue[3]; // Estas Queues sao Read-Only, alterar estas Pieces nao altera a versao original da Piece!
     uint16_t pusher_queue_size[3]; // Isto NAO sao quantas pecas estao alocadas, mas sim fisicamente presentes no slider
     uint8_t machine_tools_in_use[3][3];
+    uint16_t piece_id_being_processed[3][3];
+    uint16_t last_piece_id_processed[3][3];
 
     OrderQueue *order_queue;
     Warehouse *warehouse;
@@ -71,7 +73,9 @@ public:
 
     bool CheckOutgoingPieces();
     
-    bool UpdateToolsInUse();
+    void UpdateMachineInfo();
+
+    void UpdatePiecesProcessedInMachines();
 
     /**
      * @brief Get piece allocation for specific pusher
@@ -91,6 +95,37 @@ public:
      * @return number of currently equipped tool (1,2 or 3). There's no "fail" return;
      */
     unsigned int GetCurrentToolInMachine(uint8_t machine_type, uint8_t cell_number);
+
+    /**
+     * @brief Get current piece id at top carpet (the one for pieces on hold)
+     * 
+     * @param cell_number identifier for cell, from which the currently equipped tool will be retrieved and
+     * should be either 1,2 or 3.
+     * @return id of piece that is currently present at specified cell_number's holding carpet;
+     */
+    uint16_t GetTopCarpetPieceID(uint8_t cell_number);
+
+    /**
+     * @brief Get id of piece that was last transformed in a given machine (not the currently present piece)
+     * 
+     * @param machine_type identifier for machine type, from which the last completed piece id will be retrieved and
+     * should be either 1,2 or 3, for A,B and C respectively.
+     * @param cell_number identifier for cell, from which the last completed piece id will be retrieved and
+     * should be either 1,2 or 3.
+     * @return id of piece that was last processed in a given machine;
+     */
+    uint16_t GetLastMadePieceIDInMachine(uint8_t machine_type, uint8_t cell_number);
+
+    /**
+     * @brief Get id either of current piece being processed or last piece, in case there's no piece present.
+     * 
+     * @param machine_type identifier for machine type, from which the last completed piece id will be retrieved and
+     * should be either 1,2 or 3, for A,B and C respectively.
+     * @param cell_number identifier for cell, from which the last completed piece id will be retrieved and
+     * should be either 1,2 or 3.
+     * @return id of piece that is currently being processed in a given machine;
+     */
+    uint16_t GetCurrentPieceIDInMachine(uint8_t machine_type, uint8_t cell_number);
 };
 
 #endif
