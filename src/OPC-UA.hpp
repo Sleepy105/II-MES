@@ -84,7 +84,7 @@ public:
      * should be either 1,2 or 3.
      * @return number of allocated pieces for specified pusher. Returns 0 if it fails
      */
-    unsigned int GetPieceAllocInPusher(uint8_t pusher_number);
+    uint16_t GetPieceAllocInPusher(uint8_t pusher_number);
     /**
      * @brief Get current tool for specific machine from specific cell
      * 
@@ -94,7 +94,7 @@ public:
      * should be either 1,2 or 3.
      * @return number of currently equipped tool (1,2 or 3). There's no "fail" return;
      */
-    unsigned int GetCurrentToolInMachine(uint8_t machine_type, uint8_t cell_number);
+    uint16_t GetCurrentToolInMachine(uint8_t machine_type, uint8_t cell_number);
 
     /**
      * @brief Get current piece id at top carpet (the one for pieces on hold)
@@ -126,6 +126,10 @@ public:
      * @return id of piece that is currently being processed in a given machine;
      */
     uint16_t GetCurrentPieceIDInMachine(uint8_t machine_type, uint8_t cell_number);
+
+
+
+    void print_all_machine_info();
 };
 
 #endif

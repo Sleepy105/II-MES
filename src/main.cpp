@@ -89,6 +89,7 @@ int main (int argc, char const *argv[]) {
         }
 
         opc_ua.UpdateMachineInfo();
+        //opc_ua.print_all_machine_info();
 
         //envia peca das orders de load e transformation
         try{
