@@ -88,9 +88,8 @@ int main (int argc, char const *argv[]) {
             meslog(INFO) << "Pieces left factory floor." << std::endl;
         }
 
-        if (opc_ua.UpdateToolsInUse()){
-            
-        }
+        opc_ua.UpdateMachineInfo();
+        //opc_ua.print_all_machine_info();
 
         //envia peca das orders de load e transformation
         try{

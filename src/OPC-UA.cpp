@@ -26,6 +26,8 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
         pusher_queue[i].push(Order::Piece(0)); // that one piece that we never know if it's there or not
         for (int j = 0; j < 3; j++){
             machine_tools_in_use[i][j] = 1;
+            piece_id_being_processed[i][j] = 0;
+            last_piece_id_processed[i][j] = 0;
             pusher_queue[i].push(Order::Piece(0));
         }
     }
@@ -52,6 +54,8 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
         pusher_queue[i].push(Order::Piece(0)); // that one piece that we never know if it's there or not
         for (int j = 0; j < 3; j++){
             machine_tools_in_use[i][j] = 1;
+            piece_id_being_processed[i][j] = 0;
+            last_piece_id_processed[i][j] = 0;
             pusher_queue[i].push(Order::Piece(0));
         }
     }
@@ -715,22 +719,16 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
     return return_value;
 }
 
-unsigned int OPCUA_Manager::GetPieceAllocInPusher(uint8_t pusher_number){
-    if (pusher_number > 3 || pusher_number < 1){
-        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify pushers by 1, 2 or 3." << std::endl;
-        return 0;
-    }
-    return pusher_queue[pusher_number-1].size();
 
-}
 
-bool OPCUA_Manager::UpdateToolsInUse(){
+void OPCUA_Manager::UpdateMachineInfo(){
     UA_StatusCode retval;
     UA_Variant *val;
     bool tool_changed = false;
     char NodeID[128] = {0};
     char NodeID_Backup[128];
     char NodeID_Backup2[128];
+    char NodeID_Backup3[128];
     char aux[3];
     char machine_type_name;
 
@@ -742,44 +740,140 @@ bool OPCUA_Manager::UpdateToolsInUse(){
         ConvIntToString(aux, 1+cell*2);
         strcat (NodeID_Backup2, aux);
         strcat (NodeID_Backup2, "T");
+
         for (int machine_type = 0; machine_type < 3; machine_type++){
-            strcpy (NodeID, NodeID_Backup2);
+            strcpy (NodeID_Backup3, NodeID_Backup2);
             ConvIntToString(aux, machine_type+3);
-            strcat(NodeID, aux);
-            strcat(NodeID, ".current_tool");
+            strcat(NodeID_Backup3, aux);
+            strcpy(NodeID, NodeID_Backup3);
+            
+            strcat(NodeID, ".requested_tool");
 
             val = UA_Variant_new();
             retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
             if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
                 meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
-                return tool_changed;
+                UA_Variant_delete(val);
+                return;
             }
             if (retval != UA_STATUSCODE_GOOD){
                 meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
-                return tool_changed;
+                UA_Variant_delete(val);
+                return;
             }
-            if (machine_tools_in_use[cell][machine_type] != *(UA_UInt16*)val->data){
-                switch(machine_type){
-                    case 0:
-                        machine_type_name = 'A';
-                        break;
-                    case 1:
-                        machine_type_name = 'B';
-                        break;
-                    case 2:
-                        machine_type_name = 'C';
-                        break;
-                }
-                meslog(INFO) << "Machine " << machine_type_name << cell << " changed from tool " << (int)machine_tools_in_use[cell][machine_type] << " to tool " << *(UA_UInt16*)val->data << "." << std::endl;
-                machine_tools_in_use[cell][machine_type] = *(UA_UInt16*)val->data;
-                tool_changed = true;
+            machine_tools_in_use[cell][machine_type] = (uint8_t)(*(UA_UInt16*)val->data);
+            UA_Variant_delete(val);
+            
+            strcpy(NodeID, NodeID_Backup3);
+            strcat(NodeID, ".last_processed_piece_id");
+
+            val = UA_Variant_new();
+            retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+            if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
+                meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                UA_Variant_delete(val);
+                return;
             }
+            if (retval != UA_STATUSCODE_GOOD){
+                meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
+                UA_Variant_delete(val);
+                return;
+            }
+            last_piece_id_processed[cell][machine_type] = *(UA_UInt16*)val->data;
+            UA_Variant_delete(val);
+            
+            strcpy(NodeID, NodeID_Backup3);
+            strcat(NodeID, ".piece_being_processed_id");
+
+            val = UA_Variant_new();
+            retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+            if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
+                meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                UA_Variant_delete(val);
+                return;
+            }
+            if (retval != UA_STATUSCODE_GOOD){
+                meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
+                UA_Variant_delete(val);
+                return;
+            }
+            piece_id_being_processed[cell][machine_type] = *(UA_UInt16*)val->data;
             UA_Variant_delete(val);
         }
     }
-    return tool_changed;
 }
 
-unsigned int OPCUA_Manager::GetCurrentToolInMachine(uint8_t machine_type, uint8_t cell_number){
-    return machine_tools_in_use[cell_number, machine_type];
+uint16_t OPCUA_Manager::GetPieceAllocInPusher(uint8_t pusher_number){
+    if (pusher_number > 3 || pusher_number < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify pushers by 1, 2 or 3." << std::endl;
+        return 0;
+    }
+    return pusher_queue[pusher_number-1].size();
+
+}
+
+uint16_t OPCUA_Manager::GetCurrentToolInMachine(uint8_t machine_type, uint8_t cell_number){
+    if (cell_number > 3 || cell_number < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify cells by 1, 2 or 3." << std::endl;
+        return 0;
+    }
+    
+    if (machine_type > 3 || machine_type < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify machines by 1, 2 or 3, for A, B and C respectively." << std::endl;
+        return 0;
+    }
+    return (uint16_t) machine_tools_in_use[cell_number][machine_type];
+}
+
+uint16_t OPCUA_Manager::GetCurrentPieceIDInMachine(uint8_t machine_type, uint8_t cell_number){
+    if (cell_number > 3 || cell_number < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify cells by 1, 2 or 3." << std::endl;
+        return 0;
+    }
+    
+    if (machine_type > 3 || machine_type < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify machines by 1, 2 or 3, for A, B and C respectively." << std::endl;
+        return 0;
+    }
+    return piece_id_being_processed[cell_number][machine_type];
+}
+
+uint16_t OPCUA_Manager::GetLastMadePieceIDInMachine(uint8_t machine_type, uint8_t cell_number){
+    if (cell_number > 3 || cell_number < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify cells by 1, 2 or 3." << std::endl;
+        return 0;
+    }
+    
+    if (machine_type > 3 || machine_type < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify machines by 1, 2 or 3, for A, B and C respectively." << std::endl;
+        return 0;
+    }
+    return last_piece_id_processed[cell_number][machine_type];
+}
+
+
+
+
+
+
+
+
+
+void OPCUA_Manager::print_all_machine_info(){
+    std::cout << "\t>>>MACHINE INFO<<<" << std::endl;
+    
+    std::cout << ">>>CELL 1: " << std::endl;
+    std::cout << "Machine A |||\tTool: " << (int) machine_tools_in_use[0][0] << "\t| Last Piece ID: " << last_piece_id_processed[0][0] << "\t| Current Piece ID: " << piece_id_being_processed[0][0] << std::endl;
+    std::cout << "Machine B |||\tTool: " << (int) machine_tools_in_use[0][1] << "\t| Last Piece ID: " << last_piece_id_processed[0][1] << "\t| Current Piece ID: " << piece_id_being_processed[0][1] << std::endl;
+    std::cout << "Machine C |||\tTool: " << (int) machine_tools_in_use[0][2] << "\t| Last Piece ID: " << last_piece_id_processed[0][2] << "\t| Current Piece ID: " << piece_id_being_processed[0][2] << std::endl;
+    std::cout << "---------------------------------------------------------------------------------------------------------------------" << std::endl;
+    std::cout << ">>>CELL 2: " << std::endl;
+    std::cout << "Machine A |||\tTool: " << (int) machine_tools_in_use[1][0] << "\t| Last Piece ID: " << last_piece_id_processed[1][0] << "\t| Current Piece ID: " << piece_id_being_processed[1][0] << std::endl;
+    std::cout << "Machine B |||\tTool: " << (int) machine_tools_in_use[1][1] << "\t| Last Piece ID: " << last_piece_id_processed[1][1] << "\t| Current Piece ID: " << piece_id_being_processed[1][1] << std::endl;
+    std::cout << "Machine C |||\tTool: " << (int) machine_tools_in_use[1][2] << "\t| Last Piece ID: " << last_piece_id_processed[1][2] << "\t| Current Piece ID: " << piece_id_being_processed[1][2] << std::endl;
+    std::cout << "---------------------------------------------------------------------------------------------------------------------" << std::endl;
+    std::cout << ">>>CELL 3: " << std::endl;
+    std::cout << "Machine A |||\tTool: " << (int) machine_tools_in_use[2][0] << "\t| Last Piece ID: " << last_piece_id_processed[2][0] << "\t| Current Piece ID: " << piece_id_being_processed[2][0] << std::endl;
+    std::cout << "Machine B |||\tTool: " << (int) machine_tools_in_use[2][1] << "\t| Last Piece ID: " << last_piece_id_processed[2][1] << "\t| Current Piece ID: " << piece_id_being_processed[2][1] << std::endl;
+    std::cout << "Machine C |||\tTool: " << (int) machine_tools_in_use[2][2] << "\t| Last Piece ID: " << last_piece_id_processed[2][2] << "\t| Current Piece ID: " << piece_id_being_processed[2][2] << std::endl;
 }
