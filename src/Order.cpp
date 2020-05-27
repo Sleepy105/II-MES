@@ -28,7 +28,9 @@ BaseOrder::BaseOrder(uint8_t order_id,
     if (order_type == Order::ORDER_TYPE_UNLOAD){
         order_id = -1;
     }
+    is_not_executing = true;
     Deadline = deadline;
+    meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
 }
 BaseOrder::BaseOrder(uint8_t order_id, 
                      uint8_t order_type, 
@@ -40,10 +42,13 @@ BaseOrder::BaseOrder(uint8_t order_id,
     if (order_type == Order::ORDER_TYPE_UNLOAD){
         order_id = -1;
     }
+    is_not_executing = true;
     // deadline (letras minusculas) esta em segundos
     Deadline = DateTime(DBFILE, std::to_string(deadline));
+    meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
 }
 BaseOrder::BaseOrder(uint8_t order_id, uint8_t order_type): order_id(order_id), order_type(order_type){
+    is_not_executing = true;
     meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
 }
 
@@ -104,6 +109,15 @@ void BaseOrder::AddPiece(Piece piece_to_add){
 Piece *BaseOrder::GetLastPiece(){
     return &(pieces.back());
 }
+
+bool BaseOrder::IsNotExecuting(){
+    return is_not_executing;
+}
+
+void BaseOrder::SetExecuting(){
+    is_not_executing = false;
+}
+
 
 void BaseOrder::print(){
     std::string type;
