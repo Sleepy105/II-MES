@@ -46,6 +46,7 @@ private:
     uint8_t initialPiece;
     uint8_t finalPiece;
     std::list<Piece> pieces;
+    bool is_not_executing;
 
 public:
     BaseOrder(uint8_t order_id, uint8_t order_type, uint32_t count, uint8_t initialPiece, uint8_t finalPiece, std::string deadline);
@@ -68,6 +69,8 @@ public:
     Piece *GetLastPiece();
     void SetPK(int pk);
     void AddPiece(Piece piece_to_add);
+    bool IsNotExecuting();
+    void SetExecuting();
 
     void print();
 

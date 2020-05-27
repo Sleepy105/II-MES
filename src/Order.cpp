@@ -105,6 +105,14 @@ Piece *BaseOrder::GetLastPiece(){
     return &(pieces.back());
 }
 
+bool BaseOrder::IsNotExecuting(){
+    return is_not_executing;
+}
+
+void BaseOrder::SetExecuting(){
+    is_not_executing = false;
+}
+
 void BaseOrder::print(){
     std::string type;
     switch (order_type)
@@ -160,6 +168,7 @@ uint8_t *Piece::GetMachines(){
 void Piece::SetPath(Path* new_path){
     path_ = new_path;
 }
+
 
 void Piece::print(){
     uint8_t* moves = GetMoves();
