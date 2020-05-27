@@ -126,7 +126,7 @@ bool OrderQueue::RestoreLoadUnload(InformationDisInc LoadUndload)
 	Order::BaseOrder aux = Order::BaseOrder(LoadUndload.order_pk, type_int, LoadUndload.count, LoadUndload.initialPiece, LoadUndload.finalPiece);
 	orders_.push_back(aux);
 	for(int i = 0; i < LoadUndload.vectorPiecePosition; i++) {
-		aux.AddPiece(Order::Piece(LoadUndload.pieces[i].id_piece));
+		orders_.back().AddPiece(Order::Piece(LoadUndload.pieces[i].id_piece));
 	}
 	return false;
 }
@@ -136,7 +136,7 @@ bool OrderQueue::RestoreTrans(Transformation temp)
 	Order::BaseOrder aux = Order::BaseOrder(temp.order_pk, Order::ORDER_TYPE_TRANSFORMATION, temp.count, temp.initialPiece, temp.finalPiece, temp.Deadline);
 	orders_.push_back(aux);
 	for(int i = 0; i < temp.vectorPiecePosition; i++) {
-		aux.AddPiece(Order::Piece(temp.pieces[i].id_piece));
+		orders_.back().AddPiece(Order::Piece(temp.pieces[i].id_piece));
 	}
 	return false;
 }
