@@ -818,7 +818,12 @@ Path *PathFinder::FindPath(Order::BaseOrder &order) {
 
         //mudar SetPath para usar pointers
         for (int i = 0; i < 59; i++,path_index++) {
-            path->moves[path_index] = Info[index_info].path[i];
+            if (Info[index_info].path[i]) {
+                path->moves[path_index] = Info[index_info].path[i];
+            }
+            else {
+                break;
+            }
         }
 
         // Entrada armazem
