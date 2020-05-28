@@ -4,6 +4,9 @@
 PathFinder::PathFinder() {
 
     uint32_t aux_LUT_index = 0;
+
+    // Initial Node P1
+
     // P1 -> P2
     LUT["12"] = 0;
     aux_LUT_index = 0;
@@ -53,7 +56,7 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].path[9] = 2;
 
     // P1 -> P5
-    LUT["12348"] = 3;
+    LUT["12345"] = 3;
     aux_LUT_index = 3;
     Info[aux_LUT_index].transformation[0] = 1;
     Info[aux_LUT_index].transformation[1] = 1;
@@ -81,7 +84,7 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].transformation[0] = 1;
     Info[aux_LUT_index].transformation[1] = 1;
     Info[aux_LUT_index].transformation[5] = 1;
-    Info[aux_LUT_index].transformation[9] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
     Info[aux_LUT_index].machine_transformations[0] = 2;
     Info[aux_LUT_index].machine_transformations[1] = 1;
     Info[aux_LUT_index].machine_transformations[2] = 1;
@@ -104,7 +107,7 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].transformation[0] = 1;
     Info[aux_LUT_index].transformation[1] = 1;
     Info[aux_LUT_index].transformation[5] = 1;
-    Info[aux_LUT_index].transformation[9] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
     Info[aux_LUT_index].transformation[11] = 1;
     Info[aux_LUT_index].machine_transformations[0] = 2;
     Info[aux_LUT_index].machine_transformations[1] = 1;
@@ -192,37 +195,43 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].path[6] = 2;
     Info[aux_LUT_index].path[7] = 2;
 
-    
-
-
-
-
-    // P2 -> P6
-    LUT["26"] = 0;
-    Info[aux_LUT_index].transformation[2] = 1;
-    Info[aux_LUT_index].machine_transformations[0] = 1;
-    //Info[aux_LUT_index].path[0] = 1;
-    //Info[aux_LUT_index].path[1] = 1;
+    // P1 -> P3
+    LUT["13"] = 10;
+    aux_LUT_index = 10;
+    Info[aux_LUT_index].transformation[4] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
     Info[aux_LUT_index].path[0] = 2;
     Info[aux_LUT_index].path[1] = 2;
-    Info[aux_LUT_index].path[2] = 3;
-    Info[aux_LUT_index].path[3] = 1;
-    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
     Info[aux_LUT_index].path[5] = 2;
     Info[aux_LUT_index].path[6] = 2;
     Info[aux_LUT_index].path[7] = 2;
-    Info[aux_LUT_index].path[8] = 0;
-    Info[aux_LUT_index].path[9] = 0;
-    Info[aux_LUT_index].path[10] = 0;
 
-    // P3 -> P5
-    LUT["345"] = 1;
+    // P1 -> P4
+    LUT["134"] = 11;
+    aux_LUT_index = 11;
+    Info[aux_LUT_index].transformation[4] = 1;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // P1 -> P5
+    LUT["1345"] = 12;
+    aux_LUT_index = 12;
+    Info[aux_LUT_index].transformation[4] = 1;
     Info[aux_LUT_index].transformation[5] = 1;
     Info[aux_LUT_index].transformation[9] = 1;
-    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 2;
     Info[aux_LUT_index].machine_transformations[2] = 1;
-    //Info[aux_LUT_index].path[0] = 1;
-    //Info[aux_LUT_index].path[1] = 1;
     Info[aux_LUT_index].path[0] = 2;
     Info[aux_LUT_index].path[1] = 2;
     Info[aux_LUT_index].path[2] = 2;
@@ -233,16 +242,52 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].path[7] = 1;
     Info[aux_LUT_index].path[8] = 2;
     Info[aux_LUT_index].path[9] = 2;
-    Info[aux_LUT_index].path[10] = 0;
-    Info[aux_LUT_index].path[11] = 0;
-    Info[aux_LUT_index].path[12] = 0;
 
-    // P7 -> P9
-    LUT["79"] = 2;
-    Info[aux_LUT_index].transformation[7] = 1;
-    Info[aux_LUT_index].machine_transformations[1] = 1;
-    //Info[aux_LUT_index].path[0] = 1;
-    //Info[aux_LUT_index].path[1] = 1;
+    // P1 -> P8
+    LUT["1348"] = 13;
+    aux_LUT_index = 13;
+    Info[aux_LUT_index].transformation[4] = 1;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 2;
+    Info[aux_LUT_index].machine_transformations[2] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 3;
+    Info[aux_LUT_index].path[7] = 1;
+    Info[aux_LUT_index].path[8] = 2;
+    Info[aux_LUT_index].path[9] = 2;
+
+    // P1 -> P9 //DIST
+    LUT["13489"] = 14;
+    aux_LUT_index = 14;
+    Info[aux_LUT_index].transformation[4] = 1;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
+    Info[aux_LUT_index].transformation[11] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 2;
+    Info[aux_LUT_index].machine_transformations[2] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 3;
+    Info[aux_LUT_index].path[7] = 1;
+    Info[aux_LUT_index].path[8] = 2;
+    Info[aux_LUT_index].path[9] = 2;
+
+    // P1 -> P7 //DIST
+    LUT["137"] = 15;
+    aux_LUT_index = 15;
+    Info[aux_LUT_index].transformation[4] = 1;
+    Info[aux_LUT_index].transformation[6] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 2;
     Info[aux_LUT_index].path[0] = 2;
     Info[aux_LUT_index].path[1] = 2;
     Info[aux_LUT_index].path[2] = 2;
@@ -251,16 +296,28 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].path[5] = 2;
     Info[aux_LUT_index].path[6] = 2;
     Info[aux_LUT_index].path[7] = 2;
-    Info[aux_LUT_index].path[8] = 0;
-    Info[aux_LUT_index].path[9] = 0;
-    Info[aux_LUT_index].path[10] = 0;
+
+    // P1 -> P9 //DIST
+    LUT["1379"] = 16;
+    aux_LUT_index = 16;
+    Info[aux_LUT_index].transformation[4] = 1;
+    Info[aux_LUT_index].transformation[6] = 1;
+    Info[aux_LUT_index].transformation[7] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 3;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
 
     // P1 -> P4
-    LUT["14"] = 3;
+    LUT["14"] = 17;
+    aux_LUT_index = 17;
     Info[aux_LUT_index].transformation[8] = 1;
     Info[aux_LUT_index].machine_transformations[2] = 1;
-    //Info[aux_LUT_index].path[0] = 1;
-    //Info[aux_LUT_index].path[1] = 1;
     Info[aux_LUT_index].path[0] = 2;
     Info[aux_LUT_index].path[1] = 2;
     Info[aux_LUT_index].path[2] = 2;
@@ -269,16 +326,13 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].path[5] = 1;
     Info[aux_LUT_index].path[6] = 2;
     Info[aux_LUT_index].path[7] = 2;
-    Info[aux_LUT_index].path[8] = 0;
-    Info[aux_LUT_index].path[9] = 0;
-    Info[aux_LUT_index].path[10] = 0;
 
-    // P4 -> P8
-    LUT["48"] = 4;
-    Info[aux_LUT_index].transformation[10] = 1;
-    Info[aux_LUT_index].machine_transformations[2] = 1;
-    //Info[aux_LUT_index].path[0] = 1;
-    //Info[aux_LUT_index].path[1] = 1;
+    // P1 -> P5
+    LUT["145"] = 18;
+    aux_LUT_index = 18;
+    Info[aux_LUT_index].transformation[8] = 1;
+    Info[aux_LUT_index].transformation[9] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 2;
     Info[aux_LUT_index].path[0] = 2;
     Info[aux_LUT_index].path[1] = 2;
     Info[aux_LUT_index].path[2] = 2;
@@ -287,76 +341,314 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].path[5] = 1;
     Info[aux_LUT_index].path[6] = 2;
     Info[aux_LUT_index].path[7] = 2;
-    Info[aux_LUT_index].path[8] = 0;
-    Info[aux_LUT_index].path[9] = 0;
-    Info[aux_LUT_index].path[10] = 0;
 
-    // P1 -> P9
-    LUT["1489"] = 5;
-    //Distribuido por 3 celulas
-    /*Info[aux_LUT_index].transformation[8] = 1;
-    Info[aux_LUT_index].machine_transformations[2] = 1;
+    // P1 -> P8 //DIST
+    LUT["148"] = 19;
+    aux_LUT_index = 19;
+    Info[aux_LUT_index].transformation[8] = 1;
     Info[aux_LUT_index].transformation[10] = 1;
-    Info[aux_LUT_index].machine_transformations[5] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 2;
+    Info[aux_LUT_index].path[4] = 3;
+    Info[aux_LUT_index].path[5] = 1;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // P1 -> P8 //DIST
+    LUT["1489"] = 20;
+    aux_LUT_index = 20;
+    Info[aux_LUT_index].transformation[8] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
     Info[aux_LUT_index].transformation[11] = 1;
-    Info[aux_LUT_index].machine_transformations[8] = 1;
-    
-    Info[aux_LUT_index].path[0] = 1;
-    Info[aux_LUT_index].path[1] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 3;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
     Info[aux_LUT_index].path[2] = 2;
     Info[aux_LUT_index].path[3] = 2;
+    Info[aux_LUT_index].path[4] = 3;
+    Info[aux_LUT_index].path[5] = 1;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+
+    // Initial Node P2
+
+    // P2 -> P3
+    LUT["23"] = 21;
+    aux_LUT_index = 21;
+    Info[aux_LUT_index].transformation[1] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
     Info[aux_LUT_index].path[4] = 2;
     Info[aux_LUT_index].path[5] = 2;
-    Info[aux_LUT_index].path[6] = 3;
-    Info[aux_LUT_index].path[7] = 1;
-    Info[aux_LUT_index].path[8] = 1;
-    Info[aux_LUT_index].path[9] = 1;
-    Info[aux_LUT_index].path[10] = 1;
-    Info[aux_LUT_index].path[11] = 1;
-    Info[aux_LUT_index].path[12] = 2;
-    Info[aux_LUT_index].path[13] = 2;
-    Info[aux_LUT_index].path[14] = 3;
-    Info[aux_LUT_index].path[15] = 3;
-    Info[aux_LUT_index].path[16] = 3;
-    Info[aux_LUT_index].path[17] = 3;
-    Info[aux_LUT_index].path[18] = 3;
-    Info[aux_LUT_index].path[19] = 3;
-    Info[aux_LUT_index].path[20] = 0;*/
-    
-    //Tudo na mesma celula
-    Info[aux_LUT_index].transformation[8] = 1;
-    Info[aux_LUT_index].machine_transformations[2] = 3;
-    Info[aux_LUT_index].transformation[10] = 1;
-    Info[aux_LUT_index].transformation[11] = 1;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
 
-    //Info[aux_LUT_index].path[0] = 1;
-    //Info[aux_LUT_index].path[1] = 1;
+    // P2 -> P4
+    LUT["234"] = 22;
+    aux_LUT_index = 22;
+    Info[aux_LUT_index].transformation[1] = 1;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
     Info[aux_LUT_index].path[0] = 2;
     Info[aux_LUT_index].path[1] = 2;
-    Info[aux_LUT_index].path[2] = 2;
-    Info[aux_LUT_index].path[3] = 2;
-    Info[aux_LUT_index].path[4] = 3;
-    Info[aux_LUT_index].path[5] = 1;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 3;
     Info[aux_LUT_index].path[6] = 1;
-    Info[aux_LUT_index].path[7] = 1;
-    Info[aux_LUT_index].path[8] = 1;
+    Info[aux_LUT_index].path[7] = 2;
+    Info[aux_LUT_index].path[8] = 2;
+    Info[aux_LUT_index].path[9] = 2;
+
+    // P2 -> P5
+    LUT["2345"] = 23;
+    aux_LUT_index = 23;
+    Info[aux_LUT_index].transformation[1] = 1;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].transformation[9] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 3;
+    Info[aux_LUT_index].path[6] = 1;
+    Info[aux_LUT_index].path[7] = 2;
+    Info[aux_LUT_index].path[8] = 3;
     Info[aux_LUT_index].path[9] = 1;
     Info[aux_LUT_index].path[10] = 2;
     Info[aux_LUT_index].path[11] = 2;
-    Info[aux_LUT_index].path[12] = 0;
-    Info[aux_LUT_index].path[13] = 0;
-    Info[aux_LUT_index].path[14] = 0;
-    Info[aux_LUT_index].path[15] = 0;
-    Info[aux_LUT_index].path[16] = 0;
-    Info[aux_LUT_index].path[17] = 0;
-    Info[aux_LUT_index].path[18] = 0;
+
+    // P2 -> P8
+    LUT["2348"] = 24;
+    aux_LUT_index = 24;
+    Info[aux_LUT_index].transformation[1] = 1;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 3;
+    Info[aux_LUT_index].path[6] = 1;
+    Info[aux_LUT_index].path[7] = 2;
+    Info[aux_LUT_index].path[8] = 3;
+    Info[aux_LUT_index].path[9] = 1;
+    Info[aux_LUT_index].path[10] = 2;
+    Info[aux_LUT_index].path[11] = 2;
+
+    // P2 -> P9     //DIST
+    LUT["23489"] = 25;
+    aux_LUT_index = 25;
+    Info[aux_LUT_index].transformation[1] = 1;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
+    Info[aux_LUT_index].transformation[11] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 3;
+    Info[aux_LUT_index].path[6] = 1;
+    Info[aux_LUT_index].path[7] = 2;
+    Info[aux_LUT_index].path[8] = 3;
+    Info[aux_LUT_index].path[9] = 1;
+    Info[aux_LUT_index].path[10] = 2;
+    Info[aux_LUT_index].path[11] = 2;
+
+    // P2 -> P7
+    LUT["237"] = 26;
+    aux_LUT_index = 26;
+    Info[aux_LUT_index].transformation[1] = 1;
+    Info[aux_LUT_index].transformation[6] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 3;
+    Info[aux_LUT_index].path[6] = 1;
+    Info[aux_LUT_index].path[7] = 2;
+    Info[aux_LUT_index].path[8] = 2;
+    Info[aux_LUT_index].path[9] = 2;
+
+    // P2 -> P9 //DIST
+    LUT["2379"] = 27;
+    aux_LUT_index = 27;
+    Info[aux_LUT_index].transformation[1] = 1;
+    Info[aux_LUT_index].transformation[6] = 1;
+    Info[aux_LUT_index].transformation[7] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 3;
+    Info[aux_LUT_index].path[6] = 1;
+    Info[aux_LUT_index].path[7] = 2;
+    Info[aux_LUT_index].path[8] = 2;
+    Info[aux_LUT_index].path[9] = 2;
+
+    // P2 -> P6 
+    LUT["26"] = 28;
+    aux_LUT_index = 28;
+    Info[aux_LUT_index].transformation[2] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // P2 -> P9 //DIST
+    LUT["269"] = 29;
+    aux_LUT_index = 29;
+    Info[aux_LUT_index].transformation[2] = 1;
+    Info[aux_LUT_index].transformation[3] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+
+    // Initial Node P3
+
+    // P3 -> P4
+    LUT["34"] = 30;
+    aux_LUT_index = 30;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // P3 -> P5
+    LUT["345"] = 31;
+    aux_LUT_index = 31;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].transformation[9] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 3;
+    Info[aux_LUT_index].path[7] = 1;
+    Info[aux_LUT_index].path[8] = 2;
+    Info[aux_LUT_index].path[9] = 2;
+
+    // P3 -> P8
+    LUT["348"] = 32;
+    aux_LUT_index = 32;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 3;
+    Info[aux_LUT_index].path[7] = 1;
+    Info[aux_LUT_index].path[8] = 2;
+    Info[aux_LUT_index].path[9] = 2;
+
+    // P3 -> P9 //DIST
+    LUT["3489"] = 33;
+    aux_LUT_index = 33;
+    Info[aux_LUT_index].transformation[5] = 1;
+    Info[aux_LUT_index].transformation[10] = 1;
+    Info[aux_LUT_index].transformation[11] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 3;
+    Info[aux_LUT_index].path[7] = 1;
+    Info[aux_LUT_index].path[8] = 2;
+    Info[aux_LUT_index].path[9] = 2;
+
+    // P3 -> P7 
+    LUT["37"] = 34;
+    aux_LUT_index = 34;
+    Info[aux_LUT_index].transformation[6] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // P3 -> P9 //DIST
+    LUT["379"] = 35;
+    aux_LUT_index = 35;
+    Info[aux_LUT_index].transformation[6] = 1;
+    Info[aux_LUT_index].transformation[7] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // Initial Node P4
 
     // P4 -> P5
-    LUT["45"] = 6;
+    LUT["45"] = 36;
+    aux_LUT_index = 36;
     Info[aux_LUT_index].transformation[9] = 1;
     Info[aux_LUT_index].machine_transformations[2] = 1;
-    //Info[aux_LUT_index].path[0] = 1;
-    //Info[aux_LUT_index].path[1] = 1;
     Info[aux_LUT_index].path[0] = 2;
     Info[aux_LUT_index].path[1] = 2;
     Info[aux_LUT_index].path[2] = 2;
@@ -365,18 +657,83 @@ PathFinder::PathFinder() {
     Info[aux_LUT_index].path[5] = 1;
     Info[aux_LUT_index].path[6] = 2;
     Info[aux_LUT_index].path[7] = 2;
-    Info[aux_LUT_index].path[8] = 0;
-    Info[aux_LUT_index].path[9] = 0;
-    Info[aux_LUT_index].path[10] = 0;
-    Info[aux_LUT_index].path[11] = 0;
-    Info[aux_LUT_index].path[12] = 0;
-    Info[aux_LUT_index].path[13] = 0;
-    Info[aux_LUT_index].path[14] = 0;
-    Info[aux_LUT_index].path[15] = 0;
-    Info[aux_LUT_index].path[16] = 0;
-    Info[aux_LUT_index].path[17] = 0;
-    Info[aux_LUT_index].path[18] = 0;
 
+    // P4 -> P8
+    LUT["48"] = 37;
+    aux_LUT_index = 37;
+    Info[aux_LUT_index].transformation[10] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 2;
+    Info[aux_LUT_index].path[4] = 3;
+    Info[aux_LUT_index].path[5] = 1;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // P4 -> P9 //DIST
+    LUT["489"] = 38;
+    aux_LUT_index = 38;
+    Info[aux_LUT_index].transformation[10] = 1;
+    Info[aux_LUT_index].transformation[11] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 2;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 2;
+    Info[aux_LUT_index].path[4] = 3;
+    Info[aux_LUT_index].path[5] = 1;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // Initial Node P6
+
+    // P6 -> P9 
+    LUT["69"] = 39;
+    aux_LUT_index = 39;
+    Info[aux_LUT_index].transformation[3] = 1;
+    Info[aux_LUT_index].machine_transformations[0] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 3;
+    Info[aux_LUT_index].path[3] = 1;
+    Info[aux_LUT_index].path[4] = 2;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // Initial Node P7
+
+    // P7 -> P9 
+    LUT["79"] = 40;
+    aux_LUT_index = 40;
+    Info[aux_LUT_index].transformation[7] = 1;
+    Info[aux_LUT_index].machine_transformations[1] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 3;
+    Info[aux_LUT_index].path[4] = 1;
+    Info[aux_LUT_index].path[5] = 2;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
+
+    // Initial Node P8
+
+    // P8 -> P9 
+    LUT["89"] = 41;
+    aux_LUT_index = 41;
+    Info[aux_LUT_index].transformation[11] = 1;
+    Info[aux_LUT_index].machine_transformations[2] = 1;
+    Info[aux_LUT_index].path[0] = 2;
+    Info[aux_LUT_index].path[1] = 2;
+    Info[aux_LUT_index].path[2] = 2;
+    Info[aux_LUT_index].path[3] = 2;
+    Info[aux_LUT_index].path[4] = 3;
+    Info[aux_LUT_index].path[5] = 1;
+    Info[aux_LUT_index].path[6] = 2;
+    Info[aux_LUT_index].path[7] = 2;
     
 }
 
