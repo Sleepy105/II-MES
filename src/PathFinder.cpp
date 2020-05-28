@@ -859,61 +859,43 @@ Path *PathFinder::FindPath(Order::BaseOrder &order) {
 
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
-    else if (order_type == Order::ORDER_TYPE_UNLOAD)
-    {
-        switch (destination)
-        {
-        case 1:
-            //unload Pusher1
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 1;
-            path->moves[3] = 1;
-            path->moves[4] = 1;
-            path->moves[5] = 1;
-            path->moves[6] = 1;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 1;
-            path->moves[10] = 0;
-            break;
+    else if (order_type == Order::ORDER_TYPE_UNLOAD) {
 
-        case 2:
-            //unload Pusher2
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 1;
-            path->moves[3] = 1;
-            path->moves[4] = 1;
-            path->moves[5] = 1;
-            path->moves[6] = 1;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 1;
-            path->moves[11] = 0;
-            break;
+        path->moves[0] = 1;
+        path->moves[1] = 1;
+        path->moves[2] = 1;
+        path->moves[3] = 1;
+        path->moves[4] = 1;
+        path->moves[5] = 1;
+        path->moves[6] = 1;
+        path->moves[7] = 2;
+        path->moves[8] = 2;
 
-        case 3:
-            //unload Pusher3
-            path->moves[0] = 1;
-            path->moves[1] = 1;
-            path->moves[2] = 1;
-            path->moves[3] = 1;
-            path->moves[4] = 1;
-            path->moves[5] = 1;
-            path->moves[6] = 1;
-            path->moves[7] = 2;
-            path->moves[8] = 2;
-            path->moves[9] = 2;
-            path->moves[10] = 2;
-            path->moves[11] = 1;
-            path->moves[12] = 0;
-            break;
+        switch (destination) {
+            case 1:
+                //unload Pusher1
+                path->moves[9] = 1;
+                path->moves[10] = 0;
+                break;
 
-        default:
-            meslog(ERROR) << "Invalid destination for Unload-type order." << std::endl;
-            break;
+            case 2:
+                //unload Pusher2
+                path->moves[9] = 2;
+                path->moves[10] = 1;
+                path->moves[11] = 0;
+                break;
+
+            case 3:
+                //unload Pusher3
+                path->moves[9] = 2;
+                path->moves[10] = 2;
+                path->moves[11] = 1;
+                path->moves[12] = 0;
+                break;
+
+            default:
+                meslog(ERROR) << "Invalid destination for Unload-type order." << std::endl;
+                break;
         }
     }
 
