@@ -77,6 +77,8 @@ public:
 
     void UpdatePiecesProcessedInMachines();
 
+    void UpdateMachineProcessedTime();
+
     /**
      * @brief Get piece allocation for specific pusher
      * 
@@ -97,13 +99,15 @@ public:
     uint16_t GetCurrentToolInMachine(uint8_t machine_type, uint8_t cell_number);
 
     /**
-     * @brief Get current piece id at top carpet (the one for pieces on hold)
+     * @brief Get weather the top carpet for pieces on hold is free or not.
+     *        This gets updated everytime a piece is sent and everytime a piece leaves the top carpet (i.e.
+     *        the piece doesn't have to be physically present for the cell to count as occupied)
      * 
-     * @param cell_number identifier for cell, from which the currently equipped tool will be retrieved and
+     * @param cell_number identifier for cell, from which the top carpet allocation will be retrieved and
      * should be either 1,2 or 3.
-     * @return id of piece that is currently present at specified cell_number's holding carpet;
+     * @return true if carpet is already allocated. False if it is still free;
      */
-    uint16_t GetTopCarpetPieceID(uint8_t cell_number);
+    bool isCellTopCarpetOccupied(uint8_t cell_number);
 
     /**
      * @brief Get id of piece that was last transformed in a given machine (not the currently present piece)
