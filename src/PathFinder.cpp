@@ -193,12 +193,13 @@ uint32_t PathFinder::Machine::calcTimeToHandleTransformation(Order::BaseOrder& o
 PathFinder::ModulePath* PathFinder::Machine::search(Order::BaseOrder& order, std::list<Transformation*>::iterator t_iter, std::list<Transformation*>::iterator last) {
     uint32_t self_time = calcTimeToHandleTransformation(order, **t_iter);
 
-    if (++t_iter-- == last) {
+    if (++t_iter == last) {
         ModulePath* path = new ModulePath;
         path->path.push_back(this);
         path->time = self_time;
         return path;
     };
+    t_iter--;
 
     ModulePath* best_path = NULL;
     for ( int dirInt = Direction::Right; dirInt != Direction::Up; dirInt++ ) {
