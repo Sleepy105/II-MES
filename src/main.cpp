@@ -84,12 +84,7 @@ int main (int argc, char const *argv[]) {
         }
         meslog(INFO) << "Running cycle..." << std::endl;
 
-        if (opc_ua.CheckOutgoingPieces()){
-            meslog(INFO) << "Pieces left factory floor." << std::endl;
-        }
-
-        opc_ua.UpdateMachineInfo();
-        //opc_ua.print_all_machine_info();
+        opc_ua.UpdateAll();
 
         //envia peca das orders de load e transformation
         try{
@@ -107,14 +102,6 @@ int main (int argc, char const *argv[]) {
             // Run this if no orders were found. msg already holds the error message, in case we want to display it, like so: 
             // meslog(ERROR) << msg << std::endl;
 
-        }
-        //verifica se recebeu pecas
-        if (opc_ua.CheckIncomingPieces()){
-            meslog(INFO) << "Incoming piece in factory floor." << std::endl;
-        }
-        // verifica se chegaram pecas a warehouse
-        if (opc_ua.CheckPiecesFinished()){
-            meslog(INFO) << "Piece(s) finished in factory floor." << std::endl;
         }
 
         std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS*1000000)); // 1 s

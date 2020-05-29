@@ -76,10 +76,6 @@ public:
     
     void UpdateMachineInfo();
 
-    void UpdatePiecesProcessedInMachines();
-
-    void UpdateMachineProcessedTime();
-
     void UpdateCellTopCarpetAllocation();
 
     void UpdateAll();

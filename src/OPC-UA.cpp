@@ -408,8 +408,14 @@ bool OPCUA_Manager::CheckPiecesFinished(){
     // Check if there are true booleans in warehouse entry carpet (pieces that the warehouse 
     // received but haven't yet been processed by MES)
     bool piece_queue[10] = { false };
+    uint8_t *machines;
+    uint8_t *transformations;
+    int ProductionTime = 0;
     uint16_t piece_ids[10] = {0};
     uint8_t piece_type_to_add;
+    std::string Machine;
+    std::string PieceType;
+
     UA_Variant *val;
     UA_StatusCode retval;
 
@@ -464,8 +470,138 @@ bool OPCUA_Manager::CheckPiecesFinished(){
             piece_ids[i] = *(UA_UInt16*)val->data;
             UA_Variant_delete(val);
 
+            // Update DB info on machine pieces transformed and machine operation time
+            machines = order_queue->GetPieceFromID((uint32_t) piece_ids[i]).GetMachines();
+            transformations = order_queue->GetPieceFromID((uint32_t) piece_ids[i]).GetTransformations();
+
+            for (int machine = 0; machine < 9; machine++){
+                while (machines[machine] >= 1){
+                    if       (machine == 0 || machine == 3 || machine == 6){
+                        Machine = "A";
+                        switch (machine){
+                            case 0:
+                                Machine = Machine + "1";
+                                break;
+                            case 1:
+                                Machine = Machine + "2";
+                                break;
+                            case 6:
+                                Machine = Machine + "3";
+                                break;
+                        }
+                        ProductionTime = 15;
+                        for (int transform = 0; transform < 4; transform++){
+                            if (transformations[transform] == 1){
+                                transformations[transform] = 0;
+                                switch (transform){
+                                    case 0:
+                                        PieceType = "P1";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                    case 1:
+                                    case 2:
+                                        PieceType = "P2";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                    case 3:
+                                        PieceType = "P6";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                }
+                            }
+                        }
+
+                    }else if (machine == 1 || machine == 4 || machine == 7){
+                        Machine = "B";
+                        switch (machine){
+                            case 1:
+                                Machine = Machine + "1";
+                                break;
+                            case 4:
+                                Machine = Machine + "2";
+                                break;
+                            case 7:
+                                Machine = Machine + "3";
+                                break;
+                        }
+                        for (int transform = 4; transform < 8; transform++){
+                            if (transformations[transform] == 1){
+                                transformations[transform] = 0;
+                                switch (transform){
+                                    case 4:
+                                        PieceType = "P1";
+                                        ProductionTime = 20;
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                    case 5:
+                                        ProductionTime = 15;
+                                        PieceType = "P3";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                    case 6:
+                                        ProductionTime = 20;
+                                        PieceType = "P3";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                    case 7:
+                                        ProductionTime = 20;
+                                        PieceType = "P7";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                }
+                            }
+                        }
+
+                    }else if (machine == 2 || machine == 5 || machine == 8){
+                        Machine = "C";
+                        switch (machine){
+                            case 2:
+                                Machine = Machine + "1";
+                                break;
+                            case 5:
+                                Machine = Machine + "2";
+                                break;
+                            case 8:
+                                Machine = Machine + "3";
+                                break;
+                        }
+                        for (int transform = 8; transform < 12; transform++){
+                            if (transformations[transform] == 1){
+                                transformations[transform] = 0;
+                                switch (transform){
+                                    case 4:
+                                        ProductionTime = 10;
+                                        PieceType = "P1";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                    case 5:
+                                        ProductionTime = 30;
+                                        PieceType = "P4";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                    case 6:
+                                        ProductionTime = 10;
+                                        PieceType = "P4";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                    case 7:
+                                        ProductionTime = 10;
+                                        PieceType = "P8";
+                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+
+                    machines[machine]--;
+                }
+            }
+
+            // Remove pieces in orderqueue
+
             piece_type_to_add = order_queue->RemovePiece((uint32_t) piece_ids[i]);
-            warehouse->RemovePiece(piece_type_to_add);
+            warehouse->AddPiece(piece_type_to_add);
 
             number_of_ids_to_read++;
         }
@@ -696,7 +832,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
     // OPC-UA Node Read
     
     UA_WriteRequest wReq;
-    UA_WriteResponse wRep;
+    UA_WriteResponse wResp;
     UA_StatusCode retval;
     UA_Variant *val;
     char NodeID[128] = {0};
@@ -716,18 +852,8 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
 
     for (pusher = 0; pusher < 3; pusher++){
         strcpy (NodeID_Backup2, NodeID_Backup);
-
-        switch(i) {
-            case 0:
-                strcat (NodeID_Backup2, "3");
-                break;
-            case 1:
-                strcat (NodeID_Backup2, "4");
-                break;
-            case 2:
-                strcat (NodeID_Backup2, "5");
-                break;
-        }
+        ConvIntToString (aux, pusher+3);
+        strcat (NodeID_Backup2, aux);
 
         // Read stuff for pusher queue allocation (not piece-specific stuff)
         strcpy (NodeID_Backup3, NodeID_Backup2);
@@ -756,7 +882,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
 
         for (buffer_index = 0; buffer_index < 10; buffer_index++){
             strcpy (NodeID, NodeID_Backup3);
-            ConvIntToString(aux, (uint16_t) buffer_index+1));
+            ConvIntToString(aux, (uint16_t) buffer_index+1);
             strcat (NodeID, aux);
             strcat (NodeID, "]");
             val = UA_Variant_new();
@@ -775,7 +901,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
 
             if (piece_pusher_queue[pusher][buffer_index]){
                 strcpy (NodeID, NodeID_Backup3);
-                ConvIntToString(aux, (uint16_t) buffer_index+1));
+                ConvIntToString(aux, (uint16_t) buffer_index+1);
                 strcat (NodeID, aux);
                 strcat (NodeID, "]");
                 val = UA_Variant_new();
@@ -795,7 +921,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 
                 strcpy (NodeID, NodeID_Backup2);
                 strcat (NodeID, ".pushed_piece_queue[");
-                ConvIntToString(aux, (uint16_t) buffer_index+1));
+                ConvIntToString(aux, (uint16_t) buffer_index+1);
                 strcat (NodeID, aux);
                 strcat (NodeID, "]");
 
@@ -824,7 +950,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
         for (buffer_index = 0; buffer_index < 10; buffer_index++){
             if (piece_pusher_queue[pusher][buffer_index]){
                 strcpy (NodeID, NodeID_Backup3);
-                ConvIntToString(aux, (uint16_t) buffer_index+1));
+                ConvIntToString(aux, (uint16_t) buffer_index+1);
                 strcat (NodeID, aux);
                 strcat (NodeID, "]");
                 val = UA_Variant_new();
@@ -844,7 +970,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 
                 strcpy (NodeID, NodeID_Backup2);
                 strcat (NodeID, ".pushed_piece_queue[");
-                ConvIntToString(aux, (uint16_t) buffer_index+1));
+                ConvIntToString(aux, (uint16_t) buffer_index+1);
                 strcat (NodeID, aux);
                 strcat (NodeID, "]");
 
@@ -872,7 +998,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
 
     // Update Pusher allocation
     for (pusher = 0; pusher < 3; pusher++){
-        while (queue_size_in_PLC[i] < pusher_queue_size[pusher]){
+        while (queue_size_in_PLC[pusher] < pusher_queue_size[pusher]){
             meslog(INFO) << "Popped piece " << pusher_queue[pusher].front().GetID() << " from Pusher " << pusher+1 << "'s queue." << std::endl;
             return_value = true;
             pusher_queue[pusher].pop();
@@ -974,14 +1100,6 @@ void OPCUA_Manager::UpdateMachineInfo(){
     }
 }
 
-void OPCUA_Manager::UpdateMachineProcessedTime(){
-    
-}
-
-void OPCUA_Manager::UpdatePiecesProcessedInMachines(){
-
-}
-
 void OPCUA_Manager::UpdateCellTopCarpetAllocation(){
     UA_StatusCode retval;
     UA_Variant *val;
@@ -1018,8 +1136,6 @@ void OPCUA_Manager::UpdateAll(){
     UpdateMachineInfo();
     CheckIncomingPieces();
     CheckPiecesFinished();
-    UpdateMachineProcessedTime();
-    UpdatePiecesProcessedInMachines();
     UpdateCellTopCarpetAllocation();
 }
 

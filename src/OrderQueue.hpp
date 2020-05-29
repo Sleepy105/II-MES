@@ -30,6 +30,7 @@ class OrderQueue{
         bool RestoreTrans(Transformation temp);
         Order::BaseOrder *GetNextOrder();
         time_t GetDataTime(std::string datatime);
+        Order::Piece GetPieceFromID(uint32_t target_id);
         
         void print();
 };
