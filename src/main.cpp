@@ -34,7 +34,7 @@ int main (int argc, char const *argv[]) {
         createTable(dir); // fazer isto na primeira vez para criar a base de dados
         initvalues(dir);
     }
-
+    
     if(false) {
 
         // Restore da informação presente no armazem
@@ -57,6 +57,7 @@ int main (int argc, char const *argv[]) {
     }
 
     deleteData(dir); // usado so para teste
+    initvalues(dir); // tbm tem de ser usado este para quando se faz delete
 
     // Configurar OPC-UA
     std::string OpcUa_id = "|var|CODESYS Control Win V3 x64.Application.",
