@@ -161,6 +161,16 @@ PathFinder::BaseModule* PathFinder::BaseModule::getDir(Direction dir) {
     return modules[dir];
 }
 
+PathFinder::Direction PathFinder::BaseModule::searchDir(BaseModule* module) {
+    for ( const auto dir : { Direction::Right, Direction::Up } ) {
+        if (getDir(dir) == module) {
+            return dir;
+        }
+    }
+    meslog(ERROR) << "Direction not found!" << std::endl;
+    throw "Someone screwed up in this joint!";
+}
+
 bool PathFinder::BaseModule::isUpstream(Direction dir) {
     return upstreams[dir];
 }
