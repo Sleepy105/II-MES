@@ -335,7 +335,7 @@ int initvalues(const char* s)
 {
 	sqlite3* DB;
 	int exit = sqlite3_open(s, &DB);
-	meslog(INFO) << "ENTREI" << std::endl;
+	
 	char* messageError1;
 	
 	std::string sql = ("INSERT INTO Warehouse (PieceType, Quantity) VALUES('P1', 54), ('P2', 54),('P3', 54),('P4', 54),('P5', 54),('P6', 54),('P7',54 ), ('P8',54) , ('P9',54);");
