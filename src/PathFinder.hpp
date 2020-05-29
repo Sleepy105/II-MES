@@ -163,10 +163,11 @@ public:
     uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
 };
 
-class PathFinder::Machine : public Linear {
+class PathFinder::Machine : public BaseModule {
 protected:
     Warehouse* warehouse;
 
+    const uint32_t Receive = 1;
     const uint32_t ToolChange = 30;
 
     enum OperationType {ChangeTools=1, PartTransformation};
@@ -214,23 +215,6 @@ public:
      * @return uint8_t Returns part_type
      */
     uint8_t changeType(uint8_t part_type);
-};
-
-class PathFinder::Rotational : public Linear {
-protected:
-    const uint32_t Rotate = 1;
-public:
-    Rotational() { type = Type::Rotational; }
-    ~Rotational() {}
-
-    /**
-     * @brief Calculate time that this Rotational Conveyor will take to handle a part of this type.
-     * 
-     * @param order
-     * @param part_type 
-     * @return uint32_t 
-     */
-    uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
 };
 
 class PathFinder::Pusher : public Linear {

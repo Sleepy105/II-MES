@@ -246,10 +246,6 @@ uint8_t PathFinder::Machine::changeType(uint8_t part_type) {
     return t->from;
 }
 
-uint32_t PathFinder::Rotational::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
-    return Rotate + Receive + Rotate;
-}
-
 PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) {
 
 }
