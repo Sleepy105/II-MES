@@ -40,18 +40,18 @@ namespace PathFinder {
 class PathFinder::BaseModule {
 protected:
     BaseModule* modules[4] = {NULL};
-    bool upstreams[4] = {false};
+    bool downstreams[4] = {false};
     std::list<Transformation*> valid_transformations;
 
     uint32_t time_so_far;
     
     /**
-     * @brief Search all valid upstream modules for best path
+     * @brief Search all valid downstream modules for best path
      * 
      * @param time_so_far 
      * @return ModulePath* 
      */
-    ModulePath* searchUpstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far);
+    ModulePath* searchDownstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far);
 
 public:
     BaseModule() {}
@@ -61,7 +61,7 @@ public:
     Type type;
 
     /**
-     * @brief Evaluate self (and upstream)
+     * @brief Evaluate self (and downstream)
      * 
      * @param time_so_far 
      * @return ModulePath* 
@@ -89,9 +89,9 @@ public:
      * 
      * @param dir 
      * @param module 
-     * @param upstream Is this direction considered to be an upstream direction
+     * @param downstream Is this direction considered to be an downstream direction
      */
-    void setDir(Direction dir, BaseModule* module, bool upstream);
+    void setDir(Direction dir, BaseModule* module, bool downstream);
 
     /**
      * @brief Get the Module for that direction
@@ -110,13 +110,13 @@ public:
     Direction searchDir(BaseModule* module);
 
     /**
-     * @brief Returns if the direction is an upstream
+     * @brief Returns if the direction is an downstream
      * 
      * @param dir 
      * @return true 
      * @return false 
      */
-    bool isUpstream(Direction dir);
+    bool isDownstream(Direction dir);
 
     /**
      * @brief Check if this Module can handle a part of this type

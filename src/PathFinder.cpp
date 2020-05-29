@@ -93,15 +93,15 @@ PathFinder::ModulePath* PathFinder::BaseModule::search(Order::BaseOrder& order, 
     if (!best_so_far) {
         best_so_far = new ModulePath();
     }
-    ModulePath* best_path = searchUpstream(order, part_type, time_so_far+self_time, best_so_far);
+    ModulePath* best_path = searchDownstream(order, part_type, time_so_far+self_time, best_so_far);
     best_path->path.push_back(this);
     best_path->time += self_time;
     return best_path;
 }
 
-PathFinder::ModulePath* PathFinder::BaseModule::searchUpstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far) {
+PathFinder::ModulePath* PathFinder::BaseModule::searchDownstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far) {
     for ( const auto dir : { Direction::Right, Direction::Up } ) {
-        if (!isUpstream(dir)) {
+        if (!isDownstream(dir)) {
             continue;
         }
         
@@ -153,9 +153,9 @@ void PathFinder::BaseModule::addCanDoTransformation(Transformation* t) {
     valid_transformations.push_back(t);
 }
 
-void PathFinder::BaseModule::setDir(Direction dir, BaseModule* module, bool upstream) {
+void PathFinder::BaseModule::setDir(Direction dir, BaseModule* module, bool downstream) {
     modules[dir] = module;
-    upstreams[dir] = upstream;
+    downstreams[dir] = downstream;
 }
 
 PathFinder::BaseModule* PathFinder::BaseModule::getDir(Direction dir) {
@@ -172,8 +172,8 @@ PathFinder::Direction PathFinder::BaseModule::searchDir(BaseModule* module) {
     throw "Someone screwed up in this joint!";
 }
 
-bool PathFinder::BaseModule::isUpstream(Direction dir) {
-    return upstreams[dir];
+bool PathFinder::BaseModule::isDownstream(Direction dir) {
+    return downstreams[dir];
 }
 
 bool PathFinder::BaseModule::canHandlePart(uint8_t part_type) {
