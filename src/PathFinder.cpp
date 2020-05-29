@@ -352,31 +352,33 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
         std::vector<std::string> shortestPath = T.Dijktras(std::to_string(order.GetInitialPiece()), std::to_string(order.GetFinalPiece()));
-        std::string _shortestPath;
-        for (auto const &s : shortestPath) {
-            _shortestPath += s;
-        }
-        int required_transformations = std::stoi(_shortestPath);
+        std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
+        std::list<Transformation*> transformation_path;
 
         // Find the first transformation to be done to the part
-        int first_transformation = required_transformations;
-        while (first_transformation > 12) {
-            first_transformation /= 10;
+        //std::cout << "HI: " << shortestPath.front() << std::endl;
+        int curr_part = 1;//std::stoi(shortestPath.front());
+        for (std::vector<std::string>::iterator iter = shortestPath.begin();
+            iter != shortestPath.end();
+            ++iter)
+        {
+            std::cout << "HI: " << *iter << std::endl;
+            int next_part = std::stoi(*iter);
+            for (int i = 12; i >= 1; i--) {
+                if ((transformations[i]->to == next_part) && (transformations[i]->from == curr_part)) {
+                    transformation_path.push_back(transformations[i]);
+                    curr_part = next_part;
+                    break;
+                }
+                throw std::exception();
+            }
         }
-        if (transformations[first_transformation]->from != order.GetInitialPiece()) {
-            delete(path);
-            return NULL;
-        }
-        first_transformation /= 10;
-        if (transformations[first_transformation]->from != order.GetInitialPiece()) {
-            delete(path);
-            return NULL;
-        }
+        std::exit(0);
 
         // Search machines able to do these transformations
         ModulePath* best_module_path = NULL;
         for ( const auto machine : { Block::A1, Block::C3 } ) {
-            if (!machines[machine]->canDoTransformation(transformations[first_transformation])) {
+            if (!machines[machine]->canDoTransformation(transformation_path.front())) {
                 continue;
             }
 
