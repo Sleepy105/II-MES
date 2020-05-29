@@ -327,11 +327,16 @@ PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) 
 
     machines[C1]->setDir(Direction::Right, machines[C2], true, move_across);
     machines[C2]->setDir(Direction::Right, machines[C3], true, move_across);
+
+    pushers[P1] = new Pusher(Cell::C4, Row::R1);
+    pushers[P2] = new Pusher(Cell::C4, Row::R2);
+    pushers[P3] = new Pusher(Cell::C4, Row::R3);
 }
 
 Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     Path* path = new Path;
     ModulePath* best_module_path = NULL;
+    uint16_t move_counter = 0;
 
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
@@ -694,7 +699,6 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
 
         Cell start_cell = best_module_path->path.front()->getCell();
         Cell end_cell = best_module_path->path.back()->getCell();
-        uint16_t move_counter = 0;
 
         repeat(start_cell) {
             repeat(2) path->moves[move_counter++] = Direction::Right;
@@ -763,7 +767,13 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
     else if (order.GetType() == Order::ORDER_TYPE_UNLOAD) {
-        // TODO
+
+        // TODO Check if Pushers are full
+
+        repeat(7) path->moves[move_counter++] = Direction::Right;
+        repeat(order.GetFinalPiece()+1) path->moves[move_counter++] = Direction::Down;
+        path->moves[move_counter++] = Direction::Right;
+        path->moves[move_counter++] = Direction::Stop;
     }
 
     return path;

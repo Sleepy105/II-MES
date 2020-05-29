@@ -167,12 +167,14 @@ private:
     Machine* machines[9] = {NULL};
     Transformation* transformations[13] = {NULL};
 
+    Pusher* pushers[3] = {NULL};
+
     ModulePath* searchMachines(Order::BaseOrder& order, std::list<Transformation*>& list);
 public:
     PathFinder(Warehouse* warehouse);
     ~PathFinder() {}
 
-    enum Block {A1, A2, A3, B1, B2, B3, C1, C2, C3};
+    enum Block {A1, A2, A3, B1, B2, B3, C1, C2, C3, P1=0, P2, P3};
 
     /**
      * @brief Search for optimum path for a part of this order
