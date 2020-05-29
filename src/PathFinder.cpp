@@ -1,6 +1,8 @@
 #include "PathFinder.hpp"
 #include <stdio.h>
 
+#define repeat(number) for (uint _repeat_cnt = 0; _repeat_cnt < number; _repeat_cnt++)
+
 PathFinder::Transformation T1 = {
     .from   = 1,
     .to     = 2,
@@ -128,10 +130,6 @@ bool PathFinder::Machine::isDownstream(Direction dir) {
     return downstreams[dir];
 }
 
-uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
-    return 0;
-}
-
 PathFinder::Transformation* PathFinder::Machine::getTransformationThatMakesPart(uint8_t part_type) {
     for (std::list<Transformation*>::iterator iter = valid_transformations.begin();
             iter != valid_transformations.end();
@@ -227,6 +225,10 @@ PathFinder::ModulePath* PathFinder::Machine::search(Order::BaseOrder& order, std
     return best_path;
 }
 
+PathFinder::Cell PathFinder::Machine::getCell() {
+    return cell;
+}
+
 PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) {
 
     transformations[1] = &T1;
@@ -242,55 +244,55 @@ PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) 
     transformations[11] = &T11;
     transformations[12] = &T12;
 
-    machines[A1] = new Machine(warehouse);
+    machines[A1] = new Machine(Cell::C1, warehouse);
     machines[A1]->addCanDoTransformation(T1);
     machines[A1]->addCanDoTransformation(T2);
     machines[A1]->addCanDoTransformation(T3);
     machines[A1]->addCanDoTransformation(T4);
 
-    machines[A2] = new Machine(warehouse);
+    machines[A2] = new Machine(Cell::C2, warehouse);
     machines[A2]->addCanDoTransformation(T1);
     machines[A2]->addCanDoTransformation(T2);
     machines[A2]->addCanDoTransformation(T3);
     machines[A2]->addCanDoTransformation(T4);
 
-    machines[A3] = new Machine(warehouse);
+    machines[A3] = new Machine(Cell::C3, warehouse);
     machines[A3]->addCanDoTransformation(T1);
     machines[A3]->addCanDoTransformation(T2);
     machines[A3]->addCanDoTransformation(T3);
     machines[A3]->addCanDoTransformation(T4);
 
-    machines[B1] = new Machine(warehouse);
+    machines[B1] = new Machine(Cell::C1, warehouse);
     machines[B1]->addCanDoTransformation(T5);
     machines[B1]->addCanDoTransformation(T6);
     machines[B1]->addCanDoTransformation(T7);
     machines[B1]->addCanDoTransformation(T8);
 
-    machines[B2] = new Machine(warehouse);
+    machines[B2] = new Machine(Cell::C2, warehouse);
     machines[B2]->addCanDoTransformation(T5);
     machines[B2]->addCanDoTransformation(T6);
     machines[B2]->addCanDoTransformation(T7);
     machines[B2]->addCanDoTransformation(T8);
 
-    machines[B3] = new Machine(warehouse);
+    machines[B3] = new Machine(Cell::C3, warehouse);
     machines[B3]->addCanDoTransformation(T5);
     machines[B3]->addCanDoTransformation(T6);
     machines[B3]->addCanDoTransformation(T7);
     machines[B3]->addCanDoTransformation(T8);
 
-    machines[C1] = new Machine(warehouse);
+    machines[C1] = new Machine(Cell::C1, warehouse);
     machines[C1]->addCanDoTransformation(T9);
     machines[C1]->addCanDoTransformation(T10);
     machines[C1]->addCanDoTransformation(T11);
     machines[C1]->addCanDoTransformation(T12);
 
-    machines[C2] = new Machine(warehouse);
+    machines[C2] = new Machine(Cell::C2, warehouse);
     machines[C2]->addCanDoTransformation(T9);
     machines[C2]->addCanDoTransformation(T10);
     machines[C2]->addCanDoTransformation(T11);
     machines[C2]->addCanDoTransformation(T12);
 
-    machines[C3] = new Machine(warehouse);
+    machines[C3] = new Machine(Cell::C3, warehouse);
     machines[C3]->addCanDoTransformation(T9);
     machines[C3]->addCanDoTransformation(T10);
     machines[C3]->addCanDoTransformation(T11);
@@ -675,7 +677,25 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             return NULL;
         }
 
+        Cell start_cell = best_module_path->path.front()->getCell();
+        Cell end_cell = best_module_path->path.back()->getCell();
+        uint16_t move_counter = 0;
 
+        repeat(start_cell) {
+            repeat(2) path->moves[move_counter++] = Direction::Right;
+        }
+        path->moves[move_counter++] = Direction::Down;
+
+        // TODO Internal Cell moves
+
+        path->moves[move_counter++] = Direction::Down;
+        repeat(end_cell) {
+            repeat(2) path->moves[move_counter++] = Direction::Left;
+        }
+
+        // TODO Update of free/blocked machines
+
+        /* DEBUG code */
         if(best_module_path) {
             for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
                 std::cout << "Machine: " << *iter << std::endl;
@@ -684,13 +704,7 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         delete(best_module_path);
         delete(path);
         return NULL;
-
-        // Find the first transformation to be done to the part
-        //std::cout << "HI: " << shortestPath.front() << std::endl;
-        int curr_part = 1;//std::stoi(shortestPath.front());
-
-        // TODO Update of free/blocked machines
-
+        /**************/
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
     else if (order.GetType() == Order::ORDER_TYPE_UNLOAD) {

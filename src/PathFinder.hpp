@@ -30,6 +30,7 @@ namespace PathFinder {
     } Transformation;
 
     enum Direction { Stop, Right, Down, Left, Up };
+    enum Cell { C1, C2, C3, C4 };
     
 };
 
@@ -40,6 +41,7 @@ protected:
     bool downstreams[5] = {false};
     std::list<Transformation*> valid_transformations;
 
+    Cell cell;
     Warehouse* warehouse;
 
     const uint32_t ToolChange = 30;
@@ -64,7 +66,7 @@ protected:
      */
     Transformation* getTransformationThatMakesPart(uint8_t part_type);
 public:
-    Machine(Warehouse* warehouse) : warehouse(warehouse) {}
+    Machine(Cell cell, Warehouse* warehouse) : cell(cell), warehouse(warehouse) {}
     ~Machine() {}
 
     /**
@@ -127,16 +129,6 @@ public:
     bool canHandlePart(uint8_t part_type);
 
     /**
-     * @brief Calculate time that this module will take to handle a part of this type.
-     * Always returns 0. To be implemented in subclass
-     * 
-     * @param order
-     * @param part_type 
-     * @return uint32_t 
-     */
-    uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
-
-    /**
      * @brief Calculate time that this Machine will take to handle a part of this type.
      * 
      * @param order
@@ -146,6 +138,8 @@ public:
     uint32_t calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation);
 
     ModulePath* search(Order::BaseOrder& order, std::list<Transformation*>::iterator t, std::list<Transformation*>::iterator last);
+
+    Cell getCell();
 };
 
 class PathFinder::Pusher {
