@@ -157,7 +157,7 @@ bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
 }
 
 uint32_t PathFinder::Machine::calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation) {
-    uint32_t handle_time = Receive;
+    uint32_t handle_time = 0;
 
     /*for (std::list<Operation*>::iterator iter = operation_queue.begin();
             iter != operation_queue.end();

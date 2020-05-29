@@ -42,7 +42,6 @@ protected:
 
     Warehouse* warehouse;
 
-    const uint32_t Receive = 1;
     const uint32_t ToolChange = 30;
 
     uint8_t current_tool = 1;
