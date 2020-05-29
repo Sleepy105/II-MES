@@ -68,7 +68,10 @@ protected:
      */
     Transformation* getTransformationThatMakesPart(uint8_t part_type);
 public:
-    Machine(Cell cell, Row row, Warehouse* warehouse) : cell(cell), row(row), warehouse(warehouse) {}
+    Machine(Cell cell, Row row, Warehouse* warehouse) : cell(cell), row(row), warehouse(warehouse) {
+        MovesPath dummy;
+        setDir(Direction::Stop, this, true, dummy);
+    }
     ~Machine() {}
 
     /**

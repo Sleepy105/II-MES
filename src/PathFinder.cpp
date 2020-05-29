@@ -118,7 +118,7 @@ PathFinder::Machine* PathFinder::Machine::getDir(Direction dir) {
 }
 
 PathFinder::Direction PathFinder::Machine::searchDir(Machine* module) {
-    for ( int dirInt = Direction::Right; dirInt != Direction::Up; dirInt++ ) {
+    for ( int dirInt = Direction::Stop; dirInt != Direction::Up; dirInt++ ) {
         Direction dir = static_cast<Direction>(dirInt);
         if (getDir(dir) == module) {
             return dir;
@@ -199,21 +199,18 @@ PathFinder::ModulePath* PathFinder::Machine::search(Order::BaseOrder& order, std
         path->time = self_time;
         return path;
     };
-    t_iter--;
 
     ModulePath* best_path = NULL;
-    for ( int dirInt = Direction::Right; dirInt != Direction::Up; dirInt++ ) {
+    for ( int dirInt = Direction::Stop; dirInt != Direction::Up; dirInt++ ) {
         Direction dir = static_cast<Direction>(dirInt);
         if (!isDownstream(dir)) continue;
-        if (!canDoTransformation(**t_iter)) continue;
-
-        t_iter++;
+        if (!getDir(dir)->canDoTransformation(**t_iter)) continue;
 
         ModulePath* path = getDir(dir)->search(order, t_iter, last);
         if (!best_path) {
             best_path = path;
         }
-        else if (path && path->time < best_path->time) {
+        else if (path && path->time <= best_path->time) {
             delete(best_path);
             best_path = path;
         }
@@ -713,6 +710,16 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             for (auto moves_iter = machine_moves.begin(); moves_iter != machine_moves.end(); moves_iter++) {
                 path->moves[move_counter++] = *moves_iter;
             }
+
+        }
+        
+        for ( int blockInt = Block::A1; blockInt != Block::C3; blockInt++ ) {
+            Block block = static_cast<Block>(blockInt);
+            for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
+                if (machines[block] == *iter) {
+                    (path->machine_transformations[block])++;
+                }
+            }
         }
 
         path->moves[move_counter++] = Direction::Right;
@@ -727,11 +734,25 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
 
         /* DEBUG code */
         if(best_module_path) {
+            std::cout << "MACHINES: " << std::endl;
+            std::cout << "\tA1: " << machines[A1] << std::endl;
+            std::cout << "\tA2: " << machines[A2] << std::endl;
+            std::cout << "\tA3: " << machines[A3] << std::endl;
+            std::cout << "\tB1: " << machines[B1] << std::endl;
+            std::cout << "\tB2: " << machines[B2] << std::endl;
+            std::cout << "\tB3: " << machines[B3] << std::endl;
+            std::cout << "\tC1: " << machines[C1] << std::endl;
+            std::cout << "\tC2: " << machines[C2] << std::endl;
+            std::cout << "\tC3: " << machines[C3] << std::endl;
             for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
                 std::cout << "Machine: " << *iter << std::endl;
             }
             for (int i = 0; i < move_counter; i++) {
                 std::cout << std::to_string(path->moves[i]) << " ";
+            }
+            std::cout << std::endl;
+            for (int i = 0; i < 9; i++) {
+                std::cout << std::to_string(path->machine_transformations[i]) << " ";
             }
             std::cout << std::endl;
         }
