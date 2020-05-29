@@ -39,11 +39,12 @@ namespace PathFinder {
 
 class PathFinder::BaseModule {
 protected:
-    BaseModule* modules[4] = {NULL};
-    bool downstreams[4] = {false};
+    BaseModule* modules[5] = {NULL};
+    bool downstreams[5] = {false};
     std::list<Transformation*> valid_transformations;
 
     uint32_t time_so_far;
+    bool endpoint = false;
     
     /**
      * @brief Search all valid downstream modules for best path
@@ -54,7 +55,7 @@ protected:
     ModulePath* searchDownstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far);
 
 public:
-    BaseModule() {}
+    BaseModule(bool endpoint = false) : endpoint(endpoint) {}
     ~BaseModule() {}
 
     enum Type {Machine, Linear, Rotational, Pusher};
@@ -150,7 +151,7 @@ class PathFinder::Linear : public BaseModule {
 protected:
     const uint32_t Receive = 1;
 public:
-    Linear() { type = Type::Linear; }
+    Linear(bool endpoint = false) : BaseModule(endpoint) { type = Type::Linear; }
     ~Linear() {}
 
     /**
@@ -189,7 +190,6 @@ protected:
 public:
     Machine(Warehouse* warehouse) : warehouse(warehouse) { type = Type::Machine; }
     ~Machine() {}
-
     /**
      * @brief Check if this Module can handle a part of this type
      * 
@@ -221,7 +221,7 @@ class PathFinder::Pusher : public Linear {
 private:
     /* data */
 public:
-    Pusher() { type = Type::Pusher; }
+    Pusher(bool endpoint = true) : Linear(endpoint) { type = Type::Pusher; }
     ~Pusher() {}
 };
 
@@ -231,6 +231,7 @@ class PathFinder::PathFinder{
 private:
     Warehouse* warehouse;
     BaseModule* machines[9] = {NULL};
+    Transformation* transformations[13] = {NULL};
 public:
     PathFinder(Warehouse* warehouse);
     ~PathFinder() {}

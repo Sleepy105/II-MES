@@ -90,11 +90,15 @@ PathFinder::ModulePath* PathFinder::BaseModule::search(Order::BaseOrder& order, 
 
     part_type = changeType(part_type);
 
-    if (!best_so_far) {
+    if (!best_so_far && endpoint) {
         best_so_far = new ModulePath();
+        best_so_far->path.push_front(this);
+        best_so_far->time += self_time;
+        return best_so_far;
     }
+
     ModulePath* best_path = searchDownstream(order, part_type, time_so_far+self_time, best_so_far);
-    best_path->path.push_back(this);
+    best_path->path.push_front(this);
     best_path->time += self_time;
     return best_path;
 }
@@ -205,13 +209,21 @@ PathFinder::Transformation* PathFinder::Machine::getTransformationThatMakesPart(
 }
 
 bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
-    return (getTransformationThatMakesPart(part_type));
+    for (std::list<Transformation*>::iterator iter = valid_transformations.begin();
+            iter != valid_transformations.end();
+            iter++)
+    {
+        if ((*iter)->from == part_type) {
+            return true;
+        }
+    }
+    return false;
 }
 
 uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
     uint32_t handle_time = Receive;
 
-    for (std::list<Operation*>::iterator iter = operation_queue.begin();
+    /*for (std::list<Operation*>::iterator iter = operation_queue.begin();
             iter != operation_queue.end();
             iter++)
     {
@@ -222,7 +234,7 @@ uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint
         else if (operation->type == PartTransformation) {
             handle_time += operation->transformation->time;
         }
-    }
+    }*/ // TODO Review this whole thing
 
     // TODO Check for tool changes
     bool requiresToolChange = false;
@@ -243,10 +255,23 @@ uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint
 
 uint8_t PathFinder::Machine::changeType(uint8_t part_type) {
     Transformation* t = getTransformationThatMakesPart(part_type);
-    return t->from;
+    return t->to;
 }
 
 PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) {
+
+    transformations[1] = &T1;
+    transformations[2] = &T2;
+    transformations[3] = &T3;
+    transformations[4] = &T4;
+    transformations[5] = &T5;
+    transformations[6] = &T6;
+    transformations[7] = &T7;
+    transformations[8] = &T8;
+    transformations[9] = &T9;
+    transformations[10] = &T10;
+    transformations[11] = &T11;
+    transformations[12] = &T12;
 
     machines[A1] = new Machine(warehouse);
     machines[A1]->canDoTransformation(&T1);
@@ -330,6 +355,42 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         std::string _shortestPath;
         for (auto const &s : shortestPath) {
             _shortestPath += s;
+        }
+        int required_transformations = std::stoi(_shortestPath);
+
+        // Find the first transformation to be done to the part
+        int first_transformation = required_transformations;
+        while (first_transformation > 12) {
+            first_transformation /= 10;
+        }
+        if (transformations[first_transformation]->from != order.GetInitialPiece()) {
+            delete(path);
+            return NULL;
+        }
+        first_transformation /= 10;
+        if (transformations[first_transformation]->from != order.GetInitialPiece()) {
+            delete(path);
+            return NULL;
+        }
+
+        // Search machines able to do these transformations
+        ModulePath* best_module_path = NULL;
+        for ( const auto machine : { Block::A1, Block::C3 } ) {
+            if (!machines[machine]->canDoTransformation(transformations[first_transformation])) {
+                continue;
+            }
+
+            ModulePath* ret = machines[machine]->search(order, order.GetInitialPiece(), 0, NULL);
+            if (!ret) {
+                continue;
+            }
+
+            if (!best_module_path || ret->time < best_module_path->time) {
+                if (best_module_path) {
+                    delete(best_module_path);
+                }
+                best_module_path = ret;
+            }
         }
 
         // TODO
