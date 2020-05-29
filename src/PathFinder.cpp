@@ -746,7 +746,6 @@ Path *PathFinder::FindPath(Order::BaseOrder &order) {
     uint8_t initial_piece = order.GetInitialPiece();
     uint8_t final_piece = order.GetFinalPiece();
     uint8_t order_type = order.GetType();
-    uint8_t destination = final_piece; // isto é redundante. É só para ficar mais claro
 
     Graph T(string("TransformationsGraph.txt"));
     T.getInfo();
@@ -871,7 +870,7 @@ Path *PathFinder::FindPath(Order::BaseOrder &order) {
         path->moves[7] = 2;
         path->moves[8] = 2;
 
-        switch (destination) {
+        switch (final_piece) {
             case 1:
                 //unload Pusher1
                 path->moves[9] = 1;
