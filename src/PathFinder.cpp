@@ -248,6 +248,74 @@ uint8_t PathFinder::Machine::changeType(uint8_t part_type) {
 
 PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) {
 
+    machines[A1] = new Machine(warehouse);
+    machines[A1]->canDoTransformation(&T1);
+    machines[A1]->canDoTransformation(&T2);
+    machines[A1]->canDoTransformation(&T3);
+    machines[A1]->canDoTransformation(&T4);
+
+    machines[A2] = new Machine(warehouse);
+    machines[A2]->canDoTransformation(&T1);
+    machines[A2]->canDoTransformation(&T2);
+    machines[A2]->canDoTransformation(&T3);
+    machines[A2]->canDoTransformation(&T4);
+
+    machines[A3] = new Machine(warehouse);
+    machines[A3]->canDoTransformation(&T1);
+    machines[A3]->canDoTransformation(&T2);
+    machines[A3]->canDoTransformation(&T3);
+    machines[A3]->canDoTransformation(&T4);
+
+    machines[B1] = new Machine(warehouse);
+    machines[B1]->canDoTransformation(&T5);
+    machines[B1]->canDoTransformation(&T6);
+    machines[B1]->canDoTransformation(&T7);
+    machines[B1]->canDoTransformation(&T8);
+
+    machines[B2] = new Machine(warehouse);
+    machines[B2]->canDoTransformation(&T5);
+    machines[B2]->canDoTransformation(&T6);
+    machines[B2]->canDoTransformation(&T7);
+    machines[B2]->canDoTransformation(&T8);
+
+    machines[B3] = new Machine(warehouse);
+    machines[B3]->canDoTransformation(&T5);
+    machines[B3]->canDoTransformation(&T6);
+    machines[B3]->canDoTransformation(&T7);
+    machines[B3]->canDoTransformation(&T8);
+
+    machines[C1] = new Machine(warehouse);
+    machines[C1]->canDoTransformation(&T9);
+    machines[C1]->canDoTransformation(&T10);
+    machines[C1]->canDoTransformation(&T11);
+    machines[C1]->canDoTransformation(&T12);
+
+    machines[C2] = new Machine(warehouse);
+    machines[C2]->canDoTransformation(&T9);
+    machines[C2]->canDoTransformation(&T10);
+    machines[C2]->canDoTransformation(&T11);
+    machines[C2]->canDoTransformation(&T12);
+
+    machines[C3] = new Machine(warehouse);
+    machines[C3]->canDoTransformation(&T9);
+    machines[C3]->canDoTransformation(&T10);
+    machines[C3]->canDoTransformation(&T11);
+    machines[C3]->canDoTransformation(&T12);
+    
+    machines[A1]->setDir(Direction::Right, machines[A2], true);
+    machines[A1]->setDir(Direction::Down, machines[B1], true);
+    machines[A2]->setDir(Direction::Right, machines[A3], true);
+    machines[A2]->setDir(Direction::Down, machines[B2], true);
+    machines[A3]->setDir(Direction::Down, machines[B3], true);
+
+    machines[B1]->setDir(Direction::Right, machines[B2], true);
+    machines[B1]->setDir(Direction::Down, machines[C1], true);
+    machines[B2]->setDir(Direction::Right, machines[B3], true);
+    machines[B2]->setDir(Direction::Down, machines[C2], true);
+    machines[B3]->setDir(Direction::Down, machines[C3], true);
+
+    machines[C1]->setDir(Direction::Right, machines[C2], true);
+    machines[C2]->setDir(Direction::Right, machines[C3], true);
 }
 
 Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {

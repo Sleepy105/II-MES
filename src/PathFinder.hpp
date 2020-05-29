@@ -234,6 +234,9 @@ private:
 public:
     PathFinder(Warehouse* warehouse);
     ~PathFinder() {}
+
+    enum Block {A1, A2, A3, B1, B2, B3, C1, C2, C3};
+
     /**
      * @brief Search for optimum path for a part of this order
      * 
