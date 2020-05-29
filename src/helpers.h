@@ -23,4 +23,6 @@
 #define meslog(type) log_##type meta_log
 #define meta_log << ":" << __FILE__ << ":" << __func__ << ":" << __LINE__ << " \t"
 
+#define repeat(number) for (uint _repeat_cnt = 0; _repeat_cnt < number; _repeat_cnt++)
+
 #endif

@@ -19,6 +19,7 @@ namespace PathFinder {
         std::list<Machine*> path;
         uint32_t time;
     } ModulePath;
+
     typedef struct {
         uint8_t from;
         uint8_t to;
@@ -27,8 +28,10 @@ namespace PathFinder {
     } Transformation;
 
     enum Direction { Stop, Right, Down, Left, Up };
-    enum Cell { C1, C2, C3, C4 };
+    enum Cell { C1=1, C2, C3, C4 };
+    enum Row { R1=1, R2, R3 };
     
+    typedef std::list<Direction> MovesPath;
 };
 
 
@@ -36,9 +39,11 @@ class PathFinder::Machine {
 protected:
     Machine* modules[5] = {NULL};
     bool downstreams[5] = {false};
+    MovesPath dir_moves[5];
     std::list<Transformation*> valid_transformations;
 
     Cell cell;
+    Row row;
     Warehouse* warehouse;
 
     const uint32_t ToolChange = 30;
@@ -63,7 +68,7 @@ protected:
      */
     Transformation* getTransformationThatMakesPart(uint8_t part_type);
 public:
-    Machine(Cell cell, Warehouse* warehouse) : cell(cell), warehouse(warehouse) {}
+    Machine(Cell cell, Row row, Warehouse* warehouse) : cell(cell), row(row), warehouse(warehouse) {}
     ~Machine() {}
 
     /**
@@ -137,6 +142,10 @@ public:
     ModulePath* search(Order::BaseOrder& order, std::list<Transformation*>::iterator t, std::list<Transformation*>::iterator last);
 
     Cell getCell();
+    
+    Row getRow();
+
+    MovesPath& getDirMoves(Direction dir);
 };
 
 class PathFinder::Pusher {
