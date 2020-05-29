@@ -245,6 +245,11 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 		part.SetPath(path);
 
 		order.AddPiece(part);
+
+		if (order.IsNotExecuting){
+			updateOrder(DBFILE, "Executing", (int) order.GetID());
+			order.SetExecuting();
+		}
 		
 		mtx.unlock(); // Unlock order list mutex
 		return &order;
