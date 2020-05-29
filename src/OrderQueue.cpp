@@ -246,7 +246,7 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 
 		order.AddPiece(part);
 
-		if (order.IsNotExecuting){
+		if (order.IsNotExecuting()){
 			updateOrder(DBFILE, "Executing", (int) order.GetID());
 			order.SetExecuting();
 		}
