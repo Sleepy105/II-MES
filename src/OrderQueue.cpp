@@ -229,6 +229,7 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 		// Find path for new part
 		Path* path = pathfinder->FindPath(order);
 		if (!path) {
+			meslog(INFO) << "No valid path for Order #" << order.GetID() << " has been found." << std::endl;
 			// Order Invalid: At the moment, a valid path has not been found
 			continue;
 		}

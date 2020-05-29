@@ -146,7 +146,7 @@ public:
      */
     uint32_t calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation);
 
-    ModulePath* search(Order::BaseOrder& order, std::list<Transformation>::iterator t, std::list<Transformation>::iterator last);
+    ModulePath* search(Order::BaseOrder& order, std::list<Transformation*>::iterator t, std::list<Transformation*>::iterator last);
 };
 
 class PathFinder::Pusher {
@@ -165,7 +165,7 @@ private:
     Machine* machines[9] = {NULL};
     Transformation* transformations[13] = {NULL};
 
-    ModulePath* searchMachines(Order::BaseOrder& order, std::list<Transformation> list);
+    ModulePath* searchMachines(Order::BaseOrder& order, std::list<Transformation*>& list);
 public:
     PathFinder(Warehouse* warehouse);
     ~PathFinder() {}
