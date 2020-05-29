@@ -675,6 +675,16 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             return NULL;
         }
 
+
+        if(best_module_path) {
+            for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
+                std::cout << "Machine: " << *iter << std::endl;
+            }
+        }
+        delete(best_module_path);
+        delete(path);
+        return NULL;
+
         // Find the first transformation to be done to the part
         //std::cout << "HI: " << shortestPath.front() << std::endl;
         int curr_part = 1;//std::stoi(shortestPath.front());
@@ -708,11 +718,5 @@ PathFinder::ModulePath* PathFinder::PathFinder::searchMachines(Order::BaseOrder&
         }
     }
 
-    //return path;
-    if(path) {
-        for (auto iter = path->path.begin(); iter != path->path.end(); iter++) {
-            std::cout << "Machine: " << *iter << std::endl;
-        }
-    }
-    return NULL;
+    return path;
 }
