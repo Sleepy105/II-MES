@@ -42,33 +42,13 @@ protected:
     BaseModule* modules[5] = {NULL};
     bool downstreams[5] = {false};
     std::list<Transformation*> valid_transformations;
-
-    uint32_t time_so_far;
-    bool endpoint = false;
-    
-    /**
-     * @brief Search all valid downstream modules for best path
-     * 
-     * @param time_so_far 
-     * @return ModulePath* 
-     */
-    ModulePath* searchDownstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far);
-
 public:
-    BaseModule(bool endpoint = false) : endpoint(endpoint) {}
+    BaseModule() {}
     ~BaseModule() {}
 
     enum Type {Machine, Linear, Rotational, Pusher};
     Type type;
 
-    /**
-     * @brief Evaluate self (and downstream)
-     * 
-     * @param time_so_far 
-     * @return ModulePath* 
-     */
-    ModulePath* search(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far);
-    
     /**
      * @brief Check if module can do a certain transformation of parts
      * 
@@ -76,14 +56,14 @@ public:
      * @return true 
      * @return false 
      */
-    bool canDoTransformation(Transformation* t);
+    bool canDoTransformation(Transformation& t);
 
     /**
      * @brief Set that it can do the Transformation t
      * 
      * @param t 
      */
-    void addCanDoTransformation(Transformation* t);
+    void addCanDoTransformation(Transformation& t);
 
     /**
      * @brief Set the Module present in Dir direction
@@ -137,31 +117,6 @@ public:
      * @return uint32_t 
      */
     uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
-
-    /**
-     * @brief Does nothing. Subclasses can implement this to change part_type, if needed, mid search().
-     * 
-     * @param part_type 
-     * @return uint8_t Returns part_type
-     */
-    uint8_t changeType(uint8_t part_type);
-};
-
-class PathFinder::Linear : public BaseModule {
-protected:
-    const uint32_t Receive = 1;
-public:
-    Linear(bool endpoint = false) : BaseModule(endpoint) { type = Type::Linear; }
-    ~Linear() {}
-
-    /**
-     * @brief Calculate time that this Linear Conveyor will take to handle a part of this type.
-     * 
-     * @param order
-     * @param part_type 
-     * @return uint32_t 
-     */
-    uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
 };
 
 class PathFinder::Machine : public BaseModule {
@@ -170,6 +125,8 @@ protected:
 
     const uint32_t Receive = 1;
     const uint32_t ToolChange = 30;
+
+    uint8_t current_tool = 1;
 
     enum OperationType {ChangeTools=1, PartTransformation};
     
@@ -206,22 +163,14 @@ public:
      * @param part_type 
      * @return uint32_t 
      */
-    uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
-
-    /**
-     * @brief Does nothing. Subclasses can implement this to change part_type, if needed, mid search().
-     * 
-     * @param part_type 
-     * @return uint8_t Returns part_type
-     */
-    uint8_t changeType(uint8_t part_type);
+    uint32_t calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation);
 };
 
-class PathFinder::Pusher : public Linear {
+class PathFinder::Pusher : public BaseModule {
 private:
     /* data */
 public:
-    Pusher(bool endpoint = true) : Linear(endpoint) { type = Type::Pusher; }
+    Pusher() { type = Type::Pusher; }
     ~Pusher() {}
 };
 
@@ -232,6 +181,8 @@ private:
     Warehouse* warehouse;
     BaseModule* machines[9] = {NULL};
     Transformation* transformations[13] = {NULL};
+
+    ModulePath* searchMachines(std::list<Transformation> list);
 public:
     PathFinder(Warehouse* warehouse);
     ~PathFinder() {}

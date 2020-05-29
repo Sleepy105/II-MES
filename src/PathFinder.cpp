@@ -85,76 +85,23 @@ PathFinder::Transformation T12 = {
     .time   = 10,
 };
 
-PathFinder::ModulePath* PathFinder::BaseModule::search(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far) {
-    uint32_t self_time = calcTimeToHandlePart(order, part_type);
-
-    part_type = changeType(part_type);
-
-    if (!best_so_far && endpoint) {
-        best_so_far = new ModulePath();
-        best_so_far->path.push_front(this);
-        best_so_far->time += self_time;
-        return best_so_far;
-    }
-
-    ModulePath* best_path = searchDownstream(order, part_type, time_so_far+self_time, best_so_far);
-    best_path->path.push_front(this);
-    best_path->time += self_time;
-    return best_path;
-}
-
-PathFinder::ModulePath* PathFinder::BaseModule::searchDownstream(Order::BaseOrder& order, uint8_t part_type, uint32_t time_so_far, ModulePath* best_so_far) {
-    for ( const auto dir : { Direction::Right, Direction::Up } ) {
-        if (!isDownstream(dir)) {
-            continue;
-        }
-        
-        BaseModule* module = getDir(dir);
-        if (!module) {
-            continue;
-        }
-
-        if (!module->canHandlePart(part_type)) {
-            continue;
-        }
-        
-        ModulePath* path = module->search(order, part_type, time_so_far, best_so_far);
-
-        if (!best_so_far) {
-            best_so_far = path;
-            continue;
-        }
-
-        // TODO Even if slower, prioritize paths that use a larger number of machines of the same type, if the order is for more than 1 part
-
-        if (path->time < best_so_far->time) {
-            delete(best_so_far);
-            best_so_far = path;
-            continue;
-        }
-
-        delete(path);
-    }
-    return best_so_far;
-}
-
-bool PathFinder::BaseModule::canDoTransformation(Transformation* t) {
+bool PathFinder::BaseModule::canDoTransformation(Transformation& t) {
     for (std::list<Transformation*>::iterator iter = valid_transformations.begin();
             iter != valid_transformations.end();
             iter++)
     {
-        if ((*iter) == t) {
+        if ((*iter) == &t) {
             return true;
         }
     }
     return false;
 }
 
-void PathFinder::BaseModule::addCanDoTransformation(Transformation* t) {
+void PathFinder::BaseModule::addCanDoTransformation(Transformation& t) {
     if (canDoTransformation(t)) {
         return;
     }
-    valid_transformations.push_back(t);
+    valid_transformations.push_back(&t);
 }
 
 void PathFinder::BaseModule::setDir(Direction dir, BaseModule* module, bool downstream) {
@@ -188,14 +135,6 @@ uint32_t PathFinder::BaseModule::calcTimeToHandlePart(Order::BaseOrder& order, u
     return 0;
 }
 
-uint8_t PathFinder::BaseModule::changeType(uint8_t part_type) {
-    return part_type;
-}
-
-uint32_t PathFinder::Linear::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
-    return Receive;
-}
-
 PathFinder::Transformation* PathFinder::Machine::getTransformationThatMakesPart(uint8_t part_type) {
     for (std::list<Transformation*>::iterator iter = valid_transformations.begin();
             iter != valid_transformations.end();
@@ -220,7 +159,7 @@ bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
     return false;
 }
 
-uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type) {
+uint32_t PathFinder::Machine::calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation) {
     uint32_t handle_time = Receive;
 
     /*for (std::list<Operation*>::iterator iter = operation_queue.begin();
@@ -236,8 +175,7 @@ uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint
         }
     }*/ // TODO Review this whole thing
 
-    // TODO Check for tool changes
-    bool requiresToolChange = false;
+    bool requiresToolChange = (current_tool != transformation.tool);
     
     if (requiresToolChange) {
         // Divide tool change time by number of parts in the order
@@ -245,17 +183,14 @@ uint32_t PathFinder::Machine::calcTimeToHandlePart(Order::BaseOrder& order, uint
         uint32_t order_part_count = order.GetCount();
         uint32_t available_part_count = warehouse->GetPieceCount(order.GetInitialPiece());
         handle_time += ToolChange/(available_part_count < order_part_count ? available_part_count : order_part_count );
+
+        // TODO Add tool change to operation queue
+        current_tool = transformation.tool;
     }
 
-    Transformation* t = getTransformationThatMakesPart(part_type);
-    handle_time += t->time;
+    handle_time += transformation.time;
 
     return handle_time;
-}
-
-uint8_t PathFinder::Machine::changeType(uint8_t part_type) {
-    Transformation* t = getTransformationThatMakesPart(part_type);
-    return t->to;
 }
 
 PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) {
@@ -274,58 +209,58 @@ PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) 
     transformations[12] = &T12;
 
     machines[A1] = new Machine(warehouse);
-    machines[A1]->canDoTransformation(&T1);
-    machines[A1]->canDoTransformation(&T2);
-    machines[A1]->canDoTransformation(&T3);
-    machines[A1]->canDoTransformation(&T4);
+    machines[A1]->canDoTransformation(T1);
+    machines[A1]->canDoTransformation(T2);
+    machines[A1]->canDoTransformation(T3);
+    machines[A1]->canDoTransformation(T4);
 
     machines[A2] = new Machine(warehouse);
-    machines[A2]->canDoTransformation(&T1);
-    machines[A2]->canDoTransformation(&T2);
-    machines[A2]->canDoTransformation(&T3);
-    machines[A2]->canDoTransformation(&T4);
+    machines[A2]->canDoTransformation(T1);
+    machines[A2]->canDoTransformation(T2);
+    machines[A2]->canDoTransformation(T3);
+    machines[A2]->canDoTransformation(T4);
 
     machines[A3] = new Machine(warehouse);
-    machines[A3]->canDoTransformation(&T1);
-    machines[A3]->canDoTransformation(&T2);
-    machines[A3]->canDoTransformation(&T3);
-    machines[A3]->canDoTransformation(&T4);
+    machines[A3]->canDoTransformation(T1);
+    machines[A3]->canDoTransformation(T2);
+    machines[A3]->canDoTransformation(T3);
+    machines[A3]->canDoTransformation(T4);
 
     machines[B1] = new Machine(warehouse);
-    machines[B1]->canDoTransformation(&T5);
-    machines[B1]->canDoTransformation(&T6);
-    machines[B1]->canDoTransformation(&T7);
-    machines[B1]->canDoTransformation(&T8);
+    machines[B1]->canDoTransformation(T5);
+    machines[B1]->canDoTransformation(T6);
+    machines[B1]->canDoTransformation(T7);
+    machines[B1]->canDoTransformation(T8);
 
     machines[B2] = new Machine(warehouse);
-    machines[B2]->canDoTransformation(&T5);
-    machines[B2]->canDoTransformation(&T6);
-    machines[B2]->canDoTransformation(&T7);
-    machines[B2]->canDoTransformation(&T8);
+    machines[B2]->canDoTransformation(T5);
+    machines[B2]->canDoTransformation(T6);
+    machines[B2]->canDoTransformation(T7);
+    machines[B2]->canDoTransformation(T8);
 
     machines[B3] = new Machine(warehouse);
-    machines[B3]->canDoTransformation(&T5);
-    machines[B3]->canDoTransformation(&T6);
-    machines[B3]->canDoTransformation(&T7);
-    machines[B3]->canDoTransformation(&T8);
+    machines[B3]->canDoTransformation(T5);
+    machines[B3]->canDoTransformation(T6);
+    machines[B3]->canDoTransformation(T7);
+    machines[B3]->canDoTransformation(T8);
 
     machines[C1] = new Machine(warehouse);
-    machines[C1]->canDoTransformation(&T9);
-    machines[C1]->canDoTransformation(&T10);
-    machines[C1]->canDoTransformation(&T11);
-    machines[C1]->canDoTransformation(&T12);
+    machines[C1]->canDoTransformation(T9);
+    machines[C1]->canDoTransformation(T10);
+    machines[C1]->canDoTransformation(T11);
+    machines[C1]->canDoTransformation(T12);
 
     machines[C2] = new Machine(warehouse);
-    machines[C2]->canDoTransformation(&T9);
-    machines[C2]->canDoTransformation(&T10);
-    machines[C2]->canDoTransformation(&T11);
-    machines[C2]->canDoTransformation(&T12);
+    machines[C2]->canDoTransformation(T9);
+    machines[C2]->canDoTransformation(T10);
+    machines[C2]->canDoTransformation(T11);
+    machines[C2]->canDoTransformation(T12);
 
     machines[C3] = new Machine(warehouse);
-    machines[C3]->canDoTransformation(&T9);
-    machines[C3]->canDoTransformation(&T10);
-    machines[C3]->canDoTransformation(&T11);
-    machines[C3]->canDoTransformation(&T12);
+    machines[C3]->canDoTransformation(T9);
+    machines[C3]->canDoTransformation(T10);
+    machines[C3]->canDoTransformation(T11);
+    machines[C3]->canDoTransformation(T12);
     
     machines[A1]->setDir(Direction::Right, machines[A2], true);
     machines[A1]->setDir(Direction::Down, machines[B1], true);
@@ -345,59 +280,356 @@ PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) 
 
 Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     Path* path = new Path;
-
-    Graph T(std::string("TransformationsGraph.txt"));
-    T.getInfo();
+    ModulePath* best_module_path = NULL;
 
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
-        std::vector<std::string> shortestPath = T.Dijktras(std::to_string(order.GetInitialPiece()), std::to_string(order.GetFinalPiece()));
         std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
-        std::list<Transformation*> transformation_path;
+
+        if (1 == order.GetInitialPiece() && 2 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T1);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (1 == order.GetInitialPiece() && 3 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T2);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+
+            transformation_path.push_back(T5);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+        }
+        else if (1 == order.GetInitialPiece() && 4 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T6);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+
+            transformation_path.push_back(T5);
+            transformation_path.push_back(T6);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+
+            transformation_path.push_back(T9);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+        }
+        else if (1 == order.GetInitialPiece() && 5 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T10);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+
+            transformation_path.push_back(T5);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T10);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+
+            transformation_path.push_back(T9);
+            transformation_path.push_back(T10);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+        }
+        else if (1 == order.GetInitialPiece() && 6 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T3);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (1 == order.GetInitialPiece() && 7 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T7);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+
+            transformation_path.push_back(T5);
+            transformation_path.push_back(T7);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+        }
+        else if (1 == order.GetInitialPiece() && 8 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T11);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+
+            transformation_path.push_back(T5);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T11);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+
+            transformation_path.push_back(T9);
+            transformation_path.push_back(T11);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+        }
+        else if (1 == order.GetInitialPiece() && 9 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T3);
+            transformation_path.push_back(T4);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T7);
+            transformation_path.push_back(T8);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+
+            transformation_path.push_back(T5);
+            transformation_path.push_back(T7);
+            transformation_path.push_back(T8);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+
+            transformation_path.push_back(T1);
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T11);
+            transformation_path.push_back(T12);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+
+            transformation_path.push_back(T5);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T11);
+            transformation_path.push_back(T12);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+
+            transformation_path.push_back(T9);
+            transformation_path.push_back(T11);
+            transformation_path.push_back(T12);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+        }
+        else if (2 == order.GetInitialPiece() && 3 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T2);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (2 == order.GetInitialPiece() && 4 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T6);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (2 == order.GetInitialPiece() && 5 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T10);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (2 == order.GetInitialPiece() && 6 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T3);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (2 == order.GetInitialPiece() && 7 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T7);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (2 == order.GetInitialPiece() && 8 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T11);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (2 == order.GetInitialPiece() && 9 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T3);
+            transformation_path.push_back(T4);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T7);
+            transformation_path.push_back(T8);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+
+            transformation_path.push_back(T2);
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T11);
+            transformation_path.push_back(T12);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+        }
+        else if (3 == order.GetInitialPiece() && 4 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T6);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (3 == order.GetInitialPiece() && 5 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T10);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (3 == order.GetInitialPiece() && 7 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T7);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (3 == order.GetInitialPiece() && 8 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T11);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (3 == order.GetInitialPiece() && 9 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T7);
+            transformation_path.push_back(T8);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+
+            transformation_path.push_back(T6);
+            transformation_path.push_back(T11);
+            transformation_path.push_back(T12);
+            ModulePath* module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+            if (module_path->time < best_module_path->time) {
+                delete(best_module_path);
+                best_module_path = module_path;
+            }
+        }
+        else if (4 == order.GetInitialPiece() && 5 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T10);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (4 == order.GetInitialPiece() && 8 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T11);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (4 == order.GetInitialPiece() && 9 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T11);
+            transformation_path.push_back(T12);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (6 == order.GetInitialPiece() && 9 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T4);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (7 == order.GetInitialPiece() && 9 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T8);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
+        else if (8 == order.GetInitialPiece() && 9 == order.GetFinalPiece()) {
+            std::list<Transformation> transformation_path;
+            transformation_path.push_back(T12);
+            best_module_path = searchMachines(transformation_path);
+            transformation_path.clear();
+        }
 
         // Find the first transformation to be done to the part
         //std::cout << "HI: " << shortestPath.front() << std::endl;
         int curr_part = 1;//std::stoi(shortestPath.front());
-        for (std::vector<std::string>::iterator iter = shortestPath.begin();
-            iter != shortestPath.end();
-            ++iter)
-        {
-            std::cout << "HI: " << *iter << std::endl;
-            int next_part = std::stoi(*iter);
-            for (int i = 12; i >= 1; i--) {
-                if ((transformations[i]->to == next_part) && (transformations[i]->from == curr_part)) {
-                    transformation_path.push_back(transformations[i]);
-                    curr_part = next_part;
-                    break;
-                }
-                throw std::exception();
-            }
-        }
-        std::exit(0);
 
-        // Search machines able to do these transformations
-        ModulePath* best_module_path = NULL;
-        for ( const auto machine : { Block::A1, Block::C3 } ) {
-            if (!machines[machine]->canDoTransformation(transformation_path.front())) {
-                continue;
-            }
-
-            ModulePath* ret = machines[machine]->search(order, order.GetInitialPiece(), 0, NULL);
-            if (!ret) {
-                continue;
-            }
-
-            if (!best_module_path || ret->time < best_module_path->time) {
-                if (best_module_path) {
-                    delete(best_module_path);
-                }
-                best_module_path = ret;
-            }
-        }
-
-        // TODO
-
-        // Update of free/blocked machines
+        // TODO Update of free/blocked machines
 
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
@@ -406,4 +638,15 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     }
 
     return path;
+}
+
+PathFinder::ModulePath* PathFinder::PathFinder::searchMachines(std::list<Transformation> list) {
+    // Calculate best time for each Transformation
+    for (int i = 1; i <= 12; i++) {
+        for ( const auto machine : { Block::A1, Block::C3 } ) {
+            if (!machines[machine]->canDoTransformation(list.front())) {
+                continue;
+            }
+        }
+    }
 }
