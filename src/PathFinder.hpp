@@ -32,7 +32,7 @@ namespace PathFinder {
         uint8_t time;
     } Transformation;
 
-    enum Direction { Right, Down, Left, Up };
+    enum Direction { Stop, Right, Down, Left, Up };
     
 };
 
