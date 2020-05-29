@@ -182,16 +182,25 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
 
     // Check if piece will go to any of the three central cells
     if (moves[2] == 2){
+        if (cell_allocation[0]){
+            meslog(WARNING) << "Sent piece to already allocated top carpet in cell 1!" << std::endl;
+        }
         cell_allocation[0] = true;
         strcpy (NodeID, BaseNodeID_);
         strcat (NodeID, "GVL.C1_occupied");
         cell_allocated = true;
     }else if (moves[4] == 2){
+        if (cell_allocation[0]){
+            meslog(WARNING) << "Sent piece to already allocated top carpet in cell 2!" << std::endl;
+        }
         cell_allocation[1] = true;
         strcpy (NodeID, BaseNodeID_);
         strcat (NodeID, "GVL.C2_occupied");
         cell_allocated = true;
     }else if (moves[6] == 2){
+        if (cell_allocation[0]){
+            meslog(WARNING) << "Sent piece to already allocated top carpet in cell 3!" << std::endl;
+        }
         cell_allocation[2] = true;
         strcpy (NodeID, BaseNodeID_);
         strcat (NodeID, "GVL.C3_occupied");
@@ -210,6 +219,7 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
         wReq.nodesToWrite[0].value.value.data = &cell_allocated;
         wResp = UA_Client_Service_write(client_, wReq);
         if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+            meslog(ERROR) << "Error writting to node!" << std::endl;
             return false;
         }
         UA_WriteRequest_clear(&wReq);
@@ -248,6 +258,7 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     wReq.nodesToWrite[0].value.value.data = transformation_UA;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        meslog(ERROR) << "Error writting to node!" << std::endl;
         return false;
     }
     UA_WriteRequest_clear(&wReq);
@@ -268,6 +279,7 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     wReq.nodesToWrite[0].value.value.data = &type_piece;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        meslog(ERROR) << "Error writting to node!" << std::endl;
         return false;
     }
     UA_WriteRequest_clear(&wReq);
@@ -288,6 +300,7 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     wReq.nodesToWrite[0].value.value.data = &pathIDcounter;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        meslog(ERROR) << "Error writting to node!" << std::endl;
         return false;
     }
     UA_WriteRequest_clear(&wReq);
@@ -308,6 +321,7 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     wReq.nodesToWrite[0].value.value.data = &id_piece;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        meslog(ERROR) << "Error writting to node!" << std::endl;
         return false;
     }
     UA_WriteRequest_clear(&wReq);
@@ -329,6 +343,7 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     wReq.nodesToWrite[0].value.value.data = path_UA;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        meslog(ERROR) << "Error writting to node!" << std::endl;
         return false;
     }
     UA_WriteRequest_clear(&wReq);
@@ -350,13 +365,13 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     wReq.nodesToWrite[0].value.value.data = machines_UA;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        meslog(ERROR) << "Error writting to node!" << std::endl;
         return false;
     }
     UA_WriteRequest_clear(&wReq);
     UA_WriteResponse_clear(&wResp);
 
     // Escrever tipo de peca na variavel da Warehouse para despoletar a saida da peca.
-
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
@@ -370,6 +385,7 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     wReq.nodesToWrite[0].value.value.data = &type_piece;
     wResp = UA_Client_Service_write(client_, wReq);
     if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+        meslog(ERROR) << "Error writting to node!" << std::endl;
         return false;
     }
     UA_WriteRequest_clear(&wReq);
@@ -380,12 +396,12 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     // push piece to queue, reserving a spot in a slider and check it as finished in DataBase
     if (pusher_destination > 0){ // same as checking if it's an unload order
         if (pusher_destination > 3){
-            meslog(ERROR) << "Invalid pusher destination. Piece will still be sent and updated but not included in pusher allocation." << std::endl;
+            meslog(WARNING) << "Invalid pusher destination. Piece will still be sent and updated but not included in pusher allocation." << std::endl;
             order_queue->RemovePiece(piece_copy.GetID()); // imediately check piece as finished
         }
         pusher_queue[pusher_destination-1].push(piece_copy);
         if (pusher_queue[pusher_destination-1].size() > 4){
-            meslog(ERROR) << "Pusher " << (int)pusher_destination << " has " << pusher_queue[pusher_destination-1].size() - 4 << " excess pieces allocated to it! This is only an ERROR if pathfinder already has this feature." << std::endl;
+            meslog(WARNING) << "Pusher " << (int)pusher_destination << " has " << pusher_queue[pusher_destination-1].size() - 4 << " excess pieces allocated to it!" << std::endl;
         }
         order_queue->RemovePiece(piece_copy.GetID()); // imediately check piece as finished
     }
@@ -839,6 +855,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
     char NodeID_Backup[128];
     char NodeID_Backup2[128];
     char NodeID_Backup3[128];
+    char NodeID_Backup4[128];
     char aux [5];
     uint16_t queue_size_in_PLC[3];
     bool piece_pusher_queue[3][10];
@@ -853,12 +870,11 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
     for (pusher = 0; pusher < 3; pusher++){
         strcpy (NodeID_Backup2, NodeID_Backup);
         ConvIntToString (aux, pusher+3);
-        strcat (NodeID_Backup2, aux);
+        strcat (NodeID_Backup2, aux); //PLC_PRG.C7TX
 
         // Read stuff for pusher queue allocation (not piece-specific stuff)
-        strcpy (NodeID_Backup3, NodeID_Backup2);
-        strcpy (NodeID, NodeID_Backup3);
-        strcat (NodeID, ".slider_queue");
+        strcpy (NodeID, NodeID_Backup2);//PLC_PRG.C7TX
+        strcat (NodeID, ".slider_queue");//PLC_PRG.C7TX.slider_queue
 
         val = UA_Variant_new();
         retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
@@ -877,8 +893,11 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
         // Read piece ids in queue to find out which pieces evacuated, i.e. are in sliders
         
         
-        strcpy (NodeID, NodeID_Backup3);
-        strcat (NodeID, ".pushed_piece_queue[");
+        strcpy (NodeID, NodeID_Backup2); //PLC_PRG.C7TX
+        strcpy (NodeID_Backup3, NodeID_Backup2); //PLC_PRG.C7TX
+        strcpy (NodeID_Backup4, NodeID_Backup2); //PLC_PRG.C7TX
+        strcat (NodeID_Backup3, ".pushed_piece_queue[");
+        strcat (NodeID_Backup4, ".pushed_piece_id_array[");
 
         for (buffer_index = 0; buffer_index < 10; buffer_index++){
             strcpy (NodeID, NodeID_Backup3);
@@ -900,7 +919,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
             UA_Variant_delete(val);
 
             if (piece_pusher_queue[pusher][buffer_index]){
-                strcpy (NodeID, NodeID_Backup3);
+                strcpy (NodeID, NodeID_Backup4);
                 ConvIntToString(aux, (uint16_t) buffer_index+1);
                 strcat (NodeID, aux);
                 strcat (NodeID, "]");
@@ -916,63 +935,14 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 }
 
                 piece_pusher_ids[pusher][buffer_index] = *(UA_UInt16*)val->data;
-                UA_Variant_delete(val);
+                UA_Variant_delete(val);          
 
+                meslog(INFO) << "Piece " << piece_pusher_ids[pusher][buffer_index] << " dispatched in pusher " << (int) pusher << std::endl;
                 
-                strcpy (NodeID, NodeID_Backup2);
-                strcat (NodeID, ".pushed_piece_queue[");
-                ConvIntToString(aux, (uint16_t) buffer_index+1);
-                strcat (NodeID, aux);
-                strcat (NodeID, "]");
-
-                UA_WriteRequest_init(&wReq);
-                wReq.nodesToWrite = UA_WriteValue_new();
-                wReq.nodesToWriteSize = 1;
-                wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
-                wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
-                wReq.nodesToWrite[0].value.hasValue = true;
-                wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
-                wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-                wReq.nodesToWrite[0].value.value.data = &flag_write;
-                wResp = UA_Client_Service_write(client_, wReq);
-                if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
-                    meslog(ERROR) << "Invalid node write to Pusher id queue flag! Server responded with ERROR!" << std::endl;
-                    return false;
-                }
-                UA_WriteRequest_clear(&wReq);
-                UA_WriteResponse_clear(&wResp);
-            }
-        }
-
-        strcpy (NodeID_Backup3, NodeID_Backup2);
-        strcat (NodeID_Backup3, ".pushed_piece_id_array[");
-
-        for (buffer_index = 0; buffer_index < 10; buffer_index++){
-            if (piece_pusher_queue[pusher][buffer_index]){
                 strcpy (NodeID, NodeID_Backup3);
                 ConvIntToString(aux, (uint16_t) buffer_index+1);
                 strcat (NodeID, aux);
                 strcat (NodeID, "]");
-                val = UA_Variant_new();
-                retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
-                if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
-                    meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!!" << std::endl;
-                    return false;
-                }
-                if (retval != UA_STATUSCODE_GOOD){
-                    meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
-                    return false;
-                }
-
-                piece_pusher_ids[pusher][buffer_index] = *(UA_UInt16*)val->data;
-                UA_Variant_delete(val);
-
-                
-                strcpy (NodeID, NodeID_Backup2);
-                strcat (NodeID, ".pushed_piece_queue[");
-                ConvIntToString(aux, (uint16_t) buffer_index+1);
-                strcat (NodeID, aux);
-                strcat (NodeID, "]");
 
                 UA_WriteRequest_init(&wReq);
                 wReq.nodesToWrite = UA_WriteValue_new();
@@ -980,7 +950,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
                 wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
                 wReq.nodesToWrite[0].value.hasValue = true;
-                wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+                wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
                 wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
                 wReq.nodesToWrite[0].value.value.data = &flag_write;
                 wResp = UA_Client_Service_write(client_, wReq);
