@@ -20,8 +20,9 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
     warehouse = warehouse_reference;
 
 
-    // fill pusher queues with dummy pieces. This gets rectified after the first CheckOutgoingPieces() call
+    // fill allocation and queue variables with 0/false values. This gets corrected after one main cycle.
     for (int i = 0; i < 3; i++){
+        cell_allocation[i] = false;
         pusher_queue_size[i] = 4;
         pusher_queue[i].push(Order::Piece(0)); // that one piece that we never know if it's there or not
         for (int j = 0; j < 3; j++){
@@ -50,6 +51,7 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
 
     // fill pusher queues with dummy pieces. This gets rectified after the first CheckOutgoingPieces() call
     for (int i = 0; i < 3; i++){
+        cell_allocation[i] = false;
         pusher_queue_size[i] = 4;
         pusher_queue[i].push(Order::Piece(0)); // that one piece that we never know if it's there or not
         for (int j = 0; j < 3; j++){
@@ -148,10 +150,13 @@ bool OPCUA_Manager::warehouseOutCarpetIsFree() {
 // Envia ultima peca que esteja na lista de pecas da order. 
 // Nesta altura a peca ja deve estar na base de dados e ter um id atribuido
 bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
+    UA_WriteResponse wResp;
+    UA_WriteRequest wReq;
     // Create base string for node access
     char NodeID[128];
     char NodeID_backup[128];
     char aux[20];
+    bool cell_allocated = false;
     strcpy(NodeID_backup, BaseNodeID_);
     strcat(NodeID_backup, "GVL.OBJECT[1].");
 
@@ -175,6 +180,42 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     uint8_t *transformation = piece_copy.GetTransformations();
     uint8_t *machines = piece_copy.GetMachines();
 
+    // Check if piece will go to any of the three central cells
+    if (moves[2] == 2){
+        cell_allocation[0] = true;
+        strcpy (NodeID, BaseNodeID_);
+        strcat (NodeID, "GVL.C1_occupied");
+        cell_allocated = true;
+    }else if (moves[4] == 2){
+        cell_allocation[1] = true;
+        strcpy (NodeID, BaseNodeID_);
+        strcat (NodeID, "GVL.C2_occupied");
+        cell_allocated = true;
+    }else if (moves[6] == 2){
+        cell_allocation[2] = true;
+        strcpy (NodeID, BaseNodeID_);
+        strcat (NodeID, "GVL.C3_occupied");
+        cell_allocated = true;
+    }
+
+    if (cell_allocated){
+        UA_WriteRequest_init(&wReq);
+        wReq.nodesToWrite = UA_WriteValue_new();
+        wReq.nodesToWriteSize = 1;
+        wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
+        wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
+        wReq.nodesToWrite[0].value.hasValue = true;
+        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
+        wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
+        wReq.nodesToWrite[0].value.value.data = &cell_allocated;
+        wResp = UA_Client_Service_write(client_, wReq);
+        if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
+            return false;
+        }
+        UA_WriteRequest_clear(&wReq);
+        UA_WriteResponse_clear(&wResp);
+    }
+
     // Criar vetor em formato compatível com OPC-UA
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
     uint16_t i;
@@ -192,8 +233,6 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
 
     // TESTING PENDING!!! Found out how to write in multiple places in a single write request, 
     // but this was found out by me (didn't see anyone else doing this), and might have unforeseen problems
-    UA_WriteResponse wResp;
-    UA_WriteRequest wReq;
     UA_WriteRequest_init(&wReq);
     wReq.nodesToWrite = UA_WriteValue_new();
     wReq.nodesToWriteSize = 1;
@@ -939,6 +978,53 @@ void OPCUA_Manager::UpdateMachineProcessedTime(){
     
 }
 
+void OPCUA_Manager::UpdatePiecesProcessedInMachines(){
+
+}
+
+void OPCUA_Manager::UpdateCellTopCarpetAllocation(){
+    UA_StatusCode retval;
+    UA_Variant *val;
+    char NodeID[128];
+    char NodeID_backup[128];
+    char aux[5];
+    strcpy (NodeID_backup, BaseNodeID_);
+    strcat (NodeID_backup, "GVL.C");
+    for (int cell = 0; cell < 3; cell++){
+        strcpy (NodeID, NodeID_backup);
+        ConvIntToString(aux,cell+1);
+        strcat (NodeID, aux);
+        strcat (NodeID,"_occupied");
+
+        val = UA_Variant_new();
+        retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+        if (val->type != &UA_TYPES[UA_TYPES_BOOLEAN]){
+            meslog(ERROR) << "Invalid node read! Should be type boolean!" << std::endl;
+            UA_Variant_delete(val);
+            return;
+        }
+        if (retval != UA_STATUSCODE_GOOD){
+            meslog(ERROR) << "Invalid node read! Server responded with ERROR!" << std::endl;
+            UA_Variant_delete(val);
+            return;
+        }
+        cell_allocation[cell] = (*(UA_Boolean*)val->data);
+        UA_Variant_delete(val);
+    }
+}
+
+void OPCUA_Manager::UpdateAll(){
+    CheckOutgoingPieces();
+    UpdateMachineInfo();
+    CheckIncomingPieces();
+    CheckPiecesFinished();
+    UpdateMachineProcessedTime();
+    UpdatePiecesProcessedInMachines();
+    UpdateCellTopCarpetAllocation();
+}
+
+
+
 uint16_t OPCUA_Manager::GetPieceAllocInPusher(uint8_t pusher_number){
     if (pusher_number > 3 || pusher_number < 1){
         meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify pushers by 1, 2 or 3." << std::endl;
@@ -987,6 +1073,13 @@ uint16_t OPCUA_Manager::GetLastMadePieceIDInMachine(uint8_t machine_type, uint8_
     return last_piece_id_processed[cell_number][machine_type];
 }
 
+bool OPCUA_Manager::isCellTopCarpetOccupied(uint8_t cell_number){
+    if (cell_number > 3 || cell_number < 1){
+        meslog(ERROR) << "Attempted to use invalid pusher identifier! Identify cells by 1, 2 or 3." << std::endl;
+        return true;
+    }
+    return cell_allocation[cell_number-1];
+}
 
 
 

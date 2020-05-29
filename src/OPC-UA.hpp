@@ -47,6 +47,7 @@ private:
     uint8_t machine_tools_in_use[3][3];
     uint16_t piece_id_being_processed[3][3];
     uint16_t last_piece_id_processed[3][3];
+    bool cell_allocation [3];
 
     OrderQueue *order_queue;
     Warehouse *warehouse;
@@ -78,6 +79,10 @@ public:
     void UpdatePiecesProcessedInMachines();
 
     void UpdateMachineProcessedTime();
+
+    void UpdateCellTopCarpetAllocation();
+
+    void UpdateAll();
 
     /**
      * @brief Get piece allocation for specific pusher
