@@ -15,14 +15,11 @@
 namespace PathFinder {
     class PathFinder;
 
-    class BaseModule;
     class Machine;
-    class Linear;
-    class Rotational;
     class Pusher;
 
     typedef struct {
-        std::list<BaseModule*> path;
+        std::list<Machine*> path;
         uint32_t time;
     } ModulePath;
     typedef struct {
@@ -37,17 +34,39 @@ namespace PathFinder {
 };
 
 
-class PathFinder::BaseModule {
+class PathFinder::Machine {
 protected:
-    BaseModule* modules[5] = {NULL};
+    Machine* modules[5] = {NULL};
     bool downstreams[5] = {false};
     std::list<Transformation*> valid_transformations;
-public:
-    BaseModule() {}
-    ~BaseModule() {}
 
-    enum Type {Machine, Linear, Rotational, Pusher};
-    Type type;
+    Warehouse* warehouse;
+
+    const uint32_t Receive = 1;
+    const uint32_t ToolChange = 30;
+
+    uint8_t current_tool = 1;
+
+    enum OperationType {ChangeTools=1, PartTransformation};
+    
+    typedef struct {
+        OperationType type;
+        Transformation* transformation = NULL;
+    } Operation;
+
+    std::list<Operation*> operation_queue;
+
+
+    /**
+     * @brief Get the Transformation that makes parts of this type
+     * 
+     * @param part_type 
+     * @return Transformation* 
+     */
+    Transformation* getTransformationThatMakesPart(uint8_t part_type);
+public:
+    Machine(Warehouse* warehouse) : warehouse(warehouse) {}
+    ~Machine() {}
 
     /**
      * @brief Check if module can do a certain transformation of parts
@@ -72,15 +91,15 @@ public:
      * @param module 
      * @param downstream Is this direction considered to be an downstream direction
      */
-    void setDir(Direction dir, BaseModule* module, bool downstream);
+    void setDir(Direction dir, Machine* module, bool downstream);
 
     /**
      * @brief Get the Module for that direction
      * 
      * @param dir 
-     * @return BaseModule* 
+     * @return Machine* 
      */
-    BaseModule* getDir(Direction dir);
+    Machine* getDir(Direction dir);
 
     /**
      * @brief Get the direction for that Module
@@ -88,7 +107,7 @@ public:
      * @param module 
      * @return Direction 
      */
-    Direction searchDir(BaseModule* module);
+    Direction searchDir(Machine* module);
 
     /**
      * @brief Returns if the direction is an downstream
@@ -117,44 +136,6 @@ public:
      * @return uint32_t 
      */
     uint32_t calcTimeToHandlePart(Order::BaseOrder& order, uint8_t part_type);
-};
-
-class PathFinder::Machine : public BaseModule {
-protected:
-    Warehouse* warehouse;
-
-    const uint32_t Receive = 1;
-    const uint32_t ToolChange = 30;
-
-    uint8_t current_tool = 1;
-
-    enum OperationType {ChangeTools=1, PartTransformation};
-    
-    typedef struct {
-        OperationType type;
-        Transformation* transformation = NULL;
-    } Operation;
-
-    std::list<Operation*> operation_queue;
-
-    /**
-     * @brief Get the Transformation that makes parts of this type
-     * 
-     * @param part_type 
-     * @return Transformation* 
-     */
-    Transformation* getTransformationThatMakesPart(uint8_t part_type);
-public:
-    Machine(Warehouse* warehouse) : warehouse(warehouse) { type = Type::Machine; }
-    ~Machine() {}
-    /**
-     * @brief Check if this Module can handle a part of this type
-     * 
-     * @param part_type 
-     * @return true 
-     * @return false 
-     */
-    bool canHandlePart(uint8_t part_type);
 
     /**
      * @brief Calculate time that this Machine will take to handle a part of this type.
@@ -165,14 +146,14 @@ public:
      */
     uint32_t calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation);
 
-    ModulePath* search(std::list<Transformation> list);
+    ModulePath* search(Order::BaseOrder& order, std::list<Transformation>::iterator t, std::list<Transformation>::iterator last);
 };
 
-class PathFinder::Pusher : public BaseModule {
+class PathFinder::Pusher {
 private:
     /* data */
 public:
-    Pusher() { type = Type::Pusher; }
+    Pusher() {}
     ~Pusher() {}
 };
 
@@ -184,7 +165,7 @@ private:
     Machine* machines[9] = {NULL};
     Transformation* transformations[13] = {NULL};
 
-    ModulePath* searchMachines(std::list<Transformation> list);
+    ModulePath* searchMachines(Order::BaseOrder& order, std::list<Transformation> list);
 public:
     PathFinder(Warehouse* warehouse);
     ~PathFinder() {}
