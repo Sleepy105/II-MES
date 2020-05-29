@@ -94,7 +94,7 @@ public:
      * @param module 
      * @param downstream Is this direction considered to be an downstream direction
      */
-    void setDir(Direction dir, Machine* module, bool downstream);
+    void setDir(Direction dir, Machine* module, bool downstream, MovesPath& moves);
 
     /**
      * @brief Get the Module for that direction

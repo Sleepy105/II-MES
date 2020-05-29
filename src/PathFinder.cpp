@@ -104,9 +104,13 @@ void PathFinder::Machine::addCanDoTransformation(Transformation& t) {
     valid_transformations.push_back(&t);
 }
 
-void PathFinder::Machine::setDir(Direction dir, Machine* module, bool downstream) {
+void PathFinder::Machine::setDir(Direction dir, Machine* module, bool downstream, MovesPath& moves) {
     modules[dir] = module;
     downstreams[dir] = downstream;
+    dir_moves[dir].clear();
+    for (auto moves_iter = moves.begin(); moves_iter != moves.end(); moves_iter++) {
+        dir_moves[dir].push_back(*moves_iter);
+    }
 }
 
 PathFinder::Machine* PathFinder::Machine::getDir(Direction dir) {
@@ -303,21 +307,29 @@ PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) 
     machines[C3]->addCanDoTransformation(T10);
     machines[C3]->addCanDoTransformation(T11);
     machines[C3]->addCanDoTransformation(T12);
+
+    MovesPath move_across;
+    repeat(2) move_across.push_back(Direction::Right);
+
+    MovesPath move_down1;
+    move_down1.push_back(Direction::Right);
+    move_down1.push_back(Direction::Down);
+    move_down1.push_back(Direction::Right);
     
-    machines[A1]->setDir(Direction::Right, machines[A2], true);
-    machines[A1]->setDir(Direction::Down, machines[B1], true);
-    machines[A2]->setDir(Direction::Right, machines[A3], true);
-    machines[A2]->setDir(Direction::Down, machines[B2], true);
-    machines[A3]->setDir(Direction::Down, machines[B3], true);
+    machines[A1]->setDir(Direction::Right, machines[A2], true, move_across);
+    machines[A1]->setDir(Direction::Down, machines[B1], true, move_down1);
+    machines[A2]->setDir(Direction::Right, machines[A3], true, move_across);
+    machines[A2]->setDir(Direction::Down, machines[B2], true, move_down1);
+    machines[A3]->setDir(Direction::Down, machines[B3], true, move_down1);
 
-    machines[B1]->setDir(Direction::Right, machines[B2], true);
-    machines[B1]->setDir(Direction::Down, machines[C1], true);
-    machines[B2]->setDir(Direction::Right, machines[B3], true);
-    machines[B2]->setDir(Direction::Down, machines[C2], true);
-    machines[B3]->setDir(Direction::Down, machines[C3], true);
+    machines[B1]->setDir(Direction::Right, machines[B2], true, move_across);
+    machines[B1]->setDir(Direction::Down, machines[C1], true, move_down1);
+    machines[B2]->setDir(Direction::Right, machines[B3], true, move_across);
+    machines[B2]->setDir(Direction::Down, machines[C2], true, move_down1);
+    machines[B3]->setDir(Direction::Down, machines[C3], true, move_down1);
 
-    machines[C1]->setDir(Direction::Right, machines[C2], true);
-    machines[C2]->setDir(Direction::Right, machines[C3], true);
+    machines[C1]->setDir(Direction::Right, machines[C2], true, move_across);
+    machines[C2]->setDir(Direction::Right, machines[C3], true, move_across);
 }
 
 Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
@@ -708,6 +720,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         repeat(end_cell) {
             repeat(2) path->moves[move_counter++] = Direction::Left;
         }
+
+        path->moves[move_counter++] = Direction::Stop;
 
         // TODO Update of free/blocked machines
 
