@@ -730,6 +730,10 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
                 std::cout << "Machine: " << *iter << std::endl;
             }
+            for (int i = 0; i < move_counter; i++) {
+                std::cout << std::to_string(path->moves[i]) << " ";
+            }
+            std::cout << std::endl;
         }
         delete(best_module_path);
         delete(path);
