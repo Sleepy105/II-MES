@@ -637,6 +637,14 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.clear();
         }
 
+
+
+        // Check if there is a valid path
+        if (!best_module_path) {
+            delete(path);
+            return path;
+        }
+
         // Find the first transformation to be done to the part
         //std::cout << "HI: " << shortestPath.front() << std::endl;
         int curr_part = 1;//std::stoi(shortestPath.front());
