@@ -358,6 +358,10 @@ void OrderQueue::setOPCpointer(void* ptr) {
 	pathfinder->setOPCpointer(opc);
 }
 
+PathFinder::PathFinder* OrderQueue::getPFpointer() {
+	return pathfinder;
+}
+
 void OrderQueue::print(){
 	if (orders_.size() == 0){
 		meslog(INFO) << "Order Queue has no orders." << std::endl;

@@ -35,6 +35,8 @@ class OrderQueue{
         Order::BaseOrder GetOrderFromPieceID(uint32_t target_id);
 
         void setOPCpointer(void* ptr);
+
+        PathFinder::PathFinder* getPFpointer();
         
         void print();
 };
