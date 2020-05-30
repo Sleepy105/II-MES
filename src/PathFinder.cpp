@@ -247,7 +247,7 @@ void PathFinder::Machine::setTool(uint8_t tool) {
     current_tool = tool;
 }
 
-void PathFinder::Machine::signalLastTransformedPart(uint16_t part_id) {
+void PathFinder::Machine::removeOperation() {
     return;
 }
 
@@ -366,13 +366,6 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
         std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
-
-        // TODO Clear parts from queue machine's operations queues, if done
-        for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
-            Block block = static_cast<Block>(blockInt);
-
-            machines[block]->signalLastTransformedPart( (*(OPCUA_Manager*)opc).GetLastMadePieceIDInMachine(machines[block]->getRow(), machines[block]->getCell()) );
-        }
 
         if (1 == order.GetInitialPiece() && 2 == order.GetFinalPiece()) {
             TransformationsPath transformation_path;
@@ -929,3 +922,8 @@ PathFinder::TransformationsPath* PathFinder::copyTransformationsPath(Transformat
 
     return new_path;
 }
+
+void PathFinder::PathFinder::signalTransformationFinished(Cell cell, Row row) {
+    return;
+}
+

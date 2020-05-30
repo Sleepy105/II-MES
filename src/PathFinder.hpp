@@ -165,7 +165,7 @@ public:
 
     void setTool(uint8_t tool);
 
-    void signalLastTransformedPart(uint16_t part_id);
+    void removeOperation();
 };
 
 class PathFinder::Pusher {
@@ -225,6 +225,14 @@ public:
      * @param ptr 
      */
     void setOPCpointer(void* ptr);
+
+    /**
+     * @brief Signal that a transformation on a machine has been completed on the factory floor
+     * 
+     * @param cell 
+     * @param row 
+     */
+    void signalTransformationFinished(Cell cell, Row row);
 };
 
 #endif
