@@ -168,6 +168,8 @@ int deleteData(const char* s) {
 	sqlite3_exec(DB, sql2.c_str(), callback, NULL, NULL);
 	std::string sql3 = "DELETE FROM Machine;";
 	sqlite3_exec(DB, sql3.c_str(), callback, NULL, NULL);
+	std::string sql4 = "DELETE FROM Dispatch;";
+	sqlite3_exec(DB, sql4.c_str(), callback, NULL, NULL);
 	sqlite3_close(DB);
 	return 0;
 }
@@ -333,27 +335,32 @@ int initvalues(const char* s)
 {
 	sqlite3* DB;
 	int exit = sqlite3_open(s, &DB);
-	std::string sql = ("INSERT INTO Warehouse (PieceType, Quantity)" \
-		"VALUES('P1', 54), ('P2', 54),('P3', 54),('P4', 54),('P5', 54),('P6', 54),('P7', 54),('P8', 54),('P9', 54);" \
-		"INSERT INTO Machine (MachineType, PieceType) VALUES " \
-		"('A1', 'P1'), ('A1', 'P2'), ('A1', 'P6')," \
-		"('A2', 'P1'), ('A2', 'P2'), ('A2', 'P6')," \
-		"('A3', 'P1'), ('A3', 'P2'), ('A3', 'P6')," \
-		"('B1', 'P1'), ('B1', 'P3'), ('B1', 'P7')," \
-		"('B2', 'P1'), ('B2', 'P3'), ('B2', 'P7')," \
-		"('B3', 'P1'), ('B3', 'P3'), ('B3', 'P7')," \
-		"('C1', 'P1'), ('C1', 'P4'), ('C1', 'P8')," \
-		"('C2', 'P1'), ('C2', 'P4'), ('C2', 'P8')," \
-		"('C3', 'P1'), ('C3', 'P4'), ('C3', 'P8');" \
-		"INSERT INTO Dispatch (Zone, PieceType) VALUES "\
-		"('Zone1', 'P1'), ('Zone1', 'P2'), ('Zone1', 'P3'), ('Zone1', 'P4'), ('Zone1', 'P5'), ('Zone1', 'P6'), ('Zone1', 'P7'), ('Zone1', 'P8'), ('Zone1', 'P9'), " \
-		"('Zone2', 'P1'), ('Zone2', 'P2'), ('Zone2', 'P3'), ('Zone2', 'P4'), ('Zone2', 'P5'), ('Zone2', 'P6'), ('Zone2', 'P7'), ('Zone2', 'P8'), ('Zone2', 'P9'), " \
-		"('Zone3', 'P1'), ('Zone3', 'P2'), ('Zone3', 'P3'), ('Zone3', 'P4'), ('Zone3', 'P5'), ('Zone3', 'P6'), ('Zone3', 'P7'), ('Zone3', 'P8'), ('Zone3', 'P9'); " \
-		);
+	
 	char* messageError1;
+	
+	std::string sql = ("INSERT INTO Warehouse (PieceType, Quantity) VALUES('P1', 54), ('P2', 54),('P3', 54),('P4', 54),('P5', 54),('P6', 54),('P7',54 ), ('P8',54) , ('P9',54);");
 	int exit1 = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError1);
+	sql = ("INSERT INTO Machine (MachineType, PieceType) VALUES ('A1', 'P1'), ('A1', 'P2'), ('A1', 'P6'), ('A2', 'P1'), ('A2', 'P2'), ('A2', 'P6'), ('A3', 'P1'), ('A3', 'P2'), ('A3', 'P6'), ('B1', 'P1'), ('B1', 'P3'), ('B1', 'P7'),('B2', 'P1'), ('B2', 'P3'), ('B2', 'P7'),('B3', 'P1'), ('B3', 'P3'), ('B3', 'P7'),('C1', 'P1'), ('C1', 'P4'), ('C1', 'P8'),('C2', 'P1'), ('C2', 'P4'), ('C2', 'P8'),('C3', 'P1'), ('C3', 'P4'), ('C3', 'P8'); ");
+	exit1 = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError1);
+	sql = ("INSERT INTO Dispatch (Zone, PieceType) VALUES "\
+		"('Zone1', 'P1'), ('Zone1', 'P2'), ('Zone1', 'P3'), ('Zone1', 'P4'), ('Zone1', 'P5'), ('Zone1', 'P6'), ('Zone1', 'P7'), ('Zone1', 'P8'), ('Zone1', 'P9'), "\
+		"('Zone2', 'P1'), ('Zone2', 'P2'), ('Zone2', 'P3'), ('Zone2', 'P4'), ('Zone2', 'P5'), ('Zone2', 'P6'), ('Zone2', 'P7'), ('Zone2', 'P8'), ('Zone2', 'P9'), "\
+		"('Zone3', 'P1'), ('Zone3', 'P2'), ('Zone3', 'P3'), ('Zone3', 'P4'), ('Zone3', 'P5'), ('Zone3', 'P6'), ('Zone3', 'P7'), ('Zone3', 'P8'), ('Zone3', 'P9'); "\
+		");");
+	exit1 = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError1);
+	if (exit != SQLITE_OK)
+	{
+		meslog(ERROR) << "Error Insert" << std::endl;
+		sqlite3_free(messageError1);
+		exit = -1;
+	}
+	else
+	{
+		meslog(INFO) << "Records created Successfully" << std::endl;
+		exit = 0;
+	}
 	sqlite3_close(DB);
-	return 0;
+	return exit;
 }
 int callback_warehouse(void* v, int argc, char** argv, char** azColName)
 {
