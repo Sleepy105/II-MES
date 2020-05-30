@@ -185,6 +185,9 @@ uint8_t OrderQueue::RemovePiece(uint32_t target_id){
 				piece_list->erase(pieces_iter_);
 				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
 				if ((orders_iter_->GetCount() == 0) && (piece_list->size() == 0)){
+					if (orders_iter_->GetType() != Order::ORDER_TYPE_UNLOAD){
+						updateOrder(DBFILE, "Finished", orders_iter_->GetID()); // unload orders are considered finished right off the bat as soon as they run out of pieces to send
+					}
 					RemoveOrder((*orders_iter_));
 				}
 				meslog(INFO) << "Piece " << target_id << " erased!" << std::endl;

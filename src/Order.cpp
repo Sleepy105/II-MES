@@ -25,12 +25,11 @@ BaseOrder::BaseOrder(uint8_t order_id,
     meslog(INFO) << "\tquantity:" << std::to_string(count) << std::endl;
     meslog(INFO) << "\tinitialPiece:" << std::to_string(initialPiece) << std::endl;
     meslog(INFO) << "\tfinalPiece:" << std::to_string(finalPiece) << std::endl;
-    if (order_type == Order::ORDER_TYPE_UNLOAD){
+    if (order_type == Order::ORDER_TYPE_LOAD){
         order_id = -1;
     }
     is_not_executing = true;
     Deadline = deadline;
-    meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
 }
 BaseOrder::BaseOrder(uint8_t order_id, 
                      uint8_t order_type, 
@@ -39,13 +38,12 @@ BaseOrder::BaseOrder(uint8_t order_id,
                      uint8_t finalPiece,
                      int deadline) : order_id(order_id), order_type(order_type), count(count), initialPiece(initialPiece), finalPiece(finalPiece) {
     meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
-    if (order_type == Order::ORDER_TYPE_UNLOAD){
+    if (order_type == Order::ORDER_TYPE_LOAD){
         order_id = -1;
     }
     is_not_executing = true;
     // deadline (letras minusculas) esta em segundos
     Deadline = DateTime(DBFILE, std::to_string(deadline));
-    meslog(INFO) << "ORDER " << std::to_string(order_id) << " created." << std::endl;
 }
 BaseOrder::BaseOrder(uint8_t order_id, uint8_t order_type): order_id(order_id), order_type(order_type){
     is_not_executing = true;
@@ -80,6 +78,9 @@ uint32_t BaseOrder::GetCount(){
 bool BaseOrder::DecreaseCount(){
     if (count>0){
         count--;
+        if (count == 0 && order_type == ORDER_TYPE_UNLOAD){
+            updateOrder(DBFILE, "Finished", order_id);
+        }
         return true;
     }
     return false;

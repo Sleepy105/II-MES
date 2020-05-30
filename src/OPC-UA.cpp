@@ -393,17 +393,17 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
 
     // remove piece from warehouse
     warehouse->RemovePiece(piece_type_to_remove);
+    std::string piece = "P" + std::to_string(piece_type_to_remove);
+    updateWarehouse(DBFILE, piece, -1);
     // push piece to queue, reserving a spot in a slider and check it as finished in DataBase
     if (pusher_destination > 0){ // same as checking if it's an unload order
         if (pusher_destination > 3){
             meslog(WARNING) << "Invalid pusher destination. Piece will still be sent and updated but not included in pusher allocation." << std::endl;
-            order_queue->RemovePiece(piece_copy.GetID()); // imediately check piece as finished
         }
         pusher_queue[pusher_destination-1].push(piece_copy);
         if (pusher_queue[pusher_destination-1].size() > 4){
             meslog(WARNING) << "Pusher " << (int)pusher_destination << " has " << pusher_queue[pusher_destination-1].size() - 4 << " excess pieces allocated to it!" << std::endl;
         }
-        order_queue->RemovePiece(piece_copy.GetID()); // imediately check piece as finished
     }
 
     return true;
@@ -629,6 +629,8 @@ bool OPCUA_Manager::CheckPiecesFinished(){
 
             piece_type_to_add = order_queue->RemovePiece((uint32_t) piece_ids[i]);
             warehouse->AddPiece(piece_type_to_add);
+            std::string piece = "P" + std::to_string(piece_type_to_add);
+            updateWarehouse(DBFILE,piece,1);
 
             number_of_ids_to_read++;
         }
@@ -730,6 +732,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     // MES ok is false: we have not yet processed this piece
     if (!MES_ok){
         PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 1, 1, 1, "0")); //deadline não interessa, pus "0" just in case
+
 
         strcpy(NodeID, BaseNodeID_);
         strcat(NodeID, "GVL.OBJECT[9].id_piece");
@@ -954,6 +957,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 meslog(INFO) << "Piece " << piece_pusher_ids[pusher][buffer_index] << " dispatched in pusher " << (int) pusher << std::endl;
                 
                 updateDispatch(DBFILE, zone, piece_type, 1);
+                order_queue->RemovePiece(piece_pusher_ids[pusher][buffer_index]);
 
                 
                 strcpy (NodeID, NodeID_Backup3);
