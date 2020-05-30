@@ -174,7 +174,7 @@ uint32_t PathFinder::Machine::calcTimeToHandleTransformation(Order::BaseOrder& o
         if (operation->type == OperationType::PartTransformation) {
             handle_time += operation->transformation->time;
         }
-    } // TODO Review this whole thing
+    }
     
     if (requiresToolChange(transformation)) {
         // Divide tool change time by number of parts in the order
@@ -245,6 +245,10 @@ bool PathFinder::Machine::requiresToolChange(Transformation& t) {
 
 void PathFinder::Machine::setTool(uint8_t tool) {
     current_tool = tool;
+}
+
+void PathFinder::Machine::signalLastTransformedPart(uint16_t part_id) {
+    return;
 }
 
 void PathFinder::Pusher::setOPCpointer(void* ptr) {
@@ -363,7 +367,12 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
         std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
 
-        // TODO Clear parts from queue
+        // TODO Clear parts from queue machine's operations queues, if done
+        for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
+            Block block = static_cast<Block>(blockInt);
+
+            machines[block]->signalLastTransformedPart( (*(OPCUA_Manager*)opc).GetLastMadePieceIDInMachine(machines[block]->getRow(), machines[block]->getCell()) );
+        }
 
         if (1 == order.GetInitialPiece() && 2 == order.GetFinalPiece()) {
             TransformationsPath transformation_path;
@@ -802,7 +811,7 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         auto m_iter = best_module_path->path.begin();
         for (auto t_iter = best_transformations_path->begin(); m_iter != best_module_path->path.end(); t_iter++, m_iter++) {
             for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
-                Block block = static_cast<Block>(blockInt);   
+                Block block = static_cast<Block>(blockInt);
                 if (machines[block] == *m_iter) {
                     (path->machine_transformations[block])++;
 
@@ -832,8 +841,6 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         }
 
         path->moves[move_counter++] = Direction::Stop;
-
-        // TODO Update of free/blocked machines
 
         /* DEBUG code */
         std::cout << "MACHINES: " << std::endl;

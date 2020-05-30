@@ -164,6 +164,8 @@ public:
     bool requiresToolChange(Transformation& t);
 
     void setTool(uint8_t tool);
+
+    void signalLastTransformedPart(uint16_t part_id);
 };
 
 class PathFinder::Pusher {
