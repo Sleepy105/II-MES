@@ -76,8 +76,14 @@ int main (int argc, char const *argv[]) {
     Order::BaseOrder *next_order;
     bool order_buffered = false;
 
+    std::chrono::steady_clock::time_point begin;
+    std::chrono::steady_clock::time_point end;
+    long long nano_duration;
+    long long wait_time;
     //Ciclo de Controlo Principal (threadless, com a excepcao do UDPManager)
     while (true){
+        begin = std::chrono::steady_clock::now();
+
         while(!opc_ua.Reconnect()){ // if no connection, reconnect (Reconnect() does both the checking and the reconnecting)
             meslog(ERROR) << "Couldn't connect to OPC-UA Master, waitting for connection..." << std::endl;
             std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS/10*1000000)); // 0,1 s
@@ -104,8 +110,13 @@ int main (int argc, char const *argv[]) {
 
         }
 
-        std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS*1000000)); // 1 s
-    } meslog(ERROR) << "Disconnected from OPC-UA Master" << std::endl;
+        end = std::chrono::steady_clock::now();
+        nano_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
+        wait_time = CYCLE_DELAY_IN_MILLISECONDS*1000000 - nano_duration;
+        if (wait_time > 0){
+            std::this_thread::sleep_for(std::chrono::nanoseconds(wait_time)); // 1 s
+        }
+    }
 
 
     // Wait for threads to close

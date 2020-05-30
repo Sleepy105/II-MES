@@ -134,7 +134,7 @@ bool OPCUA_Manager::warehouseOutCarpetIsFree() {
     val = UA_Variant_new();
     retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
     if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
-        meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be 16 bit uint) or nodeID doesn't exist" << std::endl;
         return false;
     }
     if (retval != UA_STATUSCODE_GOOD){
@@ -446,7 +446,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
         val = UA_Variant_new();
         retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
         if (val->type != &UA_TYPES[UA_TYPES_BOOLEAN]){
-            meslog(ERROR) << "Invalid node read! Should be type boolean!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be boolean) or nodeID doesn't exist" << std::endl;
             return false;
         }
         if (retval != UA_STATUSCODE_GOOD){
@@ -476,7 +476,7 @@ bool OPCUA_Manager::CheckPiecesFinished(){
             val = UA_Variant_new();
             retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
             if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
-                meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be 16 bit uint) or nodeID doesn't exist" << std::endl;
                 return false;
             }
             if (retval != UA_STATUSCODE_GOOD){
@@ -890,7 +890,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
         val = UA_Variant_new();
         retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
         if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
-            meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be 16 bit uint) or nodeID doesn't exist" << std::endl;
             return false;
         }
         if (retval != UA_STATUSCODE_GOOD){
@@ -918,7 +918,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
             val = UA_Variant_new();
             retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
             if (val->type != &UA_TYPES[UA_TYPES_BOOLEAN]){
-                meslog(ERROR) << "Invalid node read! Should be type boolean!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be boolean) or nodeID doesn't exist" << std::endl;
                 return false;
             }
             if (retval != UA_STATUSCODE_GOOD){
@@ -937,7 +937,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 val = UA_Variant_new();
                 retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
                 if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
-                    meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be 16 bit uint) or nodeID doesn't exist" << std::endl;
                     return false;
                 }
                 if (retval != UA_STATUSCODE_GOOD){
@@ -1038,7 +1038,7 @@ void OPCUA_Manager::UpdateMachineInfo(){
             val = UA_Variant_new();
             retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
             if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
-                meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be 16 bit uint) or nodeID doesn't exist" << std::endl;
                 UA_Variant_delete(val);
                 return;
             }
@@ -1056,7 +1056,7 @@ void OPCUA_Manager::UpdateMachineInfo(){
             val = UA_Variant_new();
             retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
             if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
-                meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be 16 bit uint) or nodeID doesn't exist" << std::endl;
                 UA_Variant_delete(val);
                 return;
             }
@@ -1074,7 +1074,7 @@ void OPCUA_Manager::UpdateMachineInfo(){
             val = UA_Variant_new();
             retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
             if (val->type != &UA_TYPES[UA_TYPES_UINT16]){
-                meslog(ERROR) << "Invalid node read! Should be type 16-bit unsigned integer!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be 16 bit uint) or nodeID doesn't exist" << std::endl;
                 UA_Variant_delete(val);
                 return;
             }
@@ -1106,7 +1106,7 @@ void OPCUA_Manager::UpdateCellTopCarpetAllocation(){
         val = UA_Variant_new();
         retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
         if (val->type != &UA_TYPES[UA_TYPES_BOOLEAN]){
-            meslog(ERROR) << "Invalid node read! Should be type boolean!" << std::endl;
+                meslog(ERROR) << "Invalid node read! Wrong variable type (should be boolean) or nodeID doesn't exist" << std::endl;
             UA_Variant_delete(val);
             return;
         }
