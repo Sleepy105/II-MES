@@ -18,6 +18,7 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
     }
     order_queue = order_queue_reference;
     warehouse = warehouse_reference;
+    pathfinder = order_queue->getPFpointer();
 
 
     // fill allocation and queue variables with 0/false values. This gets corrected after one main cycle.
@@ -47,6 +48,7 @@ OPCUA_Manager::OPCUA_Manager(const char* URL, const char* BaseID, OrderQueue *or
     }
     order_queue = order_queue_reference;
     warehouse = warehouse_reference;
+    pathfinder = order_queue->getPFpointer();
 
 
     // fill pusher queues with dummy pieces. This gets rectified after the first CheckOutgoingPieces() call
@@ -1112,10 +1114,10 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MA1.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MA1.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                             // callback pathfinder
                         } pieces_MA1.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }
@@ -1124,10 +1126,10 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MA2.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MA2.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                             // callback pathfinder
                         } pieces_MA2.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }
@@ -1136,10 +1138,10 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MA3.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MA3.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                             // callback pathfinder
                         } pieces_MA3.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }
@@ -1148,10 +1150,10 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MB1.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MB1.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                             // callback pathfinder
                         } pieces_MB1.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }
@@ -1160,10 +1162,10 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MB2.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MB2.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                             // callback pathfinder
                         } pieces_MB2.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }
@@ -1172,10 +1174,10 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MB3.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MB3.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                             // callback pathfinder
                         } pieces_MB3.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }
@@ -1184,10 +1186,10 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MC1.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MC1.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                             // callback pathfinder
                         } pieces_MC1.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }
@@ -1196,9 +1198,9 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MC2.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MC2.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                         } pieces_MC2.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }
@@ -1207,9 +1209,9 @@ void OPCUA_Manager::UpdateMachineInfo(){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
                         while (pieces_MC3.back() != last_piece_id_processed[cell][machine_type]){
                             pieces_MC3.pop_back();
-                            signalTransformationFinished(cell, machine_type);
+                            pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                         } pieces_MC3.pop_back();
-                        signalTransformationFinished(cell, machine_type);
+                        pathfinder->signalTransformationFinished((PathFinder::Cell) cell, (PathFinder::Row) machine_type);
                     }
                 }
             }

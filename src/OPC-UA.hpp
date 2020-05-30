@@ -60,7 +60,7 @@ private:
 
     OrderQueue *order_queue;
     Warehouse *warehouse;
-    PathFinder *pathfinder;
+    PathFinder::PathFinder *pathfinder;
 
 
     UA_Client* ServerConnect(const char* endpointURL) const;
