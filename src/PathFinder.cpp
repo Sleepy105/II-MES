@@ -182,9 +182,6 @@ uint32_t PathFinder::Machine::calcTimeToHandleTransformation(Order::BaseOrder& o
         uint32_t order_part_count = order.GetCount();
         uint32_t available_part_count = warehouse->GetPieceCount(order.GetInitialPiece());
         handle_time += ToolChange/(available_part_count < order_part_count ? available_part_count : order_part_count );
-
-        // TODO Add tool change to operation queue
-        current_tool = transformation.tool;
     }
 
     handle_time += transformation.time;
