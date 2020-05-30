@@ -311,7 +311,7 @@ PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) 
     MovesPath move_down1;
     move_down1.push_back(Direction::Right);
     move_down1.push_back(Direction::Down);
-    move_down1.push_back(Direction::Right);
+    move_down1.push_back(Direction::Left);
     
     machines[A1]->setDir(Direction::Right, machines[A2], true, move_across);
     machines[A1]->setDir(Direction::Down, machines[B1], true, move_down1);
@@ -804,36 +804,31 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         // TODO Update of free/blocked machines
 
         /* DEBUG code */
-        if(best_module_path) {
-            std::cout << "MACHINES: " << std::endl;
-            std::cout << "\tA1: " << machines[A1] << std::endl;
-            std::cout << "\tA2: " << machines[A2] << std::endl;
-            std::cout << "\tA3: " << machines[A3] << std::endl;
-            std::cout << "\tB1: " << machines[B1] << std::endl;
-            std::cout << "\tB2: " << machines[B2] << std::endl;
-            std::cout << "\tB3: " << machines[B3] << std::endl;
-            std::cout << "\tC1: " << machines[C1] << std::endl;
-            std::cout << "\tC2: " << machines[C2] << std::endl;
-            std::cout << "\tC3: " << machines[C3] << std::endl;
-            for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
-                std::cout << "Machine: " << *iter << std::endl;
-            }
-            for (int i = 0; i < move_counter; i++) {
-                std::cout << std::to_string(path->moves[i]) << " ";
-            }
-            std::cout << std::endl;
-            for (int i = 0; i < 9; i++) {
-                std::cout << std::to_string(path->machine_transformations[i]) << " ";
-            }
-            std::cout << std::endl;
-            for (int i = 0; i < 12; i++) {
-                std::cout << std::to_string(path->transformations[i]) << " ";
-            }
-            std::cout << std::endl;
+        std::cout << "MACHINES: " << std::endl;
+        std::cout << "\tA1: " << machines[A1] << std::endl;
+        std::cout << "\tA2: " << machines[A2] << std::endl;
+        std::cout << "\tA3: " << machines[A3] << std::endl;
+        std::cout << "\tB1: " << machines[B1] << std::endl;
+        std::cout << "\tB2: " << machines[B2] << std::endl;
+        std::cout << "\tB3: " << machines[B3] << std::endl;
+        std::cout << "\tC1: " << machines[C1] << std::endl;
+        std::cout << "\tC2: " << machines[C2] << std::endl;
+        std::cout << "\tC3: " << machines[C3] << std::endl;
+        for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
+            std::cout << "Machine: " << *iter << std::endl;
         }
-        delete(best_module_path);
-        delete(path);
-        return NULL;
+        for (int i = 0; i < move_counter; i++) {
+            std::cout << std::to_string(path->moves[i]) << " ";
+        }
+        std::cout << std::endl;
+        for (int i = 0; i < 9; i++) {
+            std::cout << std::to_string(path->machine_transformations[i]) << " ";
+        }
+        std::cout << std::endl;
+        for (int i = 0; i < 12; i++) {
+            std::cout << std::to_string(path->transformations[i]) << " ";
+        }
+        std::cout << std::endl;
         /**************/
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
