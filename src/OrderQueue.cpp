@@ -133,8 +133,7 @@ bool OrderQueue::RestoreLoadUnload(InformationDisInc LoadUndload)
 
 bool OrderQueue::RestoreTrans(Transformation temp)
 {
-	Order::BaseOrder aux = Order::BaseOrder(temp.order_pk, Order::ORDER_TYPE_TRANSFORMATION, temp.count, temp.initialPiece, temp.finalPiece, temp.Deadline);
-	orders_.push_back(aux);
+	orders_.push_back(Order::BaseOrder(temp.order_pk, Order::ORDER_TYPE_TRANSFORMATION, temp.count, temp.initialPiece, temp.finalPiece, temp.Deadline));
 	for(int i = 0; i < temp.vectorPiecePosition; i++) {
 		orders_.back().AddPiece(Order::Piece(temp.pieces[i].id_piece));
 	}
