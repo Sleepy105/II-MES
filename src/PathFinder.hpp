@@ -33,6 +33,14 @@ namespace PathFinder {
     
     typedef std::list<Direction> MovesPath;
     typedef std::list<Transformation*> TransformationsPath;
+
+    /**
+     * @brief Copy the contents of a path to another.
+     * 
+     * @param path 
+     * @return TransformationsPath* Pointer to new object
+     */
+    TransformationsPath* copyTransformationsPath(TransformationsPath& path);
 };
 
 
