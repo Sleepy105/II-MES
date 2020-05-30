@@ -208,8 +208,19 @@ PathFinder::ModulePath* PathFinder::Machine::search(Order::BaseOrder& order, Tra
         ModulePath* path = getDir(dir)->search(order, t_iter, last);
         if (!best_path) {
             best_path = path;
+            continue;
         }
-        else if (path && path->time <= best_path->time) {
+
+        for (auto m_iter = path->path.begin(); m_iter != path->path.end(); m_iter++) {
+            if (((*m_iter) == this) && requiresToolChange(**t_iter)) {
+                uint32_t order_part_count = order.GetCount();
+                uint32_t available_part_count = warehouse->GetPieceCount(order.GetInitialPiece());
+                path->time -= ToolChange/(available_part_count < order_part_count ? available_part_count : order_part_count );
+                path->time += ToolChange;
+            }
+        }
+
+        if (path && path->time <= best_path->time) {
             delete(best_path);
             best_path = path;
         }
@@ -369,7 +380,12 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
 
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
-        std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
+        //std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
+
+        for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
+            Block block = static_cast<Block>(blockInt);
+            std::cout << "Machine C" << machines[block]->getCell() << " R" << machines[block]->getRow() << " has " << machines[block]->queuedOperations() << " operations queued." << std::endl;
+        }
 
         if (1 == order.GetInitialPiece() && 2 == order.GetFinalPiece()) {
             TransformationsPath transformation_path;
