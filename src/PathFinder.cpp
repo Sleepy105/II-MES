@@ -239,7 +239,12 @@ PathFinder::MovesPath& PathFinder::Machine::getDirMoves(Direction dir) {
     return dir_moves[dir];
 }
 
+void PathFinder::Pusher::setOPCpointer(void* ptr) {
+    opc = ptr;
+}
+
 bool PathFinder::Pusher::isSpaceAvailable() {
+    meslog(INFO) << "Pusher #" << row << " has " << ((OPCUA_Manager*)opc)->GetPieceAllocInPusher(row) << " pieces in it." << std::endl;
     return ((*(OPCUA_Manager*)opc).GetPieceAllocInPusher(row) < 4);
 }
 
@@ -842,7 +847,7 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
     else if (order.GetType() == Order::ORDER_TYPE_UNLOAD) {
 
-        if (!pushers[order.GetFinalPiece()]->isSpaceAvailable()) {
+        if (!pushers[order.GetFinalPiece()-1]->isSpaceAvailable()) {
             delete(path);
             return NULL;
         }
@@ -875,6 +880,14 @@ PathFinder::ModulePath* PathFinder::PathFinder::searchMachines(Order::BaseOrder&
     }
 
     return path;
+}
+
+void PathFinder::PathFinder::setOPCpointer(void* ptr) {
+    opc = ptr;
+    for ( int blockInt = Block::P1; blockInt <= Block::P3; blockInt++ ) {
+            Block block = static_cast<Block>(blockInt);
+            pushers[blockInt]->setOPCpointer(opc);
+    }
 }
 
 PathFinder::TransformationsPath* PathFinder::copyTransformationsPath(TransformationsPath& path) {

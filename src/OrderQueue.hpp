@@ -33,6 +33,8 @@ class OrderQueue{
         time_t GetDataTime(std::string datatime);
         Order::Piece GetPieceFromID(uint32_t target_id);
         Order::BaseOrder GetOrderFromPieceID(uint32_t target_id);
+
+        void setOPCpointer(void* ptr);
         
         void print();
 };

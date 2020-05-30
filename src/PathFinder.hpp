@@ -170,6 +170,13 @@ public:
     ~Pusher() {}
 
     /**
+     * @brief Update pointer to OPC_UA Manager
+     * 
+     * @param ptr 
+     */
+    void setOPCpointer(void* ptr);
+
+    /**
      * @brief Check if there is room on this pusher
      * 
      * @return true 
@@ -203,6 +210,13 @@ public:
      * @return Path* Optimum Path or NULL if no path can be found
      */
     Path* FindPath (Order::BaseOrder& order);
+
+    /**
+     * @brief Update pointer to OPC_UA Manager
+     * 
+     * @param ptr 
+     */
+    void setOPCpointer(void* ptr);
 };
 
 #endif

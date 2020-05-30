@@ -354,6 +354,10 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	return rawtime1;
 }
 
+void OrderQueue::setOPCpointer(void* ptr) {
+	opc = ptr;
+	pathfinder->setOPCpointer(opc);
+}
 
 void OrderQueue::print(){
 	if (orders_.size() == 0){
