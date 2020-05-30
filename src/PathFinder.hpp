@@ -162,10 +162,20 @@ public:
 
 class PathFinder::Pusher {
 private:
-    /* data */
+    void* opc;
+    Cell cell;
+    Row row;
 public:
-    Pusher() {}
+    Pusher(void* opc, Cell cell, Row row) : opc(opc), cell(cell), row(row) {}
     ~Pusher() {}
+
+    /**
+     * @brief Check if there is room on this pusher
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool isSpaceAvailable();
 };
 
 
@@ -173,6 +183,7 @@ public:
 class PathFinder::PathFinder{
 private:
     Warehouse* warehouse;
+    void* opc;
     Machine* machines[9] = {NULL};
     Transformation* transformations[13] = {NULL};
 
@@ -180,7 +191,7 @@ private:
 
     ModulePath* searchMachines(Order::BaseOrder& order, TransformationsPath& list);
 public:
-    PathFinder(Warehouse* warehouse);
+    PathFinder(Warehouse* warehouse, void* opc);
     ~PathFinder() {}
 
     enum Block {A1, A2, A3, B1, B2, B3, C1, C2, C3, P1=0, P2, P3};

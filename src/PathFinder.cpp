@@ -1,5 +1,8 @@
 #include "PathFinder.hpp"
+
 #include <stdio.h>
+
+#include "OPC-UA.hpp"
 
 PathFinder::Transformation T1 = {
     .from   = 1,
@@ -236,7 +239,11 @@ PathFinder::MovesPath& PathFinder::Machine::getDirMoves(Direction dir) {
     return dir_moves[dir];
 }
 
-PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) {
+bool PathFinder::Pusher::isSpaceAvailable() {
+    return ((*(OPCUA_Manager*)opc).GetPieceAllocInPusher(row) < 4);
+}
+
+PathFinder::PathFinder::PathFinder(Warehouse* warehouse, void* opc) : warehouse(warehouse), opc(opc) {
 
     transformations[1] = &T1;
     transformations[2] = &T2;
@@ -328,9 +335,9 @@ PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) 
     machines[C1]->setDir(Direction::Right, machines[C2], true, move_across);
     machines[C2]->setDir(Direction::Right, machines[C3], true, move_across);
 
-    pushers[P1] = new Pusher;
-    pushers[P2] = new Pusher;
-    pushers[P3] = new Pusher;
+    pushers[P1] = new Pusher(opc, Cell::C4, Row::R1);
+    pushers[P2] = new Pusher(opc, Cell::C4, Row::R2);
+    pushers[P3] = new Pusher(opc, Cell::C4, Row::R3);
 }
 
 Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
@@ -835,7 +842,10 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
     else if (order.GetType() == Order::ORDER_TYPE_UNLOAD) {
 
-        // TODO Check if Pushers are full
+        if (!pushers[order.GetFinalPiece()]->isSpaceAvailable()) {
+            delete(path);
+            return NULL;
+        }
 
         repeat(7) path->moves[move_counter++] = Direction::Right;
         repeat(order.GetFinalPiece()+1) path->moves[move_counter++] = Direction::Down;

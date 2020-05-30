@@ -17,9 +17,9 @@
 int main (int argc, char const *argv[]) {
 
     Warehouse warehouse;
-    OrderQueue order_queue(&warehouse);
-
     UDPManager UDPManager(54321);
+    OrderQueue order_queue(&warehouse, &UDPManager);
+
     XMLParser XMLParser(&order_queue, &UDPManager, &warehouse);
     // Iniciar thread para UDP
     std::thread udp_worker = UDPManager.spawn_worker(&XMLParser);

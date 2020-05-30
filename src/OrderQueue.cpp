@@ -1,7 +1,7 @@
 #include "OrderQueue.hpp"
 
-OrderQueue::OrderQueue(Warehouse* warehouse) : warehouse(warehouse){
-	pathfinder = new PathFinder::PathFinder(warehouse);
+OrderQueue::OrderQueue(Warehouse* warehouse, void* opc) : warehouse(warehouse), opc(opc) {
+	pathfinder = new PathFinder::PathFinder(warehouse, opc);
 }
 
 OrderQueue::~OrderQueue(){
