@@ -162,22 +162,21 @@ bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
 uint32_t PathFinder::Machine::calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation) {
     uint32_t handle_time = 0;
 
-    /*for (std::list<Operation*>::iterator iter = operation_queue.begin();
+    for (auto iter = operation_queue.begin();
             iter != operation_queue.end();
             iter++)
     {
-        Operation* operation = (*iter);
-        if (operation->type == ChangeTools) {
+        Operation* operation = *iter;
+        /*if (operation->type == ChangeTools) {
             handle_time += ToolChange;
         }
-        else if (operation->type == PartTransformation) {
+        else*/ 
+        if (operation->type == OperationType::PartTransformation) {
             handle_time += operation->transformation->time;
         }
-    }*/ // TODO Review this whole thing
-
-    bool requiresToolChange = (current_tool != transformation.tool);
+    } // TODO Review this whole thing
     
-    if (requiresToolChange) {
+    if (requiresToolChange(transformation)) {
         // Divide tool change time by number of parts in the order
         // Take into account number of available parts in the warehouse
         uint32_t order_part_count = order.GetCount();
@@ -241,6 +240,14 @@ PathFinder::MovesPath& PathFinder::Machine::getDirMoves(Direction dir) {
 
 void PathFinder::Machine::addOperation(Operation* op) {
     operation_queue.push_back(op);
+}
+
+bool PathFinder::Machine::requiresToolChange(Transformation& t) {
+    return (current_tool != t.tool);
+}
+
+void PathFinder::Machine::setTool(uint8_t tool) {
+    current_tool = tool;
 }
 
 void PathFinder::Pusher::setOPCpointer(void* ptr) {
@@ -358,6 +365,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
         std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
+
+        // TODO Clear parts from queue
 
         if (1 == order.GetInitialPiece() && 2 == order.GetFinalPiece()) {
             TransformationsPath transformation_path;
@@ -807,7 +816,12 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
                             // Add operation to machine queue
                             Machine::Operation* op = new Machine::Operation;
                             op->type = Machine::OperationType::PartTransformation;
+                            op->transformation = transformations[i];
                             machines[block]->addOperation(op);
+
+                            if (machines[block]->requiresToolChange(*(transformations[i]))) {
+                                machines[block]->setTool(transformations[i]->tool);
+                            }
                         }
                     }
                 }

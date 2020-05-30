@@ -160,6 +160,10 @@ public:
     MovesPath& getDirMoves(Direction dir);
 
     void addOperation(Operation* op);
+
+    bool requiresToolChange(Transformation& t);
+
+    void setTool(uint8_t tool);
 };
 
 class PathFinder::Pusher {
