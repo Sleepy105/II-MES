@@ -785,6 +785,14 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             }
         }
 
+        for (auto iter = best_transformations_path->begin(); iter != best_transformations_path->end(); iter++) {
+            for (int i = 1; i <= 12; i++) {
+                if (transformations[i] == *iter) {
+                    (path->transformations[i-1])++;
+                }
+            }
+        }
+
         path->moves[move_counter++] = Direction::Right;
         repeat(5-best_module_path->path.back()->getRow()) path->moves[move_counter++] = Direction::Down;
         repeat(end_cell) {
@@ -864,5 +872,11 @@ PathFinder::ModulePath* PathFinder::PathFinder::searchMachines(Order::BaseOrder&
 }
 
 PathFinder::TransformationsPath* PathFinder::copyTransformationsPath(TransformationsPath& path) {
-    return NULL;
+    TransformationsPath* new_path = new TransformationsPath;
+
+    for (auto iter = path.begin(); iter != path.end(); iter++) {
+        new_path->push_back(*iter);
+    }
+
+    return new_path;
 }
