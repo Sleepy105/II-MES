@@ -248,7 +248,7 @@ void PathFinder::Machine::setTool(uint8_t tool) {
 }
 
 void PathFinder::Machine::removeOperation() {
-    return;
+    operation_queue.pop_front();
 }
 
 void PathFinder::Pusher::setOPCpointer(void* ptr) {
@@ -924,6 +924,11 @@ PathFinder::TransformationsPath* PathFinder::copyTransformationsPath(Transformat
 }
 
 void PathFinder::PathFinder::signalTransformationFinished(Cell cell, Row row) {
-    return;
+    for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
+            Block block = static_cast<Block>(blockInt);
+        if (machines[blockInt]->getCell() == cell && machines[blockInt]->getRow() == row) {
+            machines[blockInt]->removeOperation();
+        }
+    }
 }
 
