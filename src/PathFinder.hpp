@@ -32,6 +32,7 @@ namespace PathFinder {
     enum Row { R1=1, R2, R3 };
     
     typedef std::list<Direction> MovesPath;
+    typedef std::list<Transformation*> TransformationsPath;
 };
 
 
@@ -40,7 +41,7 @@ protected:
     Machine* modules[5] = {NULL};
     bool downstreams[5] = {false};
     MovesPath dir_moves[5];
-    std::list<Transformation*> valid_transformations;
+    TransformationsPath valid_transformations;
 
     Cell cell;
     Row row;
@@ -142,7 +143,7 @@ public:
      */
     uint32_t calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation);
 
-    ModulePath* search(Order::BaseOrder& order, std::list<Transformation*>::iterator t, std::list<Transformation*>::iterator last);
+    ModulePath* search(Order::BaseOrder& order, TransformationsPath::iterator t, TransformationsPath::iterator last);
 
     Cell getCell();
     
@@ -169,7 +170,7 @@ private:
 
     Pusher* pushers[3] = {NULL};
 
-    ModulePath* searchMachines(Order::BaseOrder& order, std::list<Transformation*>& list);
+    ModulePath* searchMachines(Order::BaseOrder& order, TransformationsPath& list);
 public:
     PathFinder(Warehouse* warehouse);
     ~PathFinder() {}
