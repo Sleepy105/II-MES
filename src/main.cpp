@@ -17,9 +17,9 @@
 int main (int argc, char const *argv[]) {
 
     Warehouse warehouse;
-    OrderQueue order_queue(&warehouse);
-
     UDPManager UDPManager(54321);
+    OrderQueue order_queue(&warehouse, NULL);
+
     XMLParser XMLParser(&order_queue, &UDPManager, &warehouse);
     // Iniciar thread para UDP
     std::thread udp_worker = UDPManager.spawn_worker(&XMLParser);
@@ -71,6 +71,7 @@ int main (int argc, char const *argv[]) {
     }
     
     OPCUA_Manager opc_ua(OpcUa_conn.c_str(), OpcUa_id.c_str(), &order_queue, &warehouse);
+    order_queue.setOPCpointer(&opc_ua);
 
     // Setup de variaveis para o ciclo de controlo principal
     Order::BaseOrder *next_order;

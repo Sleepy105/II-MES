@@ -17,11 +17,12 @@ class OrderQueue{
         std::list<Order::BaseOrder> orders_;
         Warehouse *warehouse;
         PathFinder::PathFinder* pathfinder;
+        void* opc;
         std::mutex mtx;
         
 
     public:
-        OrderQueue(Warehouse* warehouse);
+        OrderQueue(Warehouse* warehouse, void* opc);
         ~OrderQueue();
         int AddOrder(Order::BaseOrder order_to_add);
         bool RemoveOrder(Order::BaseOrder order_to_remove);
@@ -32,6 +33,8 @@ class OrderQueue{
         time_t GetDataTime(std::string datatime);
         Order::Piece GetPieceFromID(uint32_t target_id);
         Order::BaseOrder GetOrderFromPieceID(uint32_t target_id);
+
+        void setOPCpointer(void* ptr);
         
         void print();
 };

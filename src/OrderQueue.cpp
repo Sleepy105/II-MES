@@ -1,7 +1,7 @@
 #include "OrderQueue.hpp"
 
-OrderQueue::OrderQueue(Warehouse* warehouse) : warehouse(warehouse){
-	pathfinder = new PathFinder::PathFinder(warehouse);
+OrderQueue::OrderQueue(Warehouse* warehouse, void* opc) : warehouse(warehouse), opc(opc) {
+	pathfinder = new PathFinder::PathFinder(warehouse, opc);
 }
 
 OrderQueue::~OrderQueue(){
@@ -353,6 +353,10 @@ time_t OrderQueue::GetDataTime(std::string datatime)
 	return rawtime1;
 }
 
+void OrderQueue::setOPCpointer(void* ptr) {
+	opc = ptr;
+	pathfinder->setOPCpointer(opc);
+}
 
 void OrderQueue::print(){
 	if (orders_.size() == 0){

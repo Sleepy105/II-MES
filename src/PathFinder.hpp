@@ -45,6 +45,13 @@ namespace PathFinder {
 
 
 class PathFinder::Machine {
+public:
+    enum OperationType {ChangeTools=1, PartTransformation};
+    
+    typedef struct {
+        OperationType type;
+        Transformation* transformation = NULL;
+    } Operation;
 protected:
     Machine* modules[5] = {NULL};
     bool downstreams[5] = {false};
@@ -58,13 +65,6 @@ protected:
     const uint32_t ToolChange = 30;
 
     uint8_t current_tool = 1;
-
-    enum OperationType {ChangeTools=1, PartTransformation};
-    
-    typedef struct {
-        OperationType type;
-        Transformation* transformation = NULL;
-    } Operation;
 
     std::list<Operation*> operation_queue;
 
@@ -158,14 +158,39 @@ public:
     Row getRow();
 
     MovesPath& getDirMoves(Direction dir);
+
+    void addOperation(Operation* op);
+
+    bool requiresToolChange(Transformation& t);
+
+    void setTool(uint8_t tool);
+
+    void removeOperation();
 };
 
 class PathFinder::Pusher {
 private:
-    /* data */
+    void* opc;
+    Cell cell;
+    Row row;
 public:
-    Pusher() {}
+    Pusher(void* opc, Cell cell, Row row) : opc(opc), cell(cell), row(row) {}
     ~Pusher() {}
+
+    /**
+     * @brief Update pointer to OPC_UA Manager
+     * 
+     * @param ptr 
+     */
+    void setOPCpointer(void* ptr);
+
+    /**
+     * @brief Check if there is room on this pusher
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool isSpaceAvailable();
 };
 
 
@@ -173,6 +198,7 @@ public:
 class PathFinder::PathFinder{
 private:
     Warehouse* warehouse;
+    void* opc;
     Machine* machines[9] = {NULL};
     Transformation* transformations[13] = {NULL};
 
@@ -180,7 +206,7 @@ private:
 
     ModulePath* searchMachines(Order::BaseOrder& order, TransformationsPath& list);
 public:
-    PathFinder(Warehouse* warehouse);
+    PathFinder(Warehouse* warehouse, void* opc);
     ~PathFinder() {}
 
     enum Block {A1, A2, A3, B1, B2, B3, C1, C2, C3, P1=0, P2, P3};
@@ -192,6 +218,21 @@ public:
      * @return Path* Optimum Path or NULL if no path can be found
      */
     Path* FindPath (Order::BaseOrder& order);
+
+    /**
+     * @brief Update pointer to OPC_UA Manager
+     * 
+     * @param ptr 
+     */
+    void setOPCpointer(void* ptr);
+
+    /**
+     * @brief Signal that a transformation on a machine has been completed on the factory floor
+     * 
+     * @param cell 
+     * @param row 
+     */
+    void signalTransformationFinished(Cell cell, Row row);
 };
 
 #endif

@@ -32,7 +32,6 @@
 #include <iterator>
 #include "Order.hpp"
 #include "OrderQueue.hpp"
-#include "PathFinder.hpp"
 #include "Warehouse.hpp"
 
 class OPCUA_Manager {

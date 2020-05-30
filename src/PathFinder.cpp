@@ -1,5 +1,8 @@
 #include "PathFinder.hpp"
+
 #include <stdio.h>
+
+#include "OPC-UA.hpp"
 
 PathFinder::Transformation T1 = {
     .from   = 1,
@@ -159,30 +162,26 @@ bool PathFinder::Machine::canHandlePart(uint8_t part_type) {
 uint32_t PathFinder::Machine::calcTimeToHandleTransformation(Order::BaseOrder& order, Transformation& transformation) {
     uint32_t handle_time = 0;
 
-    /*for (std::list<Operation*>::iterator iter = operation_queue.begin();
+    for (auto iter = operation_queue.begin();
             iter != operation_queue.end();
             iter++)
     {
-        Operation* operation = (*iter);
-        if (operation->type == ChangeTools) {
+        Operation* operation = *iter;
+        /*if (operation->type == ChangeTools) {
             handle_time += ToolChange;
         }
-        else if (operation->type == PartTransformation) {
+        else*/ 
+        if (operation->type == OperationType::PartTransformation) {
             handle_time += operation->transformation->time;
         }
-    }*/ // TODO Review this whole thing
-
-    bool requiresToolChange = (current_tool != transformation.tool);
+    }
     
-    if (requiresToolChange) {
+    if (requiresToolChange(transformation)) {
         // Divide tool change time by number of parts in the order
         // Take into account number of available parts in the warehouse
         uint32_t order_part_count = order.GetCount();
         uint32_t available_part_count = warehouse->GetPieceCount(order.GetInitialPiece());
         handle_time += ToolChange/(available_part_count < order_part_count ? available_part_count : order_part_count );
-
-        // TODO Add tool change to operation queue
-        current_tool = transformation.tool;
     }
 
     handle_time += transformation.time;
@@ -236,7 +235,32 @@ PathFinder::MovesPath& PathFinder::Machine::getDirMoves(Direction dir) {
     return dir_moves[dir];
 }
 
-PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) {
+void PathFinder::Machine::addOperation(Operation* op) {
+    operation_queue.push_back(op);
+}
+
+bool PathFinder::Machine::requiresToolChange(Transformation& t) {
+    return (current_tool != t.tool);
+}
+
+void PathFinder::Machine::setTool(uint8_t tool) {
+    current_tool = tool;
+}
+
+void PathFinder::Machine::removeOperation() {
+    operation_queue.pop_front();
+}
+
+void PathFinder::Pusher::setOPCpointer(void* ptr) {
+    opc = ptr;
+}
+
+bool PathFinder::Pusher::isSpaceAvailable() {
+    meslog(INFO) << "Pusher #" << row << " has " << ((OPCUA_Manager*)opc)->GetPieceAllocInPusher(row) << " pieces in it." << std::endl;
+    return ((*(OPCUA_Manager*)opc).GetPieceAllocInPusher(row) < 4);
+}
+
+PathFinder::PathFinder::PathFinder(Warehouse* warehouse, void* opc) : warehouse(warehouse), opc(opc) {
 
     transformations[1] = &T1;
     transformations[2] = &T2;
@@ -328,9 +352,9 @@ PathFinder::PathFinder::PathFinder(Warehouse* warehouse) : warehouse(warehouse) 
     machines[C1]->setDir(Direction::Right, machines[C2], true, move_across);
     machines[C2]->setDir(Direction::Right, machines[C3], true, move_across);
 
-    pushers[P1] = new Pusher;
-    pushers[P2] = new Pusher;
-    pushers[P3] = new Pusher;
+    pushers[P1] = new Pusher(opc, Cell::C4, Row::R1);
+    pushers[P2] = new Pusher(opc, Cell::C4, Row::R2);
+    pushers[P3] = new Pusher(opc, Cell::C4, Row::R3);
 }
 
 Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
@@ -776,20 +800,29 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             }
 
         }
-        
-        for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
-            Block block = static_cast<Block>(blockInt);
-            for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
-                if (machines[block] == *iter) {
-                    (path->machine_transformations[block])++;
-                }
-            }
-        }
 
-        for (auto iter = best_transformations_path->begin(); iter != best_transformations_path->end(); iter++) {
-            for (int i = 1; i <= 12; i++) {
-                if (transformations[i] == *iter) {
-                    (path->transformations[i-1])++;
+        auto m_iter = best_module_path->path.begin();
+        for (auto t_iter = best_transformations_path->begin(); m_iter != best_module_path->path.end(); t_iter++, m_iter++) {
+            for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
+                Block block = static_cast<Block>(blockInt);
+                if (machines[block] == *m_iter) {
+                    (path->machine_transformations[block])++;
+
+                    for (int i = 1; i <= 12; i++) {
+                        if (transformations[i] == *t_iter) {
+                            (path->transformations[i-1])++;
+
+                            // Add operation to machine queue
+                            Machine::Operation* op = new Machine::Operation;
+                            op->type = Machine::OperationType::PartTransformation;
+                            op->transformation = transformations[i];
+                            machines[block]->addOperation(op);
+
+                            if (machines[block]->requiresToolChange(*(transformations[i]))) {
+                                machines[block]->setTool(transformations[i]->tool);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -801,8 +834,6 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         }
 
         path->moves[move_counter++] = Direction::Stop;
-
-        // TODO Update of free/blocked machines
 
         /* DEBUG code */
         std::cout << "MACHINES: " << std::endl;
@@ -830,12 +861,19 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             std::cout << std::to_string(path->transformations[i]) << " ";
         }
         std::cout << std::endl;
+        /*delete(best_module_path);
+        delete(best_transformations_path);
+        delete(path);
+        return NULL;*/
         /**************/
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
     else if (order.GetType() == Order::ORDER_TYPE_UNLOAD) {
 
-        // TODO Check if Pushers are full
+        if (!pushers[order.GetFinalPiece()-1]->isSpaceAvailable()) {
+            delete(path);
+            return NULL;
+        }
 
         repeat(7) path->moves[move_counter++] = Direction::Right;
         repeat(order.GetFinalPiece()+1) path->moves[move_counter++] = Direction::Down;
@@ -867,6 +905,14 @@ PathFinder::ModulePath* PathFinder::PathFinder::searchMachines(Order::BaseOrder&
     return path;
 }
 
+void PathFinder::PathFinder::setOPCpointer(void* ptr) {
+    opc = ptr;
+    for ( int blockInt = Block::P1; blockInt <= Block::P3; blockInt++ ) {
+            Block block = static_cast<Block>(blockInt);
+            pushers[blockInt]->setOPCpointer(opc);
+    }
+}
+
 PathFinder::TransformationsPath* PathFinder::copyTransformationsPath(TransformationsPath& path) {
     TransformationsPath* new_path = new TransformationsPath;
 
@@ -876,3 +922,13 @@ PathFinder::TransformationsPath* PathFinder::copyTransformationsPath(Transformat
 
     return new_path;
 }
+
+void PathFinder::PathFinder::signalTransformationFinished(Cell cell, Row row) {
+    for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
+            Block block = static_cast<Block>(blockInt);
+        if (machines[blockInt]->getCell() == cell && machines[blockInt]->getRow() == row) {
+            machines[blockInt]->removeOperation();
+        }
+    }
+}
+
