@@ -251,6 +251,10 @@ void PathFinder::Machine::removeOperation() {
     operation_queue.pop_front();
 }
 
+uint PathFinder::Machine::queuedOperations() {
+    return operation_queue.size();
+}
+
 void PathFinder::Pusher::setOPCpointer(void* ptr) {
     opc = ptr;
 }
@@ -836,7 +840,7 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         path->moves[move_counter++] = Direction::Stop;
 
         /* DEBUG code */
-        std::cout << "MACHINES: " << std::endl;
+        /*std::cout << "MACHINES: " << std::endl;
         std::cout << "\tA1: " << machines[A1] << std::endl;
         std::cout << "\tA2: " << machines[A2] << std::endl;
         std::cout << "\tA3: " << machines[A3] << std::endl;
@@ -860,7 +864,7 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
         for (int i = 0; i < 12; i++) {
             std::cout << std::to_string(path->transformations[i]) << " ";
         }
-        std::cout << std::endl;
+        std::cout << std::endl;*/
         /*delete(best_module_path);
         delete(best_transformations_path);
         delete(path);
@@ -889,6 +893,20 @@ PathFinder::ModulePath* PathFinder::PathFinder::searchMachines(Order::BaseOrder&
     ModulePath* path = NULL;
     for ( int machine = Block::A1; machine != Block::C3; machine++) {
         if (!machines[machine]->canDoTransformation(*list.front())) {
+            continue;
+        }
+
+        bool tagged = false;
+        for ( int tester = Block::A1; tester != Block::C3; tester++) {
+            if (machines[tester]->getCell() == machines[machine]->getCell()) {
+                if (machines[tester]->queuedOperations() > 1) {
+                    // Do not use this cell as start cell
+                    tagged = true;
+                    break;
+                }
+            }
+        }
+        if (tagged) {
             continue;
         }
 
@@ -924,9 +942,11 @@ PathFinder::TransformationsPath* PathFinder::copyTransformationsPath(Transformat
 }
 
 void PathFinder::PathFinder::signalTransformationFinished(Cell cell, Row row) {
+    uint c = cell+1; // Dirtiest bugfix...
+    uint r = row+1;  // ...evahhh
     for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
             Block block = static_cast<Block>(blockInt);
-        if (machines[blockInt]->getCell() == cell && machines[blockInt]->getRow() == row) {
+        if (machines[blockInt]->getCell() == c && machines[blockInt]->getRow() == r) {
             machines[blockInt]->removeOperation();
         }
     }

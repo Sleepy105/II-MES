@@ -166,6 +166,8 @@ public:
     void setTool(uint8_t tool);
 
     void removeOperation();
+
+    uint queuedOperations();
 };
 
 class PathFinder::Pusher {
