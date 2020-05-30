@@ -45,6 +45,13 @@ namespace PathFinder {
 
 
 class PathFinder::Machine {
+public:
+    enum OperationType {ChangeTools=1, PartTransformation};
+    
+    typedef struct {
+        OperationType type;
+        Transformation* transformation = NULL;
+    } Operation;
 protected:
     Machine* modules[5] = {NULL};
     bool downstreams[5] = {false};
@@ -58,13 +65,6 @@ protected:
     const uint32_t ToolChange = 30;
 
     uint8_t current_tool = 1;
-
-    enum OperationType {ChangeTools=1, PartTransformation};
-    
-    typedef struct {
-        OperationType type;
-        Transformation* transformation = NULL;
-    } Operation;
 
     std::list<Operation*> operation_queue;
 
@@ -158,6 +158,8 @@ public:
     Row getRow();
 
     MovesPath& getDirMoves(Direction dir);
+
+    void addOperation(Operation* op);
 };
 
 class PathFinder::Pusher {

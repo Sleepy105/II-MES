@@ -239,6 +239,10 @@ PathFinder::MovesPath& PathFinder::Machine::getDirMoves(Direction dir) {
     return dir_moves[dir];
 }
 
+void PathFinder::Machine::addOperation(Operation* op) {
+    operation_queue.push_back(op);
+}
+
 void PathFinder::Pusher::setOPCpointer(void* ptr) {
     opc = ptr;
 }
@@ -788,20 +792,24 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             }
 
         }
-        
-        for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
-            Block block = static_cast<Block>(blockInt);
-            for (auto iter = best_module_path->path.begin(); iter != best_module_path->path.end(); iter++) {
-                if (machines[block] == *iter) {
-                    (path->machine_transformations[block])++;
-                }
-            }
-        }
 
-        for (auto iter = best_transformations_path->begin(); iter != best_transformations_path->end(); iter++) {
-            for (int i = 1; i <= 12; i++) {
-                if (transformations[i] == *iter) {
-                    (path->transformations[i-1])++;
+        auto m_iter = best_module_path->path.begin();
+        for (auto t_iter = best_transformations_path->begin(); m_iter != best_module_path->path.end(); t_iter++, m_iter++) {
+            for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
+                Block block = static_cast<Block>(blockInt);   
+                if (machines[block] == *m_iter) {
+                    (path->machine_transformations[block])++;
+
+                    for (int i = 1; i <= 12; i++) {
+                        if (transformations[i] == *t_iter) {
+                            (path->transformations[i-1])++;
+
+                            // Add operation to machine queue
+                            Machine::Operation* op = new Machine::Operation;
+                            op->type = Machine::OperationType::PartTransformation;
+                            machines[block]->addOperation(op);
+                        }
+                    }
                 }
             }
         }
@@ -842,6 +850,10 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             std::cout << std::to_string(path->transformations[i]) << " ";
         }
         std::cout << std::endl;
+        /*delete(best_module_path);
+        delete(best_transformations_path);
+        delete(path);
+        return NULL;*/
         /**************/
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
