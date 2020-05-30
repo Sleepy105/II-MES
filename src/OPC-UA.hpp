@@ -33,6 +33,7 @@
 #include "Order.hpp"
 #include "OrderQueue.hpp"
 #include "Warehouse.hpp"
+#include "PathFinder.hpp"
 
 class OPCUA_Manager {
 private:
@@ -59,6 +60,7 @@ private:
 
     OrderQueue *order_queue;
     Warehouse *warehouse;
+    PathFinder *pathfinder;
 
 
     UA_Client* ServerConnect(const char* endpointURL) const;

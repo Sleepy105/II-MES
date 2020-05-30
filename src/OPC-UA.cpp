@@ -1110,30 +1110,108 @@ void OPCUA_Manager::UpdateMachineInfo(){
             if (cell == 0 && machine_type == 0){
                 for (machine_queue_iterator = pieces_MA1.begin(); machine_queue_iterator != pieces_MA1.end(); machine_queue_iterator++){
                     if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
-                        meslog(ERROR) << "Found piece in queue!" << std::endl;
                         while (pieces_MA1.back() != last_piece_id_processed[cell][machine_type]){
-                            meslog (ERROR) << "Popped piece " << *machine_queue_iterator << std::endl;
                             pieces_MA1.pop_back();
+                            signalTransformationFinished(cell, machine_type);
                             // callback pathfinder
                         } pieces_MA1.pop_back();
+                        signalTransformationFinished(cell, machine_type);
                     }
                 }
             }
             if (cell == 1 && machine_type == 0){
+                for (machine_queue_iterator = pieces_MA2.begin(); machine_queue_iterator != pieces_MA2.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        while (pieces_MA2.back() != last_piece_id_processed[cell][machine_type]){
+                            pieces_MA2.pop_back();
+                            signalTransformationFinished(cell, machine_type);
+                            // callback pathfinder
+                        } pieces_MA2.pop_back();
+                        signalTransformationFinished(cell, machine_type);
+                    }
+                }
             }
             if (cell == 2 && machine_type == 0){
+                for (machine_queue_iterator = pieces_MA3.begin(); machine_queue_iterator != pieces_MA3.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        while (pieces_MA3.back() != last_piece_id_processed[cell][machine_type]){
+                            pieces_MA3.pop_back();
+                            signalTransformationFinished(cell, machine_type);
+                            // callback pathfinder
+                        } pieces_MA3.pop_back();
+                        signalTransformationFinished(cell, machine_type);
+                    }
+                }
             }
             if (cell == 0 && machine_type == 1){
+                for (machine_queue_iterator = pieces_MB1.begin(); machine_queue_iterator != pieces_MB1.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        while (pieces_MB1.back() != last_piece_id_processed[cell][machine_type]){
+                            pieces_MB1.pop_back();
+                            signalTransformationFinished(cell, machine_type);
+                            // callback pathfinder
+                        } pieces_MB1.pop_back();
+                        signalTransformationFinished(cell, machine_type);
+                    }
+                }
             }
             if (cell == 1 && machine_type == 1){
+                for (machine_queue_iterator = pieces_MB2.begin(); machine_queue_iterator != pieces_MB2.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        while (pieces_MB2.back() != last_piece_id_processed[cell][machine_type]){
+                            pieces_MB2.pop_back();
+                            signalTransformationFinished(cell, machine_type);
+                            // callback pathfinder
+                        } pieces_MB2.pop_back();
+                        signalTransformationFinished(cell, machine_type);
+                    }
+                }
             }
             if (cell == 2 && machine_type == 1){
+                for (machine_queue_iterator = pieces_MB3.begin(); machine_queue_iterator != pieces_MB3.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        while (pieces_MB3.back() != last_piece_id_processed[cell][machine_type]){
+                            pieces_MB3.pop_back();
+                            signalTransformationFinished(cell, machine_type);
+                            // callback pathfinder
+                        } pieces_MB3.pop_back();
+                        signalTransformationFinished(cell, machine_type);
+                    }
+                }
             }
             if (cell == 0 && machine_type == 2){
+                for (machine_queue_iterator = pieces_MC1.begin(); machine_queue_iterator != pieces_MC1.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        while (pieces_MC1.back() != last_piece_id_processed[cell][machine_type]){
+                            pieces_MC1.pop_back();
+                            signalTransformationFinished(cell, machine_type);
+                            // callback pathfinder
+                        } pieces_MC1.pop_back();
+                        signalTransformationFinished(cell, machine_type);
+                    }
+                }
             }
             if (cell == 1 && machine_type == 2){
+                for (machine_queue_iterator = pieces_MC2.begin(); machine_queue_iterator != pieces_MC2.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        while (pieces_MC2.back() != last_piece_id_processed[cell][machine_type]){
+                            pieces_MC2.pop_back();
+                            signalTransformationFinished(cell, machine_type);
+                        } pieces_MC2.pop_back();
+                        signalTransformationFinished(cell, machine_type);
+                    }
+                }
             }
             if (cell == 2 && machine_type == 2){
+                for (machine_queue_iterator = pieces_MC3.begin(); machine_queue_iterator != pieces_MC3.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        while (pieces_MC3.back() != last_piece_id_processed[cell][machine_type]){
+                            pieces_MC3.pop_back();
+                            signalTransformationFinished(cell, machine_type);
+                        } pieces_MC3.pop_back();
+                        signalTransformationFinished(cell, machine_type);
+                    }
+                }
             }
             
             strcpy(NodeID, NodeID_Backup3);
