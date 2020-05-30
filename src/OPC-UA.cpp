@@ -179,6 +179,35 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     uint8_t *moves = piece_copy.GetMoves();
     uint8_t *transformation = piece_copy.GetTransformations();
     uint8_t *machines = piece_copy.GetMachines();
+    int i;
+
+    for (i=0; i<machines[0]; i++){
+        pieces_MA1.push_front(id_piece);
+    }
+    for (i=0; i<machines[1]; i++){
+        pieces_MA2.push_front(id_piece);
+    }
+    for (i=0; i<machines[2]; i++){
+        pieces_MA3.push_front(id_piece);
+    }
+    for (i=0; i<machines[3]; i++){
+        pieces_MB1.push_front(id_piece);
+    }
+    for (i=0; i<machines[4]; i++){
+        pieces_MB2.push_front(id_piece);
+    }
+    for (i=0; i<machines[5]; i++){
+        pieces_MB3.push_front(id_piece);
+    }
+    for (i=0; i<machines[6]; i++){
+        pieces_MC1.push_front(id_piece);
+    }
+    for (i=0; i<transformation[7]; i++){
+        pieces_MC2.push_front(id_piece);
+    }
+    for (i=0; i<transformation[8]; i++){
+        pieces_MC3.push_front(id_piece);
+    }
 
     // Check if piece will go to any of the three central cells
     if (moves[2] == 2){
@@ -228,7 +257,6 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
 
     // Criar vetor em formato compatível com OPC-UA
     UA_Int16* path_UA = (UA_Int16*)UA_Array_new(59, &UA_TYPES[UA_TYPES_UINT16]);
-    uint16_t i;
     for (i = 0; i < 59; i++) {
         path_UA[i] = (uint16_t) moves[i];
     }
@@ -1018,6 +1046,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
 }
 
 void OPCUA_Manager::UpdateMachineInfo(){
+    std::list<uint16_t>::iterator machine_queue_iterator;
     UA_StatusCode retval;
     UA_Variant *val;
     bool tool_changed = false;
@@ -1077,6 +1106,35 @@ void OPCUA_Manager::UpdateMachineInfo(){
             }
             last_piece_id_processed[cell][machine_type] = *(UA_UInt16*)val->data;
             UA_Variant_delete(val);
+
+            if (cell == 0 && machine_type == 0){
+                for (machine_queue_iterator = pieces_MA1.begin(); machine_queue_iterator != pieces_MA1.end(); machine_queue_iterator++){
+                    if (*machine_queue_iterator == last_piece_id_processed[cell][machine_type]){
+                        meslog(ERROR) << "Found piece in queue!" << std::endl;
+                        while (pieces_MA1.back() != last_piece_id_processed[cell][machine_type]){
+                            meslog (ERROR) << "Popped piece " << *machine_queue_iterator << std::endl;
+                            pieces_MA1.pop_back();
+                            // callback pathfinder
+                        } pieces_MA1.pop_back();
+                    }
+                }
+            }
+            if (cell == 1 && machine_type == 0){
+            }
+            if (cell == 2 && machine_type == 0){
+            }
+            if (cell == 0 && machine_type == 1){
+            }
+            if (cell == 1 && machine_type == 1){
+            }
+            if (cell == 2 && machine_type == 1){
+            }
+            if (cell == 0 && machine_type == 2){
+            }
+            if (cell == 1 && machine_type == 2){
+            }
+            if (cell == 2 && machine_type == 2){
+            }
             
             strcpy(NodeID, NodeID_Backup3);
             strcat(NodeID, ".piece_being_processed_id");

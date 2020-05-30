@@ -48,6 +48,15 @@ private:
     uint16_t piece_id_being_processed[3][3];
     uint16_t last_piece_id_processed[3][3];
     bool cell_allocation [3];
+    std::list<uint16_t> pieces_MA1;
+    std::list<uint16_t> pieces_MA2;
+    std::list<uint16_t> pieces_MA3;
+    std::list<uint16_t> pieces_MB1;
+    std::list<uint16_t> pieces_MB2;
+    std::list<uint16_t> pieces_MB3;
+    std::list<uint16_t> pieces_MC1;
+    std::list<uint16_t> pieces_MC2;
+    std::list<uint16_t> pieces_MC3;
 
     OrderQueue *order_queue;
     Warehouse *warehouse;
