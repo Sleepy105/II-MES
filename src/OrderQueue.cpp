@@ -220,6 +220,28 @@ Order::Piece OrderQueue::GetPieceFromID(uint32_t target_id){
 	return Order::Piece(0); // end of function reached only if piece was not found
 }
 
+Order::BaseOrder OrderQueue::GetOrderFromPieceID(uint32_t target_id){
+
+	uint8_t removed_piece_type;
+
+	std::list<Order::BaseOrder>::iterator orders_iter_;
+	std::list<Order::Piece>::iterator pieces_iter_;
+	std::list<Order::Piece> *piece_list;
+
+	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+	// for each order
+		piece_list = orders_iter_->GetPieces();
+		for (pieces_iter_ = piece_list->begin(); pieces_iter_ != piece_list->end(); pieces_iter_++){
+		// for each piece
+			if (pieces_iter_->GetID() == target_id){
+				return (*orders_iter_);
+			}
+		}
+	}
+	meslog(ERROR) << "Couldn't find Piece " << target_id << " in Order Queue!" << std::endl;
+	return Order::BaseOrder(0, Order::NULL_ORDER); // end of function reached only if piece was not found
+}
+
 /*
         /// STUB (i.e. so serve para ser utilizável no main) ///
 	Devolve a próxima Order a executar com base na prioridade (Orders do topo primeiro)

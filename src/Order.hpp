@@ -29,6 +29,7 @@ namespace Order {
     const uint8_t ORDER_TYPE_UNLOAD = 1;
     const uint8_t ORDER_TYPE_REQUESTSTORES = 2;
     const uint8_t ORDER_TYPE_LOAD = 3;
+    const uint8_t NULL_ORDER = 4;
 };
 
 

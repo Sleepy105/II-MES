@@ -35,7 +35,7 @@ int main (int argc, char const *argv[]) {
         initvalues(dir);
     }
 
-    if(false) {
+    if(true) {
 
         // Restore da informação presente no armazem
         int warehouse_quantity[9];
@@ -55,8 +55,6 @@ int main (int argc, char const *argv[]) {
         }
         order_queue.print();
     }
-
-    deleteData(dir); // usado so para teste
 
     // Configurar OPC-UA
     std::string OpcUa_id = "|var|CODESYS Control Win V3 x64.Application.",

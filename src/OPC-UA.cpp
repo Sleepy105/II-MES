@@ -512,15 +512,18 @@ bool OPCUA_Manager::CheckPiecesFinished(){
                                 switch (transform){
                                     case 0:
                                         PieceType = "P1";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
                                     case 1:
                                     case 2:
                                         PieceType = "P2";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
                                     case 3:
                                         PieceType = "P6";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
                                 }
@@ -547,21 +550,25 @@ bool OPCUA_Manager::CheckPiecesFinished(){
                                     case 4:
                                         PieceType = "P1";
                                         ProductionTime = 20;
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
                                     case 5:
                                         ProductionTime = 15;
                                         PieceType = "P3";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
                                     case 6:
                                         ProductionTime = 20;
                                         PieceType = "P3";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
                                     case 7:
                                         ProductionTime = 20;
                                         PieceType = "P7";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
                                 }
@@ -585,24 +592,28 @@ bool OPCUA_Manager::CheckPiecesFinished(){
                             if (transformations[transform] == 1){
                                 transformations[transform] = 0;
                                 switch (transform){
-                                    case 4:
+                                    case 8:
                                         ProductionTime = 10;
                                         PieceType = "P1";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
-                                    case 5:
+                                    case 9:
                                         ProductionTime = 30;
                                         PieceType = "P4";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
-                                    case 6:
+                                    case 10:
                                         ProductionTime = 10;
                                         PieceType = "P4";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
-                                    case 7:
+                                    case 11:
                                         ProductionTime = 10;
                                         PieceType = "P8";
+                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
                                         updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
                                         break;
                                 }
@@ -935,9 +946,15 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 }
 
                 piece_pusher_ids[pusher][buffer_index] = *(UA_UInt16*)val->data;
-                UA_Variant_delete(val);          
+                UA_Variant_delete(val);
+
+                std::string zone = "Zone" + std::to_string(pusher);
+                std::string piece_type = "P" + std::to_string((int)order_queue->GetOrderFromPieceID(piece_pusher_ids[pusher][buffer_index]).GetType());
 
                 meslog(INFO) << "Piece " << piece_pusher_ids[pusher][buffer_index] << " dispatched in pusher " << (int) pusher << std::endl;
+                
+                updateDispatch(DBFILE, zone, piece_type, 1);
+
                 
                 strcpy (NodeID, NodeID_Backup3);
                 ConvIntToString(aux, (uint16_t) buffer_index+1);
@@ -960,6 +977,8 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 }
                 UA_WriteRequest_clear(&wReq);
                 UA_WriteResponse_clear(&wResp);
+
+                
             }
         }
     }
