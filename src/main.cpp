@@ -88,7 +88,7 @@ int main (int argc, char const *argv[]) {
             meslog(ERROR) << "Couldn't connect to OPC-UA Master, waitting for connection..." << std::endl;
             std::this_thread::sleep_for(std::chrono::nanoseconds(CYCLE_DELAY_IN_MILLISECONDS/10*1000000)); // 0,1 s
         }
-        meslog(INFO) << "Running cycle..." << std::endl;
+        order_queue.print();
 
         opc_ua.UpdateAll();
 

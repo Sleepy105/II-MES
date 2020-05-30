@@ -45,6 +45,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	case Order::ORDER_TYPE_LOAD:
 		type_string = "Incoming";
 		state_string = "Executing"; //As operações de carga nunca estao "Waiting", começam logo a executar
+		total_pieces = 1;
 		load_order = true;
 		break;
 	case Order::ORDER_TYPE_UNLOAD:
@@ -68,7 +69,7 @@ int OrderQueue::AddOrder(Order::BaseOrder order_to_add)
 	// se for uma order de carga, adiciona piece também
 	if (load_order){
 		return_value = insertDataPiece(DBFILE, return_value);
-		order_to_add.AddPiece((uint32_t)return_value);
+		order_to_add.AddPiece(Order::Piece((uint32_t)return_value));
 	}
 
 
@@ -150,10 +151,9 @@ bool OrderQueue::RemoveOrder(Order::BaseOrder order_to_remove)
 	std::list<Order::BaseOrder>::iterator orders_iter_ = orders_.begin();
 
 	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
-		if ((*orders_iter_).GetID() == order_to_remove.GetID()){
-			updateOrder(DBFILE, "Finished", (int) order_to_remove.GetID());
-			// update order in database before deleting localy.
+		if ((*orders_iter_).GetPK() == order_to_remove.GetPK()){
 			orders_.erase(orders_iter_);
+			break;
 		}
 	}
 	mtx.unlock();
@@ -186,7 +186,7 @@ uint8_t OrderQueue::RemovePiece(uint32_t target_id){
 				// piece has been deleted. If there are no more pieces on hold and no pieces in factory floor, remove order
 				if ((orders_iter_->GetCount() == 0) && (piece_list->size() == 0)){
 					if (orders_iter_->GetType() != Order::ORDER_TYPE_UNLOAD){
-						updateOrder(DBFILE, "Finished", orders_iter_->GetID()); // unload orders are considered finished right off the bat as soon as they run out of pieces to send
+						updateOrder(DBFILE, "Finished", orders_iter_->GetPK());
 					}
 					RemoveOrder((*orders_iter_));
 				}
@@ -296,7 +296,7 @@ Order::BaseOrder *OrderQueue::GetNextOrder(){
 		order.AddPiece(part);
 
 		if (order.IsNotExecuting()){
-			updateOrder(DBFILE, "Executing", (int) order.GetID());
+			updateOrder(DBFILE, "Executing", (int) order.GetPK());
 			order.SetExecuting();
 		}
 		

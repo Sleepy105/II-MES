@@ -487,141 +487,143 @@ bool OPCUA_Manager::CheckPiecesFinished(){
             UA_Variant_delete(val);
 
             // Update DB info on machine pieces transformed and machine operation time
-            machines = order_queue->GetPieceFromID((uint32_t) piece_ids[i]).GetMachines();
-            transformations = order_queue->GetPieceFromID((uint32_t) piece_ids[i]).GetTransformations();
+            if (order_queue->GetOrderFromPieceID((uint32_t) piece_ids[i]).GetType() == Order::ORDER_TYPE_TRANSFORMATION){
+                machines = order_queue->GetPieceFromID((uint32_t) piece_ids[i]).GetMachines();
+                transformations = order_queue->GetPieceFromID((uint32_t) piece_ids[i]).GetTransformations();
 
-            for (int machine = 0; machine < 9; machine++){
-                while (machines[machine] >= 1){
-                    if       (machine == 0 || machine == 3 || machine == 6){
-                        Machine = "A";
-                        switch (machine){
-                            case 0:
-                                Machine = Machine + "1";
-                                break;
-                            case 1:
-                                Machine = Machine + "2";
-                                break;
-                            case 6:
-                                Machine = Machine + "3";
-                                break;
-                        }
-                        ProductionTime = 15;
-                        for (int transform = 0; transform < 4; transform++){
-                            if (transformations[transform] == 1){
-                                transformations[transform] = 0;
-                                switch (transform){
-                                    case 0:
-                                        PieceType = "P1";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                    case 1:
-                                    case 2:
-                                        PieceType = "P2";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                    case 3:
-                                        PieceType = "P6";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
+                for (int machine = 0; machine < 9; machine++){
+                    while (machines[machine] >= 1){
+                        if       (machine == 0 || machine == 1 || machine == 2){
+                            Machine = "A";
+                            switch (machine){
+                                case 0:
+                                    Machine = Machine + "1";
+                                    break;
+                                case 1:
+                                    Machine = Machine + "2";
+                                    break;
+                                case 2:
+                                    Machine = Machine + "3";
+                                    break;
+                            }
+                            ProductionTime = 15;
+                            for (int transform = 0; transform < 4; transform++){
+                                if (transformations[transform] == 1){
+                                    transformations[transform] = 0;
+                                    switch (transform){
+                                        case 0:
+                                            PieceType = "P1";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                        case 1:
+                                        case 2:
+                                            PieceType = "P2";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                        case 3:
+                                            PieceType = "P6";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                    }
+                                }
+                            }
+
+                        }else if (machine == 3 || machine == 4 || machine == 5){
+                            Machine = "B";
+                            switch (machine){
+                                case 3:
+                                    Machine = Machine + "1";
+                                    break;
+                                case 4:
+                                    Machine = Machine + "2";
+                                    break;
+                                case 5:
+                                    Machine = Machine + "3";
+                                    break;
+                            }
+                            for (int transform = 4; transform < 8; transform++){
+                                if (transformations[transform] == 1){
+                                    transformations[transform] = 0;
+                                    switch (transform){
+                                        case 4:
+                                            PieceType = "P1";
+                                            ProductionTime = 20;
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                        case 5:
+                                            ProductionTime = 15;
+                                            PieceType = "P3";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                        case 6:
+                                            ProductionTime = 20;
+                                            PieceType = "P3";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                        case 7:
+                                            ProductionTime = 20;
+                                            PieceType = "P7";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                    }
+                                }
+                            }
+
+                        }else if (machine == 6 || machine == 7 || machine == 8){
+                            Machine = "C";
+                            switch (machine){
+                                case 6:
+                                    Machine = Machine + "1";
+                                    break;
+                                case 7:
+                                    Machine = Machine + "2";
+                                    break;
+                                case 8:
+                                    Machine = Machine + "3";
+                                    break;
+                            }
+                            for (int transform = 8; transform < 12; transform++){
+                                if (transformations[transform] == 1){
+                                    transformations[transform] = 0;
+                                    switch (transform){
+                                        case 8:
+                                            ProductionTime = 10;
+                                            PieceType = "P1";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                        case 9:
+                                            ProductionTime = 30;
+                                            PieceType = "P4";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                        case 10:
+                                            ProductionTime = 10;
+                                            PieceType = "P4";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                        case 11:
+                                            ProductionTime = 10;
+                                            PieceType = "P8";
+                                            meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
+                                            updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
+                                            break;
+                                    }
                                 }
                             }
                         }
 
-                    }else if (machine == 1 || machine == 4 || machine == 7){
-                        Machine = "B";
-                        switch (machine){
-                            case 1:
-                                Machine = Machine + "1";
-                                break;
-                            case 4:
-                                Machine = Machine + "2";
-                                break;
-                            case 7:
-                                Machine = Machine + "3";
-                                break;
-                        }
-                        for (int transform = 4; transform < 8; transform++){
-                            if (transformations[transform] == 1){
-                                transformations[transform] = 0;
-                                switch (transform){
-                                    case 4:
-                                        PieceType = "P1";
-                                        ProductionTime = 20;
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                    case 5:
-                                        ProductionTime = 15;
-                                        PieceType = "P3";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                    case 6:
-                                        ProductionTime = 20;
-                                        PieceType = "P3";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                    case 7:
-                                        ProductionTime = 20;
-                                        PieceType = "P7";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                }
-                            }
-                        }
-
-                    }else if (machine == 2 || machine == 5 || machine == 8){
-                        Machine = "C";
-                        switch (machine){
-                            case 2:
-                                Machine = Machine + "1";
-                                break;
-                            case 5:
-                                Machine = Machine + "2";
-                                break;
-                            case 8:
-                                Machine = Machine + "3";
-                                break;
-                        }
-                        for (int transform = 8; transform < 12; transform++){
-                            if (transformations[transform] == 1){
-                                transformations[transform] = 0;
-                                switch (transform){
-                                    case 8:
-                                        ProductionTime = 10;
-                                        PieceType = "P1";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                    case 9:
-                                        ProductionTime = 30;
-                                        PieceType = "P4";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                    case 10:
-                                        ProductionTime = 10;
-                                        PieceType = "P4";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                    case 11:
-                                        ProductionTime = 10;
-                                        PieceType = "P8";
-                                        meslog (INFO) << "Updating Machine " << Machine << " which operated on a piece of type " << PieceType << " during " << ProductionTime << " seconds" << std::endl;
-                                        updateMachine(DBFILE, Machine, PieceType, ProductionTime, 1);
-                                        break;
-                                }
-                            }
-                        }
+                        machines[machine]--;
                     }
-
-                    machines[machine]--;
                 }
             }
 
@@ -724,6 +726,9 @@ bool OPCUA_Manager::CheckIncomingPieces(){
 
         val = UA_Variant_new();
         retval = UA_Client_readValueAttribute(client_, UA_NODEID_STRING(nodeIndex_, NodeID), val);
+        if (val->type != &UA_TYPES[UA_TYPES_BOOLEAN]){
+            meslog(ERROR) << "Invalid node read!" << std::endl;
+        }
         if(retval == UA_STATUSCODE_GOOD) {
             MES_ok = *(UA_Boolean*)val->data;
         }
@@ -731,7 +736,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     }
     // MES ok is false: we have not yet processed this piece
     if (!MES_ok){
-        PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 1, 1, 1, "0")); //deadline não interessa, pus "0" just in case
+        PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 0, 1, 1, "0")); //deadline não interessa, pus "0" just in case
 
 
         strcpy(NodeID, BaseNodeID_);
@@ -764,9 +769,9 @@ bool OPCUA_Manager::CheckIncomingPieces(){
         wReq.nodesToWrite[0].nodeId = UA_NODEID_STRING_ALLOC(nodeIndex_, NodeID);
         wReq.nodesToWrite[0].attributeId = UA_ATTRIBUTEID_VALUE;
         wReq.nodesToWrite[0].value.hasValue = true;
-        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_UINT16];
+        wReq.nodesToWrite[0].value.value.type = &UA_TYPES[UA_TYPES_BOOLEAN];
         wReq.nodesToWrite[0].value.value.storageType = UA_VARIANT_DATA_NODELETE;
-        wReq.nodesToWrite[0].value.value.data = &PieceID;
+        wReq.nodesToWrite[0].value.value.data = &Mes_is_ok;
         wResp = UA_Client_Service_write(client_, wReq);
         if (wResp.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
             meslog(ERROR) << "Invalid node write to MES_ok! Server responded with ERROR!" << std::endl;
@@ -807,7 +812,7 @@ bool OPCUA_Manager::CheckIncomingPieces(){
     // MES ok is false: we have not yet processed this piece
     if (!MES_ok){
         // Adicionar Order antes de mandar o MES_ok
-        PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 1, 2, 2, "0")); //deadline não interessa, pus "0" just in case
+        PieceID = (uint16_t) order_queue->AddOrder(Order::BaseOrder(0, Order::ORDER_TYPE_LOAD, 0, 2, 2, "0")); //deadline não interessa, pus "0" just in case
 
         strcpy(NodeID, BaseNodeID_);
         strcat(NodeID, "GVL.OBJECT[59].id_piece");

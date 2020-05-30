@@ -79,7 +79,7 @@ bool BaseOrder::DecreaseCount(){
     if (count>0){
         count--;
         if (count == 0 && order_type == ORDER_TYPE_UNLOAD){
-            updateOrder(DBFILE, "Finished", order_id);
+            updateOrder(DBFILE, "Finished", order_pk);
         }
         return true;
     }
@@ -179,7 +179,7 @@ void Piece::SetPath(Path* new_path){
 void Piece::print(){
     uint8_t* moves = GetMoves();
     if (!moves) {
-        meslog(ERROR) << "No moves in Piece #" << GetID() << " Path." << std::endl;
+        std::cout << "\t\tPiece " << GetID() << " has no path recorded in MES" << std::endl;
         return;
     }
     std::cout << "\t\tPiece " << GetID() << " has path: {" << (int)moves[0] << ", " << (int)moves[1] << ", " << (int)moves[2] << ", " << (int)moves[3] << "...}" << std::endl;
