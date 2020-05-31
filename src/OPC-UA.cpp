@@ -883,6 +883,7 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
     UA_WriteResponse wResp;
     UA_StatusCode retval;
     UA_Variant *val;
+    Order::BaseOrder aux_order;
     char NodeID[128] = {0};
     char NodeID_Backup[128];
     char NodeID_Backup2[128];
@@ -969,13 +970,16 @@ bool OPCUA_Manager::CheckOutgoingPieces(){
                 piece_pusher_ids[pusher][buffer_index] = *(UA_UInt16*)val->data;
                 UA_Variant_delete(val);
 
-                std::string zone = "Zone" + std::to_string(pusher);
-                std::string piece_type = "P" + std::to_string((int)order_queue->GetOrderFromPieceID(piece_pusher_ids[pusher][buffer_index]).GetType());
-
-                meslog(INFO) << "Piece " << piece_pusher_ids[pusher][buffer_index] << " dispatched in pusher " << (int) pusher << std::endl;
+                aux_order = order_queue->GetOrderFromPieceID(piece_pusher_ids[pusher][buffer_index]);
+                if (aux_order.GetType() != Order::NULL_ORDER){
+                    std::string zone = "Zone" + std::to_string(pusher+1);
+                    std::string piece_type = "P" + std::to_string((int)(order_queue->GetOrderFromPieceID(piece_pusher_ids[pusher][buffer_index]).GetInitialPiece()));
+                    updateDispatch(DBFILE, zone, piece_type, 1);
+                    order_queue->RemovePiece(piece_pusher_ids[pusher][buffer_index]);
+                    meslog(INFO) << "Piece " << piece_pusher_ids[pusher][buffer_index] << " dispatched in pusher " << (int) pusher << std::endl;
+                }
                 
-                updateDispatch(DBFILE, zone, piece_type, 1);
-                order_queue->RemovePiece(piece_pusher_ids[pusher][buffer_index]);
+                
 
                 
                 strcpy (NodeID, NodeID_Backup3);

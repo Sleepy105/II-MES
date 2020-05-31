@@ -10,10 +10,18 @@
 
 #include "Order.hpp"
 using namespace Order;
-// 3 construtores possiveis:
+// 4 construtores possiveis:
 //  -com deadline em string: mais rapido, envolve ter a string em YYYY-MM-DD HH:MM:SS
 //  -com deadline em inteiro: mais lento (converte para string pela base de dados)
 //  -sem deadline: no caso de request stores
+//  -sem parametros: cria order vazia (type = NULL_ORDER)
+BaseOrder::BaseOrder(){
+    order_type = NULL_ORDER;
+    order_id = -1;
+    is_not_executing = true;
+    Deadline = "0";
+}
+
 BaseOrder::BaseOrder(uint8_t order_id, 
                      uint8_t order_type, 
                      uint32_t count,
