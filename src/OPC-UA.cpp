@@ -183,33 +183,15 @@ bool OPCUA_Manager::SendPiece(Order::BaseOrder *order) {
     uint8_t *machines = piece_copy.GetMachines();
     int i;
 
-    for (i=0; i<machines[0]; i++){
-        pieces_MA1.push_front(id_piece);
-    }
-    for (i=0; i<machines[1]; i++){
-        pieces_MA2.push_front(id_piece);
-    }
-    for (i=0; i<machines[2]; i++){
-        pieces_MA3.push_front(id_piece);
-    }
-    for (i=0; i<machines[3]; i++){
-        pieces_MB1.push_front(id_piece);
-    }
-    for (i=0; i<machines[4]; i++){
-        pieces_MB2.push_front(id_piece);
-    }
-    for (i=0; i<machines[5]; i++){
-        pieces_MB3.push_front(id_piece);
-    }
-    for (i=0; i<machines[6]; i++){
-        pieces_MC1.push_front(id_piece);
-    }
-    for (i=0; i<transformation[7]; i++){
-        pieces_MC2.push_front(id_piece);
-    }
-    for (i=0; i<transformation[8]; i++){
-        pieces_MC3.push_front(id_piece);
-    }
+    repeat(machines[0]) pieces_MA1.push_front(id_piece);
+    repeat(machines[1]) pieces_MA2.push_front(id_piece);
+    repeat(machines[2]) pieces_MA3.push_front(id_piece);
+    repeat(machines[3]) pieces_MB1.push_front(id_piece);
+    repeat(machines[4]) pieces_MB2.push_front(id_piece);
+    repeat(machines[5]) pieces_MB3.push_front(id_piece);
+    repeat(machines[6]) pieces_MC1.push_front(id_piece);
+    repeat(machines[7]) pieces_MC2.push_front(id_piece);
+    repeat(machines[8]) pieces_MC3.push_front(id_piece);
 
     // Check if piece will go to any of the three central cells
     if (moves[2] == 2){
