@@ -393,12 +393,48 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
 
     //////////////////////////////////////////////////// TRANSFORMATION ORDERS //////////////////////////////////////////////
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
-        //std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
+        std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
 
         for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
             Block block = static_cast<Block>(blockInt);
             std::cout << "Machine C" << machines[block]->getCell() << " R" << machines[block]->getRow() << " has " << machines[block]->queuedOperations() << " operations queued." << std::endl;
         }
+        std::cout << "A1 --> " << (*(OPCUA_Manager*)opc).pieces_MA1.size() <<  " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MA1.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MA1.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
+        std::cout << "A2 --> " << (*(OPCUA_Manager*)opc).pieces_MA2.size() << " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MA2.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MA2.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
+        std::cout << "A3 --> " << (*(OPCUA_Manager*)opc).pieces_MA3.size() << " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MA3.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MA3.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
+        std::cout << "B1 --> " << (*(OPCUA_Manager*)opc).pieces_MB1.size() << " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MB1.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MB1.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
+        std::cout << "B2 --> " << (*(OPCUA_Manager*)opc).pieces_MB2.size() << " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MB2.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MB2.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
+        std::cout << "B3 --> " << (*(OPCUA_Manager*)opc).pieces_MB3.size() << " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MB3.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MB3.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
+        std::cout << "C1 --> " << (*(OPCUA_Manager*)opc).pieces_MC1.size() << " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MC1.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MC1.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
+        std::cout << "C2 --> " << (*(OPCUA_Manager*)opc).pieces_MC2.size() << " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MC2.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MC2.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
+        std::cout << "C3 --> " << (*(OPCUA_Manager*)opc).pieces_MC3.size() << " --> ";
+        for (auto iter = (*(OPCUA_Manager*)opc).pieces_MC3.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MC3.end(); iter++) {
+            std::cout << *iter << " ";
+        } std::cout << std::endl;
 
         if (1 == order.GetInitialPiece() && 2 == order.GetFinalPiece()) {
             TransformationsPath transformation_path;
@@ -417,8 +453,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
 
             transformation_path.push_back(&T5);
             ModulePath* module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -437,8 +473,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T5);
             transformation_path.push_back(&T6);
             ModulePath* module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -448,8 +484,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T9);
             // delete(module_path);
             module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -470,8 +506,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T6);
             transformation_path.push_back(&T10);
             ModulePath* module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -482,8 +518,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T10);
             // delete(module_path);
             module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -510,8 +546,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T5);
             transformation_path.push_back(&T7);
             ModulePath* module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -532,8 +568,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T6);
             transformation_path.push_back(&T11);
             ModulePath* module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -544,8 +580,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T11);
             // delete(module_path);
             module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -566,8 +602,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T7);
             transformation_path.push_back(&T8);
             ModulePath* module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -579,8 +615,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T8);
             // delete(module_path);
             module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -594,8 +630,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T12);
             // delete(module_path);
             module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -608,8 +644,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T12);
             // delete(module_path);
             module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -621,8 +657,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T12);
             // delete(module_path);
             module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -689,8 +725,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T7);
             transformation_path.push_back(&T8);
             ModulePath* module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -703,8 +739,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T12);
             // delete(module_path);
             module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -753,8 +789,8 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
             transformation_path.push_back(&T11);
             transformation_path.push_back(&T12);
             ModulePath* module_path = searchMachines(order, transformation_path);
-            if (module_path && module_path->time < best_module_path->time) {
-                delete(best_module_path);
+            if (module_path && (!best_module_path || module_path->time < best_module_path->time)) {
+                if (best_module_path) delete(best_module_path);
                 best_module_path = module_path;
                 delete(best_transformations_path);
                 best_transformations_path = copyTransformationsPath(transformation_path);
@@ -903,6 +939,7 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     }
     ////////////////////////////////////////////////////// UNLOAD ORDERS ///////////////////////////////////////////////////
     else if (order.GetType() == Order::ORDER_TYPE_UNLOAD) {
+        std::cout << "Part of type " << std::to_string(order.GetInitialPiece()) << " to P" << std::to_string(order.GetFinalPiece()) << std::endl;
 
         if (!pushers[order.GetFinalPiece()-1]->isSpaceAvailable()) {
             delete(path);
@@ -925,6 +962,8 @@ PathFinder::ModulePath* PathFinder::PathFinder::searchMachines(Order::BaseOrder&
         if (!machines[machine]->canDoTransformation(*list.front())) {
             continue;
         }
+
+        if (machines[machine]->queuedFirstOperations()) continue;
 
         bool tagged = false;
         for ( int tester = Block::A1; tester != Block::C3; tester++) {
