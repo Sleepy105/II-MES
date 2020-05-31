@@ -395,43 +395,39 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
     if (order.GetType() == Order::ORDER_TYPE_TRANSFORMATION) {
         std::cout << std::to_string(order.GetInitialPiece()) << " " << std::to_string(order.GetFinalPiece()) << std::endl;
 
-        for ( int blockInt = Block::A1; blockInt <= Block::C3; blockInt++ ) {
-            Block block = static_cast<Block>(blockInt);
-            std::cout << "Machine C" << machines[block]->getCell() << " R" << machines[block]->getRow() << " has " << machines[block]->queuedOperations() << " operations queued." << std::endl;
-        }
-        std::cout << "A1 --> " << (*(OPCUA_Manager*)opc).pieces_MA1.size() <<  " --> ";
+        std::cout << "A1 --> " << machines[Block::A1]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MA1.size() <<  " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MA1.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MA1.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
-        std::cout << "A2 --> " << (*(OPCUA_Manager*)opc).pieces_MA2.size() << " --> ";
+        std::cout << "A2 --> " << machines[Block::A2]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MA2.size() << " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MA2.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MA2.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
-        std::cout << "A3 --> " << (*(OPCUA_Manager*)opc).pieces_MA3.size() << " --> ";
+        std::cout << "A3 --> " << machines[Block::A3]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MA3.size() << " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MA3.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MA3.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
-        std::cout << "B1 --> " << (*(OPCUA_Manager*)opc).pieces_MB1.size() << " --> ";
+        std::cout << "B1 --> " << machines[Block::B1]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MB1.size() << " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MB1.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MB1.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
-        std::cout << "B2 --> " << (*(OPCUA_Manager*)opc).pieces_MB2.size() << " --> ";
+        std::cout << "B2 --> " << machines[Block::B2]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MB2.size() << " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MB2.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MB2.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
-        std::cout << "B3 --> " << (*(OPCUA_Manager*)opc).pieces_MB3.size() << " --> ";
+        std::cout << "B3 --> " << machines[Block::B3]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MB3.size() << " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MB3.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MB3.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
-        std::cout << "C1 --> " << (*(OPCUA_Manager*)opc).pieces_MC1.size() << " --> ";
+        std::cout << "C1 --> " << machines[Block::C1]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MC1.size() << " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MC1.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MC1.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
-        std::cout << "C2 --> " << (*(OPCUA_Manager*)opc).pieces_MC2.size() << " --> ";
+        std::cout << "C2 --> " << machines[Block::C2]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MC2.size() << " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MC2.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MC2.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
-        std::cout << "C3 --> " << (*(OPCUA_Manager*)opc).pieces_MC3.size() << " --> ";
+        std::cout << "C3 --> " << machines[Block::C3]->queuedOperations() << "/" << (*(OPCUA_Manager*)opc).pieces_MC3.size() << " --> ";
         for (auto iter = (*(OPCUA_Manager*)opc).pieces_MC3.begin(); iter != (*(OPCUA_Manager*)opc).pieces_MC3.end(); iter++) {
             std::cout << *iter << " ";
         } std::cout << std::endl;
