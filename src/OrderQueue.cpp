@@ -124,6 +124,7 @@ bool OrderQueue::RestoreLoadUnload(InformationDisInc LoadUndload)
 	}
 		
 	Order::BaseOrder aux = Order::BaseOrder(LoadUndload.order_pk, type_int, LoadUndload.count, LoadUndload.initialPiece, LoadUndload.finalPiece);
+	aux.SetPK(LoadUndload.order_pk);
 	orders_.push_back(aux);
 	for(int i = 0; i < LoadUndload.vectorPiecePosition; i++) {
 		orders_.back().AddPiece(Order::Piece(LoadUndload.pieces[i].id_piece));
@@ -133,7 +134,9 @@ bool OrderQueue::RestoreLoadUnload(InformationDisInc LoadUndload)
 
 bool OrderQueue::RestoreTrans(Transformation temp)
 {
-	orders_.push_back(Order::BaseOrder(temp.order_pk, Order::ORDER_TYPE_TRANSFORMATION, temp.count, temp.initialPiece, temp.finalPiece, temp.Deadline));
+	Order::BaseOrder aux = Order::BaseOrder(temp.order_pk, Order::ORDER_TYPE_TRANSFORMATION, temp.count, temp.initialPiece, temp.finalPiece, temp.Deadline);
+	aux.SetPK(temp.order_pk);
+	orders_.push_back(aux);
 	for(int i = 0; i < temp.vectorPiecePosition; i++) {
 		orders_.back().AddPiece(Order::Piece(temp.pieces[i].id_piece));
 	}
@@ -223,8 +226,6 @@ Order::Piece OrderQueue::GetPieceFromID(uint32_t target_id){
 
 Order::BaseOrder OrderQueue::GetOrderFromPieceID(uint32_t target_id){
 
-	uint8_t removed_piece_type;
-
 	std::list<Order::BaseOrder>::iterator orders_iter_;
 	std::list<Order::Piece>::iterator pieces_iter_;
 	std::list<Order::Piece> *piece_list;
@@ -241,6 +242,19 @@ Order::BaseOrder OrderQueue::GetOrderFromPieceID(uint32_t target_id){
 	}
 	meslog(ERROR) << "Couldn't find Piece " << target_id << " in Order Queue!" << std::endl;
 	return Order::BaseOrder(0, Order::NULL_ORDER); // end of function reached only if piece was not found
+}
+
+Order::BaseOrder *OrderQueue::GetOrderFromPK(int pk){
+	std::list<Order::BaseOrder>::iterator orders_iter_;
+
+	for (orders_iter_ = orders_.begin(); orders_iter_ != orders_.end(); orders_iter_++){
+		Order::BaseOrder& order = *orders_iter_;
+		if (order.GetPK() == pk){
+			return &order;
+		}
+	}
+
+	return NULL;
 }
 
 /*

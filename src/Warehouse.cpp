@@ -49,4 +49,11 @@ bool Warehouse::RestoreStatus(int *information){
 }
 
 
+void Warehouse::print(){
+    std::cout << "Warehouse Contents in MES." << std::endl;
+    for (int i = 0; i < 9; i++){
+        std::cout << (int)pieceTypeCount_[i] << " P" + std::to_string(i+1) + " pieces." << std::endl;
+    }
+}
+
 
