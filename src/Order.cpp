@@ -138,10 +138,10 @@ void BaseOrder::print(){
         break;
     }
     if (pieces.size() == 0){
-        std::cout << "\t" << type << "Order " << order_id << " has no pieces in factory floor." << std::endl;
+        std::cout << "\t|\n\t|->" << type << "Order " << order_id << " has " << count << " pieces waitting to be processed and no pieces in factory floor." << std::endl;
         return;
     }
-    std::cout << "\t" << type << "Order " << order_id << " has " << pieces.size() << " piece(s) in factory floor:" << std::endl;
+    std::cout << "\t|\n\t|->" << type << "Order " << order_id << " has " << count << " pieces waitting to be processed and " << pieces.size() << " piece(s) in factory floor:" << std::endl;
     std::list<Piece>::iterator iter;
     for (iter = pieces.begin(); iter != pieces.end(); iter++){
         iter->print();
@@ -177,10 +177,5 @@ void Piece::SetPath(Path* new_path){
 }
 
 void Piece::print(){
-    uint8_t* moves = GetMoves();
-    if (!moves) {
-        std::cout << "\t\tPiece " << GetID() << " has no path recorded in MES" << std::endl;
-        return;
-    }
-    std::cout << "\t\tPiece " << GetID() << " has path: {" << (int)moves[0] << ", " << (int)moves[1] << ", " << (int)moves[2] << ", " << (int)moves[3] << "...}" << std::endl;
+    std::cout << "\t|\t|-> Piece " << GetID() << std::endl;
 }

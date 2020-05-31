@@ -2,6 +2,7 @@
 #define _WAREHOUSE_HPP
 
 #include <iostream>
+#include <string>
 
 class Warehouse{
 private:
@@ -16,6 +17,8 @@ public:
     bool RemovePiece(uint8_t type);
     uint8_t GetPieceCount(uint8_t type);
     bool RestoreStatus(int *information);
+
+    void print();
 };
 
 #endif

@@ -52,7 +52,10 @@ int main (int argc, char const *argv[]) {
         for(int i = 0; i < RestoreOrders.vectorPositionTransformation; i++) {
             order_queue.RestoreTrans(RestoreOrders.RestoreTransformation[i]);
         }
+        printf("\n\n\n");
         order_queue.print();
+        warehouse.print();
+        printf("\n\nEnd reached\n\n\n");
     }
 
     // deleteData(dir); // usado so para teste
