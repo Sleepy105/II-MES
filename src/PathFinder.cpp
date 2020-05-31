@@ -266,6 +266,19 @@ uint PathFinder::Machine::queuedOperations() {
     return operation_queue.size();
 }
 
+uint PathFinder::Machine::queuedFirstOperations() {
+    uint ret = 0;
+    for (auto iter = operation_queue.begin();
+            iter != operation_queue.end();
+            iter++)
+    {
+        if ((*iter)->firstMachine) {
+            ret++;
+        }
+    }
+    return ret;
+}
+
 void PathFinder::Pusher::setOPCpointer(void* ptr) {
     opc = ptr;
 }
@@ -836,6 +849,7 @@ Path* PathFinder::PathFinder::FindPath(Order::BaseOrder &order) {
                             Machine::Operation* op = new Machine::Operation;
                             op->type = Machine::OperationType::PartTransformation;
                             op->transformation = transformations[i];
+                            op->firstMachine = (t_iter == best_transformations_path->begin());
                             machines[block]->addOperation(op);
 
                             if (machines[block]->requiresToolChange(*(transformations[i]))) {
@@ -915,7 +929,7 @@ PathFinder::ModulePath* PathFinder::PathFinder::searchMachines(Order::BaseOrder&
         bool tagged = false;
         for ( int tester = Block::A1; tester != Block::C3; tester++) {
             if (machines[tester]->getCell() == machines[machine]->getCell()) {
-                if (machines[tester]->queuedOperations() > 1) {
+                if (machines[tester]->queuedFirstOperations() > 1) {
                     // Do not use this cell as start cell
                     tagged = true;
                     break;

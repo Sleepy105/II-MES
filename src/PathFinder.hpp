@@ -51,6 +51,7 @@ public:
     typedef struct {
         OperationType type;
         Transformation* transformation = NULL;
+        bool firstMachine = false;
     } Operation;
 protected:
     Machine* modules[5] = {NULL};
@@ -168,6 +169,8 @@ public:
     void removeOperation();
 
     uint queuedOperations();
+
+    uint queuedFirstOperations();
 };
 
 class PathFinder::Pusher {
