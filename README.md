@@ -19,7 +19,7 @@ Note: Install clang or edit the Makefile to use GCC.
 
 ## Executing
 
-1. ```$ make run```
+1. ```$ make run``` or ```$ ./MES.out```
 2. Send your XML commands to the 54321 UDP port. Expect to receive responses on this same port.
 
 ## DataBase
